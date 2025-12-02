@@ -5,12 +5,19 @@ CREATE TABLE artist (
     href        TEXT
 );
 
+--junction table representing many to many (many artists can have many songs, and many songs can have many artists)
+CREATE TABLE artists_songs(
+    artist_id   VARCHAR(64) NOT NULL REFERENCES artist(artist_id),
+    song_id     VARCHAR(64) NOT NULL REFERENCES song(song_id),
+    PRIMARY KEY (artist_id, song_id)
+)
+
+
 -- 02_song.sql
 CREATE TABLE song (
     song_id      VARCHAR(64) PRIMARY KEY,
     name         TEXT        NOT NULL,
     duration_ms  INTEGER     NOT NULL,
-    artist_id    VARCHAR(64) NOT NULL REFERENCES artist(artist_id),
     href         TEXT
 );
 
@@ -23,12 +30,17 @@ CREATE TABLE listeners (
     href          TEXT
 );
 
+CREATE TABLE listeners_playlists(
+    listener_id  VARCHAR(64) NOT NULL REFERENCES listeners(listener_id),
+    playlist_id  VARCHAR(64) NOT NULL REFERENCES playlists(playlist_id),
+    PRIMARY KEY (listener_id, playlist_id)
+)
+
 -- 04_playlists.sql
 CREATE TABLE playlists (
     playlist_id   VARCHAR(64) PRIMARY KEY,
     name          TEXT        NOT NULL,
     owner_id      VARCHAR(64) NOT NULL REFERENCES listeners(listener_id),
-    song_id       VARCHAR(64) NOT NULL REFERENCES song(song_id),
     is_public     BOOLEAN     NOT NULL DEFAULT TRUE,
     href          TEXT
 );
@@ -40,6 +52,12 @@ CREATE TABLE history (
     song_id      VARCHAR(64) NOT NULL REFERENCES song(song_id),
     played_at    TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE playlists_songs(
+    playlist_id  VARCHAR(64) NOT NULL REFERENCES playlists(playlist_id),
+    song_id      VARCHAR(64) NOT NULL REFERENCES song(song_id),
+    PRIMARY KEY (playlist_id, song_id)
+)
 
 --From root
 --docker compose up -d
