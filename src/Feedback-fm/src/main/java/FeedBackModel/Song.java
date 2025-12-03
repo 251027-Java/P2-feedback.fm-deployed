@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "songs")
+@Table(name = "song")
 public class Song {
     @Id
     @Column(name = "song_id", length = 64)
@@ -26,13 +26,25 @@ public class Song {
     @Column(columnDefinition = "TEXT")
     private String href;
 
-    @ManyToMany(mappedBy = "song")
+    @Column(name = "duration_ms", nullable = false)
+    private Integer durationMs;
+
+    @ManyToMany // defining the junction table to represent many to many
+    @JoinTable(
+        name = "artists_songs",
+        joinColumns = @JoinColumn(name = "song_id"),
+        inverseJoinColumns = @JoinColumn(name = "artist_id")    
+    )
     private Set<Artist> artists = new HashSet<>();
 
+    @ManyToMany(mappedBy = "songs")
+    private Set<Playlist> playlists = new HashSet<>();
+
     public Song() {}
-    public Song(String songId, String name, String href) {
+    public Song(String songId, String name, Integer durationMs, String href) {
         this.songId = songId;
         this.name = name;
+        this.durationMs = durationMs;
         this.href = href;
     }
 
@@ -52,6 +64,14 @@ public class Song {
         this.name = name;
     }
 
+    public Set<Playlist> getPlaylists() {
+        return playlists;
+    }
+
+    public void setPlaylists(Set<Playlist> playlists) {
+        this.playlists = playlists;
+    }
+
     public String getHref() {
         return href;
     }
@@ -68,11 +88,20 @@ public class Song {
         this.artists = artists;
     }
 
+    public Integer getDurationMs() {
+        return durationMs;
+    }
+
+    public void setDurationMs(Integer durationMs) {
+        this.durationMs = durationMs;
+    }
+
     @Override
     public String toString() {
         return "Songs{" +
                 "songId='" + songId + '\'' +
                 ", name='" + name + '\'' +
+                ", durationMs=" + durationMs +
                 '}';
     }
 }
