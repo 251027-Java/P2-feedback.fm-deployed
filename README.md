@@ -22,6 +22,15 @@ Group project 1 is a full-stack web application that allows users to view their 
 - PostgreSQL
 - Docker
 
+### Ensure you have:
+- Node.js v16 or higher
+- npm
+- Java JDK 17 or higher
+- Maven v3.8 or higher
+- DOcker
+- Git
+- Spotify Account (for API credentials)
+
 ## Installation
 
 ### 1. Clone the Repo
