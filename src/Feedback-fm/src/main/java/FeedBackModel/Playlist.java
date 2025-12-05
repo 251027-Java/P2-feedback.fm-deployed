@@ -1,9 +1,7 @@
 package feedbackmodel;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -44,7 +42,7 @@ import jakarta.persistence.Table;
         private List<Song> songs = new ArrayList<>();
 
         public Playlist() {}
-        public Playlist(String playlistId, String name, String href) {
+        public Playlist(String playlistId, String name, String href, Boolean isPublic, Listener owner) {
             this.playlistId = playlistId;
             this.isPublic = isPublic;
             this.owner = owner;
