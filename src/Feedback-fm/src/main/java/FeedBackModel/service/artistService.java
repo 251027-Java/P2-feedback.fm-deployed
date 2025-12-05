@@ -1,82 +1,84 @@
 package FeedBackModel.service;
 
+import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import feedbackmodel.Artist;
+import FeedBackModel.Artist;
 
 @Service
-@Transactional
 public class artistService {
 
-    private final artistRepository artistRepo;
+    // Fields
+    private final artistRepository repository;
 
-    @Autowired
-    public artistService(artistRepository artistRepo) {
-        this.artistRepo = artistRepo;
+    // Constructor
+    public artistService(artistRepository repository) {
+        this.repository = repository;
     }
 
-    // get artist by artist ID (Spotify ID, which is the primary key)
-    public Artist getArtistById(String artistId) {
-        return artistRepo.findById(artistId)
-        .orElseThrow(() -> new RuntimeException("Artist not found: " + artistId));
+    // Methods
+
+    public List<Artist> getAll() {
+        return repository.findAll();
     }
 
-    // get artist by name
-    public Artist getArtistByName(String name) {
-        return artistRepo.findByName(name)
-        .orElseThrow(() -> new RuntimeException("Artist not found: " + name));
+    public Artist getById(String id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artist not found"));
     }
 
-    // create new artist from spotify profile
-    // should be called when processing Spotify API data
-    public Artist createArtist(String artistId, String name, String href) {
-        // check if artist already exists
-        Optional<Artist> existingArtist = artistRepo.findById(artistId);
+    public Artist getByName(String name) {
+        return repository.findByName(name)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artist not found: " + name));
+    }
+
+    public Artist create(String artistId, String name, String href) {
+        // Check if artist already exists
+        Optional<Artist> existingArtist = repository.findById(artistId);
         if (existingArtist.isPresent()) {
-            return updateArtist(artistId, name, href);
+            return update(artistId, name, href);
         }
 
-        // if artist does not exist
-        Artist a = new Artist(artistId, name, href);
-        
-        return artistRepo.save(a);
+        // If artist does not exist, create new one
+        Artist artist = new Artist(artistId, name, href);
+        return repository.save(artist);
     }
 
-    // update artist from spotify profile
-    public Artist updateArtist(String artistId, String name, String href) {
-        Artist a = getArtistById(artistId);
+    public Artist update(String id, String name, String href) {
+        Artist artist = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artist not found"));
+
         if (name != null) {
-            a.setName(name);
+            artist.setName(name);
         }
         if (href != null) {
-            a.setHref(href);
+            artist.setHref(href);
         }
-        return artistRepo.save(a);
+
+        return repository.save(artist);
     }
 
-    // delete artist
-    public void deleteArtist(String artistId) {
-        Artist a = getArtistById(artistId);
-        artistRepo.delete(a);
+    public void delete(String id) {
+        repository.deleteById(id);
     }
 
-    // checks to see if artist already exists
-    public boolean artistExists(String artistId) {
-        return artistRepo.findById(artistId).isPresent();
+    // Additional helper methods
+
+    public boolean exists(String artistId) {
+        return repository.findById(artistId).isPresent();
     }
 
-    public boolean artistExistsByName(String name) {
-        return artistRepo.findByName(name).isPresent();
+    public boolean existsByName(String name) {
+        return repository.findByName(name).isPresent();
     }
 
-    // gets or creates artist
     public Artist getOrCreate(String artistId, String name, String href) {
-        return artistRepo.findById(artistId)
-            .map(a -> updateArtist(artistId, name, href))
-            .orElseGet(() -> createArtist(artistId, name, href));
+        return repository.findById(artistId)
+                .map(a -> update(artistId, name, href))
+                .orElseGet(() -> create(artistId, name, href));
     }
 }

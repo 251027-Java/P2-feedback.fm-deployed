@@ -1,4 +1,4 @@
-package feedbackmodel;
+package FeedBackModel;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,12 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-
-
-
-
-
-
 
 @Entity // Tells JPA this is a database entity
 @Table(name = "artist") // Maps to a database table

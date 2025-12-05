@@ -72,6 +72,7 @@ public class userService {
         userRepo.delete(u);
     }
 
+    // checks to see if user already exist
     public boolean userExistsSpotify(String sID) {
         return userRepo.findBySpotifyId(sID).isPresent();
     }
@@ -80,6 +81,7 @@ public class userService {
         return userRepo.findByEmail(email).isPresent();
     }
 
+    // gets or creates user
     public User getOrCreate(String sID, String username, String email, String pfpURL) {
         return userRepo.findBySpotifyId(sID).map(u -> updateUser(u, sID, username, email, pfpURL)).orElseGet(() -> createUser(sID, username, email, pfpURL));
     }
