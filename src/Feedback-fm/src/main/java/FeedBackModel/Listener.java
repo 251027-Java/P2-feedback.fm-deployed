@@ -1,9 +1,14 @@
 package feedbackmodel;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 
 @Entity
 @Table(name = "listener")
@@ -26,12 +31,11 @@ public class Listener {
     private String href;
 
 
-    /* @OneToMany(mappedBy = "owner")
-    private Set<Feedback> feedback = new HashSet<>(); 
+    @OneToMany(mappedBy = "owner")
+    private Set<Playlist> playlists = new HashSet<>(); 
     
     @OneToMany(mappedBy = "listener", cascade = CascadeType.ALL)
     private Set<History> history = new HashSet<>();
-    */
 
     public Listener() {}
     public Listener(String listenerId, String displayName, String email, String country, String href) {
@@ -80,6 +84,22 @@ public class Listener {
 
     public void setHref(String href) {
         this.href = href;
+    }
+
+    public Set<Playlist> getPlaylists() {
+        return playlists;
+    }
+
+    public void setPlaylists(Set<Playlist> playlists) {
+        this.playlists = playlists;
+    }
+
+    public Set<History> getHistory() {
+        return history;
+    }
+
+    public void setHistory(Set<History> history) {
+        this.history = history;
     }
 
     @Override

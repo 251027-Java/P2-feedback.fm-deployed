@@ -30,12 +30,6 @@ CREATE TABLE listeners (
     href          TEXT
 );
 
-CREATE TABLE listeners_playlists(
-    listener_id  VARCHAR(64) NOT NULL REFERENCES listeners(listener_id),
-    playlist_id  VARCHAR(64) NOT NULL REFERENCES playlists(playlist_id),
-    PRIMARY KEY (listener_id, playlist_id)
-)
-
 -- 04_playlists.sql
 CREATE TABLE playlists (
     playlist_id   VARCHAR(64) PRIMARY KEY,

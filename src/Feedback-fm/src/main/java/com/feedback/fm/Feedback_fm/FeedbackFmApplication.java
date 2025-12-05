@@ -1,4 +1,4 @@
-package com.feedback.fm.Feedback_fm;
+package com.feedback.fm.feedback_fm;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
