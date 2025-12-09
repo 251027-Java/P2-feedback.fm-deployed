@@ -37,8 +37,6 @@ public class Album {
     @ManyToMany(mappedBy = "albums")
     private Set<Song> songs = new HashSet<>();
 
-    public Album() {}
-
     public Album(String albumId, String title, Integer releaseYear, String href) {
         this.albumId = albumId;
         this.title = title;

@@ -33,8 +33,6 @@ public class Artist {
     @OneToMany(mappedBy = "artist")
     private Set<Album> albums = new HashSet<>();
 
-    public Artist () {}
-
     public Artist(String artistId, String name, String href) {
         this.artistId = artistId;
         this.name = name;
