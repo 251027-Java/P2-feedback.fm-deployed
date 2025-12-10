@@ -53,6 +53,20 @@ CREATE TABLE playlists_songs(
     PRIMARY KEY (playlist_id, song_id)
 )
 
+CREATE TABLE album (
+    album_id     VARCHAR(64) PRIMARY KEY,
+    title        TEXT        NOT NULL,
+    release_year INTEGER,
+    href         TEXT,
+    artist_id    VARCHAR(64) NOT NULL REFERENCES artist(artist_id)
+);
+
+CREATE TABLE albums_songs(
+    album_id  VARCHAR(64) NOT NULL REFERENCES album(album_id),
+    song_id   VARCHAR(64) NOT NULL REFERENCES song(song_id),
+    PRIMARY KEY (album_id, song_id)
+);
+
 --From root
 --docker compose up -d
 
