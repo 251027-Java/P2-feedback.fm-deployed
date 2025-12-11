@@ -15,21 +15,19 @@ public class ArtistController {
 	@GetMapping
 	public ResponseEntity<List<Map<String, Object>>> getAllArtists(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size, @RequestParam(required = false) String query) {
 		List<Map<String, Object>> artists = List.of(
-			Map.of("artistId", 1L, "name", "The Beatles", "genre", "Rock", "popularity", 95),
-			Map.of("artistId", 2L, "name", "Daft Punk", "genre", "Electronic", "popularity", 88)
+			Map.of("artistId", "artist1", "name", "The Beatles", "href", "https://open.spotify.com/artist/3WrFJ7ztbogyGnTHbHJFl2"),
+			Map.of("artistId", "artist2", "name", "Daft Punk", "href", "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi")
 		);
 		return ResponseEntity.ok(artists);
 	}
 
 	// Get specific artist by ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> getArtistById(@PathVariable Long id) {
+	public ResponseEntity<Map<String, Object>> getArtistById(@PathVariable String id) {
 		Map<String, Object> artist = Map.of(
 			"artistId", id,
 			"name", "The Beatles",
-			"genre", "Rock",
-			"popularity", 95,
-			"followers", 2000000
+			"href", "https://open.spotify.com/artist/3WrFJ7ztbogyGnTHbHJFl2"
 		);
 		return ResponseEntity.ok(artist);
 	}
@@ -38,9 +36,9 @@ public class ArtistController {
 	@PostMapping
 	public ResponseEntity<Map<String, Object>> createArtist(@RequestBody Map<String, Object> artistData) {
 		Map<String, Object> newArtist = Map.of(
-			"artistId", 999L,
+			"artistId", "new-artist-id",
 			"name", artistData.getOrDefault("name", "Unknown Artist"),
-			"genre", artistData.getOrDefault("genre", "Unknown"),
+			"href", artistData.getOrDefault("href", ""),
 			"message", "Artist created successfully"
 		);
 		return ResponseEntity.status(201).body(newArtist);
@@ -49,7 +47,7 @@ public class ArtistController {
 	// Update artist details (admin only)
 	@PutMapping("/{id}")
 	public ResponseEntity<Map<String, Object>> updateArtist(
-			@PathVariable Long id,
+			@PathVariable String id,
 			@RequestBody Map<String, Object> updates) {
 		Map<String, Object> updatedArtist = Map.of(
 			"artistId", id,
@@ -61,27 +59,27 @@ public class ArtistController {
 
 	// Delete an artist (admin only)
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Map<String, String>> deleteArtist(@PathVariable Long id) {
+	public ResponseEntity<Map<String, String>> deleteArtist(@PathVariable String id) {
 		Map<String, String> response = Map.of("message", "Artist " + id + " deleted successfully");
 		return ResponseEntity.ok(response);
 	}
 
 	// Get songs by artist
 	@GetMapping("/{id}/songs")
-	public ResponseEntity<List<Map<String, Object>>> getArtistSongs(@PathVariable Long id) {
+	public ResponseEntity<List<Map<String, Object>>> getArtistSongs(@PathVariable String id) {
 		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "duration", 259),
-			Map.of("songId", 3L, "title", "Something", "duration", 182)
+			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
+			Map.of("songId", "song3", "name", "Something", "durationMs", 182000)
 		);
 		return ResponseEntity.ok(songs);
 	}
 
 	// Get albums by artist
 	@GetMapping("/{id}/albums")
-	public ResponseEntity<List<Map<String, Object>>> getArtistAlbums(@PathVariable Long id) {
+	public ResponseEntity<List<Map<String, Object>>> getArtistAlbums(@PathVariable String id) {
 		List<Map<String, Object>> albums = List.of(
-			Map.of("albumId", 1L, "title", "Abbey Road", "year", 1969),
-			Map.of("albumId", 2L, "title", "Let It Be", "year", 1970)
+			Map.of("albumId", "album1", "title", "Abbey Road", "releaseYear", 1969),
+			Map.of("albumId", "album2", "title", "Let It Be", "releaseYear", 1970)
 		);
 		return ResponseEntity.ok(albums);
 	}

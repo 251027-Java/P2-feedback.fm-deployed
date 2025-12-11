@@ -14,11 +14,11 @@ public class AlbumController {
 
 	// Get all albums for a user or by artist
 	@GetMapping
-	public ResponseEntity<List<Map<String, Object>>> getAllAlbums(@RequestParam(required = false) Long userId, @RequestParam(required = false) Long artistId) {
+	public ResponseEntity<List<Map<String, Object>>> getAllAlbums(@RequestParam(required = false) String userId, @RequestParam(required = false) String artistId) {
 
 		List<Map<String, Object>> albums = List.of(
-			Map.of("albumId", 1L, "title", "Abbey Road", "artist", "The Beatles", "year", 1969),
-			Map.of("albumId", 2L, "title", "Random Access Memories", "artist", "Daft Punk", "year", 2013)
+			Map.of("albumId", "album1", "title", "Abbey Road", "artistId", "artist1", "releaseYear", 1969),
+			Map.of("albumId", "album2", "title", "Random Access Memories", "artistId", "artist2", "releaseYear", 2013)
 		);
 		return ResponseEntity.ok(albums);
 	}
@@ -26,14 +26,14 @@ public class AlbumController {
 
 	// Get specific album by ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> getAlbumById(@PathVariable Long id) {
+	public ResponseEntity<Map<String, Object>> getAlbumById(@PathVariable String id) {
 
 		Map<String, Object> album = Map.of(
 			"albumId", id,
 			"title", "Abbey Road",
-			"artist", "The Beatles",
-			"year", 1969,
-			"trackCount", 17
+			"artistId", "artist1",
+			"releaseYear", 1969,
+			"href", "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN"
 		);
 		return ResponseEntity.ok(album);
 	}
@@ -44,10 +44,10 @@ public class AlbumController {
 	public ResponseEntity<Map<String, Object>> createAlbum(@RequestBody Map<String, Object> albumData) {
 
 		Map<String, Object> newAlbum = Map.of(
-			"albumId", 999L,
+			"albumId", "new-album-id",
 			"title", albumData.getOrDefault("title", "Untitled Album"),
-			"artist", albumData.getOrDefault("artist", "Unknown Artist"),
-			"year", albumData.getOrDefault("year", 2025),
+			"artistId", albumData.getOrDefault("artistId", "unknown-artist"),
+			"releaseYear", albumData.getOrDefault("releaseYear", 2025),
 			"message", "Album created successfully"
 		);
 		return ResponseEntity.status(201).body(newAlbum);
@@ -56,13 +56,13 @@ public class AlbumController {
 
 	// Update album details ADMIN ONLY (we can take this out later if not needed)
 	@PutMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> updateAlbum(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+	public ResponseEntity<Map<String, Object>> updateAlbum(@PathVariable String id, @RequestBody Map<String, Object> updates) {
 
 		Map<String, Object> updatedAlbum = Map.of(
 			"albumId", id,
 			"title", updates.getOrDefault("title", "Updated Album"),
-			"artist", updates.getOrDefault("artist", "Updated Artist"),
-			"year", updates.getOrDefault("year", 2025),
+			"artistId", updates.getOrDefault("artistId", "updated-artist"),
+			"releaseYear", updates.getOrDefault("releaseYear", 2025),
 			"message", "Album updated successfully"
 		);
 		return ResponseEntity.ok(updatedAlbum);
@@ -71,7 +71,7 @@ public class AlbumController {
 
 	// Delete an album ADMIN ONLY (we can take this out later if not needed)
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Map<String, String>> deleteAlbum(@PathVariable Long id) {
+	public ResponseEntity<Map<String, String>> deleteAlbum(@PathVariable String id) {
 
 		Map<String, String> response = Map.of(
 			"message", "Album " + id + " deleted successfully"
@@ -82,11 +82,11 @@ public class AlbumController {
 
 	// Get songs for an album
 	@GetMapping("/{id}/songs")
-	public ResponseEntity<List<Map<String, Object>>> getAlbumSongs(@PathVariable Long id) {
+	public ResponseEntity<List<Map<String, Object>>> getAlbumSongs(@PathVariable String id) {
 
 		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "duration", 259),
-			Map.of("songId", 2L, "title", "Something", "duration", 182)
+			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
+			Map.of("songId", "song2", "name", "Something", "durationMs", 182000)
 		);
 		return ResponseEntity.ok(songs);
 	}
@@ -97,8 +97,8 @@ public class AlbumController {
 	public ResponseEntity<List<Map<String, Object>>> searchAlbums(@RequestParam String query) {
 
 		List<Map<String, Object>> results = List.of(
-			Map.of("albumId", 1L, "title", "Abbey Road", "artist", "The Beatles"),
-			Map.of("albumId", 3L, "title", "Abacab", "artist", "Genesis")
+			Map.of("albumId", "album1", "title", "Abbey Road", "artistId", "artist1"),
+			Map.of("albumId", "album3", "title", "Abacab", "artistId", "artist3")
 		);
 		return ResponseEntity.ok(results);
 	}
