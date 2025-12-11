@@ -13,20 +13,20 @@ public class HistoryController {
 
 	// Get listening history for a user with optional filters
 	@GetMapping
-	public ResponseEntity<List<Map<String, Object>>> getListeningHistory(@RequestParam Long userId, @RequestParam(required = false) String dateRange, @RequestParam(required = false) String query) {
+	public ResponseEntity<List<Map<String, Object>>> getListeningHistory(@RequestParam String listenerId, @RequestParam(required = false) String dateRange, @RequestParam(required = false) String query) {
 		List<Map<String, Object>> history = List.of(
-			Map.of("historyId", 1L, "songTitle", "Come Together", "artist", "The Beatles", "playedAt", "2024-12-01T10:30:00"),
-			Map.of("historyId", 2L, "songTitle", "Get Lucky", "artist", "Daft Punk", "playedAt", "2024-12-01T09:15:00")
+			Map.of("historyId", 1L, "songId", "song1", "songName", "Come Together", "playedAt", "2024-12-01T10:30:00"),
+			Map.of("historyId", 2L, "songId", "song2", "songName", "Get Lucky", "playedAt", "2024-12-01T09:15:00")
 		);
 		return ResponseEntity.ok(history);
 	}
 
 	// Get recently played songs
 	@GetMapping("/recent")
-	public ResponseEntity<List<Map<String, Object>>> getRecentlyPlayed(@RequestParam Long userId, @RequestParam(defaultValue = "20") int limit) {
+	public ResponseEntity<List<Map<String, Object>>> getRecentlyPlayed(@RequestParam String listenerId, @RequestParam(defaultValue = "20") int limit) {
 		List<Map<String, Object>> recentSongs = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "artist", "The Beatles", "playedAt", "2024-12-01T10:30:00"),
-			Map.of("songId", 2L, "title", "Get Lucky", "artist", "Daft Punk", "playedAt", "2024-12-01T09:15:00")
+			Map.of("songId", "song1", "name", "Come Together", "playedAt", "2024-12-01T10:30:00"),
+			Map.of("songId", "song2", "name", "Get Lucky", "playedAt", "2024-12-01T09:15:00")
 		);
 		return ResponseEntity.ok(recentSongs);
 	}
@@ -36,7 +36,7 @@ public class HistoryController {
 	public ResponseEntity<Map<String, Object>> addHistoryRecord(@RequestBody Map<String, Object> historyData) {
 		Map<String, Object> response = Map.of(
 			"historyId", 999L,
-			"userId", historyData.get("userId"),
+			"listenerId", historyData.get("listenerId"),
 			"songId", historyData.get("songId"),
 			"playedAt", historyData.getOrDefault("playedAt", "2024-12-01T12:00:00"),
 			"message", "History record added successfully"
@@ -53,7 +53,7 @@ public class HistoryController {
 
 	// Get listening statistics for a user
 	@GetMapping("/stats")
-	public ResponseEntity<Map<String, Object>> getHistoryStats(@RequestParam Long userId) {
+	public ResponseEntity<Map<String, Object>> getHistoryStats(@RequestParam String listenerId) {
 		Map<String, Object> stats = Map.of(
 			"totalSongsPlayed", 3492,
 			"totalListeningTime", "187 hours",

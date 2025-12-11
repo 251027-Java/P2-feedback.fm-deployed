@@ -15,21 +15,20 @@ public class SongController {
 	@GetMapping
 	public ResponseEntity<List<Map<String, Object>>> getAllSongs( @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size, @RequestParam(required = false) String query) {
 		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "artist", "The Beatles", "duration", 259),
-			Map.of("songId", 2L, "title", "Get Lucky", "artist", "Daft Punk", "duration", 248)
+			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000, "href", "https://open.spotify.com/track/2EqlS6tkEnglzr7tkKAAYD"),
+			Map.of("songId", "song2", "name", "Get Lucky", "durationMs", 248000, "href", "https://open.spotify.com/track/2Foc5Q5nqNiosCNqttzHof")
 		);
 		return ResponseEntity.ok(songs);
 	}
 
 	// Get specific song by ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> getSongById(@PathVariable Long id) {
+	public ResponseEntity<Map<String, Object>> getSongById(@PathVariable String id) {
 		Map<String, Object> song = Map.of(
 			"songId", id,
-			"title", "Come Together",
-			"artist", "The Beatles",
-			"album", "Abbey Road",
-			"duration", 259
+			"name", "Come Together",
+			"durationMs", 259000,
+			"href", "https://open.spotify.com/track/2EqlS6tkEnglzr7tkKAAYD"
 		);
 		return ResponseEntity.ok(song);
 	}
@@ -38,9 +37,9 @@ public class SongController {
 	@PostMapping
 	public ResponseEntity<Map<String, Object>> createSong(@RequestBody Map<String, Object> songData) {
 		Map<String, Object> newSong = Map.of(
-			"songId", 999L,
-			"title", songData.getOrDefault("title", "Untitled"),
-			"artist", songData.getOrDefault("artist", "Unknown"),
+			"songId", "new-song-id",
+			"name", songData.getOrDefault("name", "Untitled"),
+			"durationMs", songData.getOrDefault("durationMs", 180000),
 			"message", "Song created successfully"
 		);
 		return ResponseEntity.status(201).body(newSong);
@@ -48,10 +47,10 @@ public class SongController {
 
 	// Update song details (admin only)
 	@PutMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> updateSong(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+	public ResponseEntity<Map<String, Object>> updateSong(@PathVariable String id, @RequestBody Map<String, Object> updates) {
 		Map<String, Object> updatedSong = Map.of(
 			"songId", id,
-			"title", updates.getOrDefault("title", "Updated Song"),
+			"name", updates.getOrDefault("name", "Updated Song"),
 			"message", "Song updated successfully"
 		);
 		return ResponseEntity.ok(updatedSong);
@@ -59,27 +58,27 @@ public class SongController {
 
 	// Delete a song (admin only)
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Map<String, String>> deleteSong(@PathVariable Long id) {
+	public ResponseEntity<Map<String, String>> deleteSong(@PathVariable String id) {
 		Map<String, String> response = Map.of("message", "Song " + id + " deleted successfully");
 		return ResponseEntity.ok(response);
 	}
 
 	// Get songs by artist
 	@GetMapping("/by-artist/{artistId}")
-	public ResponseEntity<List<Map<String, Object>>> getSongsByArtist(@PathVariable Long artistId) {
+	public ResponseEntity<List<Map<String, Object>>> getSongsByArtist(@PathVariable String artistId) {
 		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "duration", 259),
-			Map.of("songId", 3L, "title", "Something", "duration", 182)
+			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
+			Map.of("songId", "song3", "name", "Something", "durationMs", 182000)
 		);
 		return ResponseEntity.ok(songs);
 	}
 
 	// Get songs by album
 	@GetMapping("/by-album/{albumId}")
-	public ResponseEntity<List<Map<String, Object>>> getSongsByAlbum(@PathVariable Long albumId) {
+	public ResponseEntity<List<Map<String, Object>>> getSongsByAlbum(@PathVariable String albumId) {
 		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "trackNumber", 1),
-			Map.of("songId", 2L, "title", "Something", "trackNumber", 2)
+			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
+			Map.of("songId", "song2", "name", "Something", "durationMs", 182000)
 		);
 		return ResponseEntity.ok(songs);
 	}
@@ -88,22 +87,22 @@ public class SongController {
 	@GetMapping("/search")
 	public ResponseEntity<List<Map<String, Object>>> searchSongs(@RequestParam String query) {
 		List<Map<String, Object>> results = List.of(
-			Map.of("songId", 1L, "title", "Come Together", "artist", "The Beatles"),
-			Map.of("songId", 5L, "title", "Come As You Are", "artist", "Nirvana")
+			Map.of("songId", "song1", "name", "Come Together"),
+			Map.of("songId", "song5", "name", "Come As You Are")
 		);
 		return ResponseEntity.ok(results);
 	}
 
 	// Like a song
 	@PostMapping("/{id}/like")
-	public ResponseEntity<Map<String, String>> likeSong(@PathVariable Long id, @RequestParam Long userId) {
+	public ResponseEntity<Map<String, String>> likeSong(@PathVariable String id, @RequestParam String userId) {
 		Map<String, String> response = Map.of("message", "Song " + id + " liked by user " + userId);
 		return ResponseEntity.ok(response);
 	}
 
 	// Unlike a song
 	@DeleteMapping("/{id}/like")
-	public ResponseEntity<Map<String, String>> unlikeSong(@PathVariable Long id, @RequestParam Long userId) {
+	public ResponseEntity<Map<String, String>> unlikeSong(@PathVariable String id, @RequestParam String userId) {
 		Map<String, String> response = Map.of("message", "Song " + id + " unliked by user " + userId);
 		return ResponseEntity.ok(response);
 	}
