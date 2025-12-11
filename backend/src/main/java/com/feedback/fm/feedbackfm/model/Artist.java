@@ -1,8 +1,4 @@
-<<<<<<< HEAD:src/Feedback-fm/src/main/java/FeedBackModel/Artist.java
-package feedbackmodel;
-=======
 package com.feedback.fm.feedbackfm.model;
->>>>>>> 59187a2fff45637794990f3fd15212a98600fe2a:backend/src/main/java/com/feedback/fm/feedbackfm/model/Artist.java
 import java.util.HashSet;
 import java.util.Set;
 import jakarta.persistence.Column;
