@@ -17,6 +17,7 @@ public class ListenerController {
 
     private final ListenerService listenerService;
 
+    @Autowired
     public ListenerController(ListenerService listenerService) {
         this.listenerService = listenerService;
     }
