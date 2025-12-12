@@ -1,5 +1,7 @@
 package com.feedback.fm.feedbackfm.service.spotify;
 
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.SpotifyApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -7,7 +9,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -38,8 +39,7 @@ public class SpotifyAuthService {
                 "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) +
                 "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Error generating authorization URL: " + e.getMessage());
+            throw new SpotifyApiException("Error generating authorization URL: " + e.getMessage(), e);
         }
     }
     
@@ -63,19 +63,16 @@ public class SpotifyAuthService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to exchange code for token");
+                throw new SpotifyApiException("Failed to exchange code for token");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error exchanging code for token: " + e.getMessage());
+            throw new SpotifyApiException("Error exchanging code for token: " + e.getMessage(), e);
         }
     }
     
     public Map<String, Object> refreshToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Refresh token is required");
+            throw new InvalidRequestException("Refresh token is required");
         }
         
         String url = "https://accounts.spotify.com/api/token";
@@ -96,12 +93,10 @@ public class SpotifyAuthService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to refresh token");
+                throw new SpotifyApiException("Failed to refresh token");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error refreshing token: " + e.getMessage());
+            throw new SpotifyApiException("Error refreshing token: " + e.getMessage(), e);
         }
     }
 }

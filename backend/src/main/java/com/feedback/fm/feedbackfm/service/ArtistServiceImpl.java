@@ -1,12 +1,12 @@
 package com.feedback.fm.feedbackfm.service;
 
 import com.feedback.fm.feedbackfm.dtos.ArtistDTO;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
 import com.feedback.fm.feedbackfm.model.Artist;
 import com.feedback.fm.feedbackfm.repository.ArtistRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +32,7 @@ public class ArtistServiceImpl implements ArtistService {
     @Override
     public Optional<ArtistDTO> getById(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Artist ID cannot be null or blank");
+            throw new InvalidRequestException("Artist ID cannot be null or blank");
         }
         return repository.findById(id)
                 .map(this::artistToDto);
@@ -66,8 +65,7 @@ public class ArtistServiceImpl implements ArtistService {
         
         // check existing artist
         if (repository.existsById(dto.artistId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                "Artist with ID '" + dto.artistId() + "' already exists");
+            throw new InvalidRequestException("Artist with ID '" + dto.artistId() + "' already exists");
         }
         
         Artist artist = new Artist(
@@ -82,13 +80,11 @@ public class ArtistServiceImpl implements ArtistService {
     @Transactional
     public ArtistDTO update(String id, ArtistDTO dto) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Artist ID cannot be null or blank");
+            throw new InvalidRequestException("Artist ID cannot be null or blank");
         }
         
         Artist artist = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Artist not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Artist", id));
 
         validateArtistDTO(dto);
         
@@ -102,30 +98,25 @@ public class ArtistServiceImpl implements ArtistService {
     @Transactional
     public void delete(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Artist ID cannot be null or blank");
+            throw new InvalidRequestException("Artist ID cannot be null or blank");
         }
         if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Artist not found with id: " + id);
+            throw new ResourceNotFoundException("Artist", id);
         }
         repository.deleteById(id);
     }
     
     private void validateArtistDTO(ArtistDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Artist data cannot be null");
+            throw new InvalidRequestException("Artist data cannot be null");
         }
         
         if (dto.artistId() == null || dto.artistId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Artist ID is required");
+            throw new InvalidRequestException("Artist ID is required");
         }
         
         if (dto.name() == null || dto.name().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Artist name is required");
+            throw new InvalidRequestException("Artist name is required");
         }
     }
 

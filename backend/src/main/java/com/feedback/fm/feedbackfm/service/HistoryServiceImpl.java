@@ -1,16 +1,16 @@
 package com.feedback.fm.feedbackfm.service;
 
 import com.feedback.fm.feedbackfm.dtos.HistoryDTO;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
 import com.feedback.fm.feedbackfm.model.History;
 import com.feedback.fm.feedbackfm.model.Listener;
 import com.feedback.fm.feedbackfm.model.Song;
 import com.feedback.fm.feedbackfm.repository.HistoryRepository;
 import com.feedback.fm.feedbackfm.repository.ListenerRepository;
 import com.feedback.fm.feedbackfm.repository.SongRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,8 +40,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     public Optional<HistoryDTO> getById(Long id) {
         if (id == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "History ID cannot be null");
+            throw new InvalidRequestException("History ID cannot be null");
         }
         return repository.findById(id)
                 .map(this::historyToDto);
@@ -99,12 +98,10 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     public List<HistoryDTO> findByDateRange(LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Start and end dates are required");
+            throw new InvalidRequestException("Start and end dates are required");
         }
         if (start.isAfter(end)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Start date must be before end date");
+            throw new InvalidRequestException("Start date must be before end date");
         }
         return repository.findByPlayedAtBetween(start, end).stream()
                 .map(this::historyToDto)
@@ -117,12 +114,10 @@ public class HistoryServiceImpl implements HistoryService {
             return List.of();
         }
         if (start == null || end == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Start and end dates are required");
+            throw new InvalidRequestException("Start and end dates are required");
         }
         if (start.isAfter(end)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Start date must be before end date");
+            throw new InvalidRequestException("Start date must be before end date");
         }
         return repository.findByListener_ListenerIdAndPlayedAtBetween(listenerId, start, end).stream()
                 .map(this::historyToDto)
@@ -145,22 +140,18 @@ public class HistoryServiceImpl implements HistoryService {
 
         // Validate and set listener
         if (dto.listenerId() == null || dto.listenerId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener ID is required");
+            throw new InvalidRequestException("Listener ID is required");
         }
         Listener listener = listenerRepository.findById(dto.listenerId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Listener not found with id: " + dto.listenerId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Listener", dto.listenerId()));
         history.setListener(listener);
 
         // Validate and set song (required)
         if (dto.songId() == null || dto.songId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song ID is required");
+            throw new InvalidRequestException("Song ID is required");
         }
         Song song = songRepository.findById(dto.songId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Song not found with id: " + dto.songId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Song", dto.songId()));
         history.setSong(song);
 
         return historyToDto(repository.save(history));
@@ -170,18 +161,15 @@ public class HistoryServiceImpl implements HistoryService {
     @Transactional
     public HistoryDTO update(Long id, HistoryDTO dto) {
         if (id == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "History ID cannot be null");
+            throw new InvalidRequestException("History ID cannot be null");
         }
         
         History history = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "History record not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("History", String.valueOf(id)));
 
         // Validate DTO (but allow partial updates)
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "History data cannot be null");
+            throw new InvalidRequestException("History data cannot be null");
         }
 
         // Update playedAt if provided
@@ -192,16 +180,14 @@ public class HistoryServiceImpl implements HistoryService {
         // Update listener if provided
         if (dto.listenerId() != null && !dto.listenerId().isBlank()) {
             Listener listener = listenerRepository.findById(dto.listenerId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Listener not found with id: " + dto.listenerId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Listener", dto.listenerId()));
             history.setListener(listener);
         }
 
         // Update song if provided (required field, so must be valid)
         if (dto.songId() != null && !dto.songId().isBlank()) {
             Song song = songRepository.findById(dto.songId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Song not found with id: " + dto.songId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Song", dto.songId()));
             history.setSong(song);
         }
 
@@ -212,38 +198,32 @@ public class HistoryServiceImpl implements HistoryService {
     @Transactional
     public void delete(Long id) {
         if (id == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "History ID cannot be null");
+            throw new InvalidRequestException("History ID cannot be null");
         }
         if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "History record not found with id: " + id);
+            throw new ResourceNotFoundException("History", String.valueOf(id));
         }
         repository.deleteById(id);
     }
     
     private void validateHistoryDTO(HistoryDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "History data cannot be null");
+            throw new InvalidRequestException("History data cannot be null");
         }
         
         // Listener ID is required for creation
         if (dto.listenerId() == null || dto.listenerId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener ID is required");
+            throw new InvalidRequestException("Listener ID is required");
         }
         
         // Song ID is required (song is nullable = false in model)
         if (dto.songId() == null || dto.songId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song ID is required");
+            throw new InvalidRequestException("Song ID is required");
         }
         
         // Validate playedAt is not in the future (reasonable business rule)
         if (dto.playedAt() != null && dto.playedAt().isAfter(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Played at date cannot be in the future");
+            throw new InvalidRequestException("Played at date cannot be in the future");
         }
     }
 

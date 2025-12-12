@@ -1,11 +1,12 @@
 package com.feedback.fm.feedbackfm.service.spotify;
 
+import com.feedback.fm.feedbackfm.exception.AuthenticationException;
+import com.feedback.fm.feedbackfm.exception.SpotifyApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
@@ -29,12 +30,10 @@ public class SpotifyApiService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to get current user");
+                throw new SpotifyApiException("Failed to get current user");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error getting current user: " + e.getMessage());
+            throw new SpotifyApiException("Error getting current user: " + e.getMessage(), e);
         }
     }
     
@@ -72,12 +71,10 @@ public class SpotifyApiService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to get top artists");
+                throw new SpotifyApiException("Failed to get top artists");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error getting top artists: " + e.getMessage());
+            throw new SpotifyApiException("Error getting top artists: " + e.getMessage(), e);
         }
     }
     
@@ -96,12 +93,10 @@ public class SpotifyApiService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to get top tracks");
+                throw new SpotifyApiException("Failed to get top tracks");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error getting top tracks: " + e.getMessage());
+            throw new SpotifyApiException("Error getting top tracks: " + e.getMessage(), e);
         }
     }
     
@@ -120,12 +115,10 @@ public class SpotifyApiService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to get recently played");
+                throw new SpotifyApiException("Failed to get recently played");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error getting recently played: " + e.getMessage());
+            throw new SpotifyApiException("Error getting recently played: " + e.getMessage(), e);
         }
     }
     
@@ -147,19 +140,16 @@ public class SpotifyApiService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return response.getBody();
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Failed to get user playlists");
+                throw new SpotifyApiException("Failed to get user playlists");
             }
         } catch (RestClientException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Error getting user playlists: " + e.getMessage());
+            throw new SpotifyApiException("Error getting user playlists: " + e.getMessage(), e);
         }
     }
     
     private HttpHeaders createHeaders(String accessToken) {
         if (accessToken == null || accessToken.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
-                "Access token is required");
+            throw new AuthenticationException("Access token is required");
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);

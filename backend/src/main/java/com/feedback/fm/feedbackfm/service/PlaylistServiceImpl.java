@@ -1,14 +1,14 @@
 package com.feedback.fm.feedbackfm.service;
 
 import com.feedback.fm.feedbackfm.dtos.PlaylistDTO;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
 import com.feedback.fm.feedbackfm.model.Listener;
 import com.feedback.fm.feedbackfm.model.Playlist;
 import com.feedback.fm.feedbackfm.repository.ListenerRepository;
 import com.feedback.fm.feedbackfm.repository.PlaylistRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,8 +36,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Override
     public Optional<PlaylistDTO> getById(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Playlist ID cannot be null or blank");
+            throw new InvalidRequestException("Playlist ID cannot be null or blank");
         }
         return repository.findById(id)
                 .map(this::playlistToDto);
@@ -70,8 +69,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         }
         // Verify owner exists
         if (!listenerRepository.existsById(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Owner not found with id: " + ownerId);
+            throw new ResourceNotFoundException("Owner", ownerId);
         }
         return repository.findAll().stream()
                 .filter(playlist -> playlist.getOwner() != null 
@@ -105,8 +103,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         
         // check existing playlist
         if (repository.existsById(dto.playlistId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                "Playlist with ID '" + dto.playlistId() + "' already exists");
+            throw new InvalidRequestException("Playlist with ID '" + dto.playlistId() + "' already exists");
         }
         
         Playlist playlist = new Playlist();
@@ -119,8 +116,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         // validate and set owner if provided
         if (dto.ownerId() != null && !dto.ownerId().isBlank()) {
             Listener owner = listenerRepository.findById(dto.ownerId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Owner not found with id: " + dto.ownerId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Owner", dto.ownerId()));
             playlist.setOwner(owner);
         }
 
@@ -131,13 +127,11 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Transactional
     public PlaylistDTO update(String id, PlaylistDTO dto) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Playlist ID cannot be null or blank");
+            throw new InvalidRequestException("Playlist ID cannot be null or blank");
         }
         
         Playlist playlist = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Playlist not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Playlist", id));
 
         validatePlaylistDTO(dto);
         
@@ -151,8 +145,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         // validate and set owner if provided
         if (dto.ownerId() != null && !dto.ownerId().isBlank()) {
             Listener owner = listenerRepository.findById(dto.ownerId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Owner not found with id: " + dto.ownerId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Owner", dto.ownerId()));
             playlist.setOwner(owner);
         } else {
             // Allow clearing the owner by setting it to null
@@ -166,30 +159,25 @@ public class PlaylistServiceImpl implements PlaylistService {
     @Transactional
     public void delete(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Playlist ID cannot be null or blank");
+            throw new InvalidRequestException("Playlist ID cannot be null or blank");
         }
         if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Playlist not found with id: " + id);
+            throw new ResourceNotFoundException("Playlist", id);
         }
         repository.deleteById(id);
     }
     
     private void validatePlaylistDTO(PlaylistDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Playlist data cannot be null");
+            throw new InvalidRequestException("Playlist data cannot be null");
         }
         
         if (dto.playlistId() == null || dto.playlistId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Playlist ID is required");
+            throw new InvalidRequestException("Playlist ID is required");
         }
         
         if (dto.name() == null || dto.name().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Playlist name is required");
+            throw new InvalidRequestException("Playlist name is required");
         }
         
         // isPublic defaults to false if not provided, but validate if provided

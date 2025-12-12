@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
         body.put("message", "An unexpected error occurred");
         body.put("path", request.getDescription(false).replace("uri=", ""));
         
-        // Log the full exception for debugging
+        // log the full exception for debugging
         ex.printStackTrace();
         
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);

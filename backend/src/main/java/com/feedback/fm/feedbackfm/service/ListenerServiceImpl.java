@@ -1,12 +1,12 @@
 package com.feedback.fm.feedbackfm.service;
 
 import com.feedback.fm.feedbackfm.dtos.ListenerDTO;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
 import com.feedback.fm.feedbackfm.model.Listener;
 import com.feedback.fm.feedbackfm.repository.ListenerRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +31,7 @@ public class ListenerServiceImpl implements ListenerService {
     @Override
     public Optional<ListenerDTO> getById(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener ID cannot be null or blank");
+            throw new InvalidRequestException("Listener ID cannot be null or blank");
         }
         return repository.findById(id)
                 .map(this::listenerToDto);
@@ -61,8 +60,7 @@ public class ListenerServiceImpl implements ListenerService {
     @Override
     public Optional<ListenerDTO> findByEmail(String email) {
         if (email == null || email.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Email cannot be null or blank");
+            throw new InvalidRequestException("Email cannot be null or blank");
         }
         Listener listener = repository.findByEmail(email);
         return listener != null ? Optional.of(listenerToDto(listener)) : Optional.empty();
@@ -75,16 +73,14 @@ public class ListenerServiceImpl implements ListenerService {
         
         // check existing listener
         if (repository.existsById(dto.listenerId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                "Listener with ID '" + dto.listenerId() + "' already exists");
+            throw new InvalidRequestException("Listener with ID '" + dto.listenerId() + "' already exists");
         }
         
         // check existing email
         if (dto.email() != null && !dto.email().isBlank()) {
             Listener existingListener = repository.findByEmail(dto.email());
             if (existingListener != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                    "Email '" + dto.email() + "' is already registered");
+                throw new InvalidRequestException("Email '" + dto.email() + "' is already registered");
             }
         }
         
@@ -102,13 +98,11 @@ public class ListenerServiceImpl implements ListenerService {
     @Transactional
     public ListenerDTO update(String id, ListenerDTO dto) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener ID cannot be null or blank");
+            throw new InvalidRequestException("Listener ID cannot be null or blank");
         }
         
         Listener listener = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Listener not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Listener", id));
 
         validateListenerDTO(dto);
         
@@ -117,8 +111,7 @@ public class ListenerServiceImpl implements ListenerService {
                 && !dto.email().equals(listener.getEmail())) {
             Listener existingListener = repository.findByEmail(dto.email());
             if (existingListener != null && !existingListener.getListenerId().equals(id)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                    "Email '" + dto.email() + "' is already registered to another listener");
+                throw new InvalidRequestException("Email '" + dto.email() + "' is already registered to another listener");
             }
         }
         
@@ -134,40 +127,34 @@ public class ListenerServiceImpl implements ListenerService {
     @Transactional
     public void delete(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener ID cannot be null or blank");
+            throw new InvalidRequestException("Listener ID cannot be null or blank");
         }
         if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Listener not found with id: " + id);
+            throw new ResourceNotFoundException("Listener", id);
         }
         repository.deleteById(id);
     }
     
     private void validateListenerDTO(ListenerDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener data cannot be null");
+            throw new InvalidRequestException("Listener data cannot be null");
         }
         
         if (dto.listenerId() == null || dto.listenerId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Listener ID is required");
+            throw new InvalidRequestException("Listener ID is required");
         }
         
         // validate email format
         if (dto.email() != null && !dto.email().isBlank()) {
             if (!isValidEmail(dto.email())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Invalid email format: " + dto.email());
+                throw new InvalidRequestException("Invalid email format: " + dto.email());
             }
         }
         
         // validate country code format
         if (dto.country() != null && !dto.country().isBlank()) {
             if (dto.country().length() > 10) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Country code must be 10 characters or less");
+                throw new InvalidRequestException("Country code must be 10 characters or less");
             }
         }
     }

@@ -1,12 +1,12 @@
 package com.feedback.fm.feedbackfm.service;
 
 import com.feedback.fm.feedbackfm.dtos.SongDTO;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
 import com.feedback.fm.feedbackfm.model.Song;
 import com.feedback.fm.feedbackfm.repository.SongRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +32,7 @@ public class SongServiceImpl implements SongService {
     @Override
     public Optional<SongDTO> getById(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song ID cannot be null or blank");
+            throw new InvalidRequestException("Song ID cannot be null or blank");
         }
         return repository.findById(id)
                 .map(this::songToDto);
@@ -82,16 +81,13 @@ public class SongServiceImpl implements SongService {
     @Override
     public List<SongDTO> findByDurationRange(Integer minDuration, Integer maxDuration) {
         if (minDuration == null || maxDuration == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Min and max duration are required");
+            throw new InvalidRequestException("Min and max duration are required");
         }
         if (minDuration < 0 || maxDuration < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Duration must be positive");
+            throw new InvalidRequestException("Duration must be positive");
         }
         if (minDuration > maxDuration) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Min duration must be less than or equal to max duration");
+            throw new InvalidRequestException("Min duration must be less than or equal to max duration");
         }
         return repository.findByDurationMsBetween(minDuration, maxDuration).stream()
                 .map(this::songToDto)
@@ -105,8 +101,7 @@ public class SongServiceImpl implements SongService {
         
         // check existing song
         if (repository.existsById(dto.songId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                "Song with ID '" + dto.songId() + "' already exists");
+            throw new InvalidRequestException("Song with ID '" + dto.songId() + "' already exists");
         }
         
         Song song = new Song(
@@ -122,13 +117,11 @@ public class SongServiceImpl implements SongService {
     @Transactional
     public SongDTO update(String id, SongDTO dto) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song ID cannot be null or blank");
+            throw new InvalidRequestException("Song ID cannot be null or blank");
         }
         
         Song song = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Song not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Song", id));
 
         validateSongDTO(dto);
         
@@ -143,41 +136,34 @@ public class SongServiceImpl implements SongService {
     @Transactional
     public void delete(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song ID cannot be null or blank");
+            throw new InvalidRequestException("Song ID cannot be null or blank");
         }
         if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Song not found with id: " + id);
+            throw new ResourceNotFoundException("Song", id);
         }
         repository.deleteById(id);
     }
     
     private void validateSongDTO(SongDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song data cannot be null");
+            throw new InvalidRequestException("Song data cannot be null");
         }
         
         if (dto.songId() == null || dto.songId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song ID is required");
+            throw new InvalidRequestException("Song ID is required");
         }
         
         if (dto.name() == null || dto.name().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song name is required");
+            throw new InvalidRequestException("Song name is required");
         }
         
         if (dto.durationMs() == null || dto.durationMs() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song duration must be positive");
+            throw new InvalidRequestException("Song duration must be positive");
         }
         
         // Validate reasonable duration (e.g., not more than 24 hours)
         if (dto.durationMs() > 86400000) { // 24 hours in milliseconds
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Song duration cannot exceed 24 hours");
+            throw new InvalidRequestException("Song duration cannot exceed 24 hours");
         }
     }
 

@@ -1,14 +1,14 @@
 package com.feedback.fm.feedbackfm.service;
 
 import com.feedback.fm.feedbackfm.dtos.AlbumDTO;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
 import com.feedback.fm.feedbackfm.model.Album;
 import com.feedback.fm.feedbackfm.model.Artist;
 import com.feedback.fm.feedbackfm.repository.AlbumRepository;
 import com.feedback.fm.feedbackfm.repository.ArtistRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,8 +36,7 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     public Optional<AlbumDTO> getById(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Album ID cannot be null or blank");
+            throw new InvalidRequestException("Album ID cannot be null or blank");
         }
         return repository.findById(id)
                 .map(this::albumToDto);
@@ -60,8 +59,7 @@ public class AlbumServiceImpl implements AlbumService {
         }
         // Validate reasonable year range
         if (releaseYear < 1900 || releaseYear > 2100) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Release year must be between 1900 and 2100");
+            throw new InvalidRequestException("Release year must be between 1900 and 2100");
         }
         return repository.findByReleaseYear(releaseYear).stream()
                 .map(this::albumToDto)
@@ -75,8 +73,7 @@ public class AlbumServiceImpl implements AlbumService {
         }
         // Verify artist exists
         if (!artistRepository.existsById(artistId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Artist not found with id: " + artistId);
+            throw new ResourceNotFoundException("Artist", artistId);
         }
         return repository.findAll().stream()
                 .filter(album -> album.getArtist() != null 
@@ -92,8 +89,7 @@ public class AlbumServiceImpl implements AlbumService {
         
         // check existing album
         if (repository.existsById(dto.albumId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                "Album with ID '" + dto.albumId() + "' already exists");
+            throw new InvalidRequestException("Album with ID '" + dto.albumId() + "' already exists");
         }
         
         Album album = new Album(
@@ -106,8 +102,7 @@ public class AlbumServiceImpl implements AlbumService {
         // validate and set artist if provided
         if (dto.artistId() != null && !dto.artistId().isBlank()) {
             Artist artist = artistRepository.findById(dto.artistId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Artist not found with id: " + dto.artistId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Artist", dto.artistId()));
             album.setArtist(artist);
         }
 
@@ -118,13 +113,11 @@ public class AlbumServiceImpl implements AlbumService {
     @Transactional
     public AlbumDTO update(String id, AlbumDTO dto) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Album ID cannot be null or blank");
+            throw new InvalidRequestException("Album ID cannot be null or blank");
         }
         
         Album album = repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                    "Album not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Album", id));
 
         validateAlbumDTO(dto);
         
@@ -135,8 +128,7 @@ public class AlbumServiceImpl implements AlbumService {
         // validate and set artist if provided
         if (dto.artistId() != null && !dto.artistId().isBlank()) {
             Artist artist = artistRepository.findById(dto.artistId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Artist not found with id: " + dto.artistId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Artist", dto.artistId()));
             album.setArtist(artist);
         } else {
             // Allow clearing the artist by setting it to null
@@ -150,37 +142,31 @@ public class AlbumServiceImpl implements AlbumService {
     @Transactional
     public void delete(String id) {
         if (id == null || id.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Album ID cannot be null or blank");
+            throw new InvalidRequestException("Album ID cannot be null or blank");
         }
         if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                "Album not found with id: " + id);
+            throw new ResourceNotFoundException("Album", id);
         }
         repository.deleteById(id);
     }
     
     private void validateAlbumDTO(AlbumDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Album data cannot be null");
+            throw new InvalidRequestException("Album data cannot be null");
         }
         
         if (dto.albumId() == null || dto.albumId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Album ID is required");
+            throw new InvalidRequestException("Album ID is required");
         }
         
         if (dto.title() == null || dto.title().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Album title is required");
+            throw new InvalidRequestException("Album title is required");
         }
         
         // validate release year if provided
         if (dto.releaseYear() != null) {
             if (dto.releaseYear() < 1900 || dto.releaseYear() > 2100) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Release year must be between 1900 and 2100");
+                throw new InvalidRequestException("Release year must be between 1900 and 2100");
             }
         }
     }

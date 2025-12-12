@@ -5,12 +5,11 @@ A comprehensive step-by-step guide for developing a full-stack Spotify statistic
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Next Steps - Priority Order](#next-steps---priority-order)
-3. [Phase 5: Complete JWT Integration](#phase-5-complete-jwt-integration)
-4. [Phase 6: Exception Handling](#phase-6-exception-handling)
-5. [Phase 7: Testing](#phase-7-testing)
-6. [Phase 8: Frontend Development](#phase-8-frontend-development)
-7. [Phase 9: Documentation](#phase-9-documentation)
-8. [Phase 10: Git Workflow & Best Practices](#phase-10-git-workflow--best-practices)
+3. [Phase 6.3: Update Services to Use Custom Exceptions](#phase-63-update-services-to-use-custom-exceptions)
+4. [Phase 7: Testing](#phase-7-testing)
+5. [Phase 8: Frontend Development](#phase-8-frontend-development)
+6. [Phase 9: Documentation](#phase-9-documentation)
+7. [Phase 10: Git Workflow & Best Practices](#phase-10-git-workflow--best-practices)
 
 ---
 
@@ -29,11 +28,12 @@ A comprehensive step-by-step guide for developing a full-stack Spotify statistic
 - ✅ **Phase 2: Backend Foundation** - Service layer with interfaces, transaction management, validation implemented
 - ✅ **Phase 3: Spotify API Integration** - OAuth flow, API services, authentication controller implemented
 - ✅ **Phase 4: Service Layer Implementation** - SpotifySyncService for data synchronization implemented
-- ✅ **Phase 5: JWT Infrastructure** - JWT utilities, filter, and security config created
+- ✅ **Phase 5: JWT Integration** - JWT utilities, filter, security config, and OAuth callback integration completed
+- ✅ **Phase 6.1: Custom Exceptions** - All custom exception classes created
+- ✅ **Phase 6.2: Global Exception Handler** - GlobalExceptionHandler implemented
 
 #### 🚧 In Progress / Next Steps
-- ⚠️ **Phase 5: JWT Integration** - Need to integrate JWT token generation in SpotifyAuthController callback
-- ⚠️ **Phase 6: Exception Handling** - Custom exceptions and global handler needed
+- ⚠️ **Phase 6.3: Update Services** - Replace ResponseStatusException with custom exceptions in all service implementations
 - ⚠️ **Phase 7: Testing** - Unit and integration tests needed (50%+ coverage, currently only 1 test file)
 - ⚠️ **Phase 8: Frontend Development** - React application needed
 - ⚠️ **Phase 9: Documentation** - API docs, ERD, wireframes needed
@@ -43,299 +43,21 @@ A comprehensive step-by-step guide for developing a full-stack Spotify statistic
 
 ## Next Steps - Priority Order
 
-### 🎯 IMMEDIATE PRIORITY: Complete JWT Integration
+### 🎯 IMMEDIATE PRIORITY: Phase 6.3 - Update Services to Use Custom Exceptions
 
-**Status**: JWT infrastructure exists but is not integrated with OAuth callback.
+**Status**: Custom exceptions and global handler are created, but services still use `ResponseStatusException`.
 
 **What's Done**:
-- ✅ `JwtUtil.java` - Token generation and validation
-- ✅ `JwtAuthenticationFilter.java` - Request filtering
-- ✅ `SecurityConfig.java` - Security configuration
-- ✅ JWT dependencies in `pom.xml`
-- ✅ JWT properties in `application.properties`
+- ✅ Custom exception classes created (`ResourceNotFoundException`, `InvalidRequestException`, `SpotifyApiException`, `AuthenticationException`)
+- ✅ `GlobalExceptionHandler` implemented and ready to handle custom exceptions
 
 **What's Missing**:
-- ❌ `SpotifyAuthController.handleCallback()` does not generate JWT tokens
-- ❌ Currently returns Spotify access token instead of JWT
-- ❌ Frontend cannot authenticate with JWT
+- ❌ Services still throw `ResponseStatusException` instead of custom exceptions
+- ❌ Inconsistent error handling across the application
 
-**Action Required**: Update `SpotifyAuthController` to generate and return JWT tokens after successful OAuth.
+**Action Required**: Replace all `ResponseStatusException` usages with appropriate custom exceptions in service implementations.
 
----
-
-## Phase 5: Complete JWT Integration
-
-### Step 5.1: Update SpotifyAuthController to Generate JWT
-
-**Location**: `backend/src/main/java/com/feedback/fm/feedbackfm/controller/SpotifyAuthController.java`
-
-**Current Issue**: The callback method returns Spotify access tokens directly. It should generate a JWT token for the authenticated user.
-
-**Required Changes**:
-
-1. **Inject JwtUtil**:
-```java
-@Autowired
-private JwtUtil jwtUtil;
-```
-
-2. **Update `handleCallback()` method** to generate JWT after successful authentication:
-```java
-@GetMapping("/callback")
-public ResponseEntity<Map<String, Object>> handleCallback(@RequestParam String code) {
-    try {
-        // Exchange code for access token
-        Map<String, Object> tokenResponse = authService.exchangeCodeForToken(code);
-        String accessToken = (String) tokenResponse.get("access_token");
-        String refreshToken = (String) tokenResponse.get("refresh_token");
-        
-        if (accessToken == null) {
-            return ResponseEntity.status(400).body(Map.of("error", "Failed to get access token"));
-        }
-        
-        // Get user profile from Spotify
-        Map<String, Object> userProfile = apiService.getCurrentUser(accessToken);
-        
-        // Create or update listener in database
-        String spotifyId = (String) userProfile.get("id");
-        String displayName = (String) userProfile.get("display_name");
-        String email = (String) userProfile.get("email");
-        String country = (String) userProfile.get("country");
-        Map<String, Object> externalUrls = (Map<String, Object>) userProfile.get("external_urls");
-        String href = externalUrls != null ? (String) externalUrls.get("spotify") : null;
-        
-        // Check if listener exists, create or update
-        var existingListener = listenerService.getById(spotifyId);
-        if (existingListener.isEmpty()) {
-            listenerService.create(new ListenerDTO(
-                spotifyId, displayName, email, country, href
-            ));
-        } else {
-            listenerService.update(spotifyId, new ListenerDTO(
-                spotifyId, displayName, email, country, href
-            ));
-        }
-        
-        // ✅ NEW: Generate JWT token for the authenticated user
-        String jwtToken = jwtUtil.generateToken(spotifyId);
-        
-        // Return response with JWT token (not Spotify access token)
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", jwtToken);  // JWT token for API authentication
-        response.put("listenerId", spotifyId);
-        response.put("user", userProfile);
-        // Optionally include Spotify tokens if needed for API calls
-        response.put("spotifyAccessToken", accessToken);
-        if (refreshToken != null) {
-            response.put("spotifyRefreshToken", refreshToken);
-        }
-        
-        return ResponseEntity.ok(response);
-    } catch (Exception e) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", "Authentication failed");
-        errorResponse.put("message", e.getMessage());
-        return ResponseEntity.status(500).body(errorResponse);
-    }
-}
-```
-
-3. **Test the Integration**:
-   - Start the backend server
-   - Call `/api/auth/login` to get authorization URL
-   - Complete OAuth flow
-   - Verify JWT token is returned in callback response
-   - Test protected endpoints with JWT token in `Authorization: Bearer <token>` header
-
-### Step 5.2: Verify Security Configuration
-
-**Check**: Ensure `SecurityConfig.java` properly protects endpoints:
-
-- ✅ `/api/auth/**` - Public (permitAll)
-- ✅ `/api/public/**` - Public (permitAll)
-- ✅ All other endpoints - Require authentication
-
-**Test**: Try accessing a protected endpoint without JWT token - should return 401 Unauthorized.
-
----
-
-## Phase 6: Exception Handling
-
-**Goal**: Replace `ResponseStatusException` with custom exceptions and create a global exception handler for consistent error responses.
-
-**Why This is Important**:
-- Provides consistent error response format across all endpoints
-- Better error messages for frontend
-- Easier debugging and logging
-- Required for project completion
-
-### Step 6.1: Create Custom Exceptions
-
-**Location**: `backend/src/main/java/com/feedback/fm/feedbackfm/exception/`
-
-**Create Files**:
-1. `ResourceNotFoundException.java`
-2. `InvalidRequestException.java`
-3. `SpotifyApiException.java`
-4. `AuthenticationException.java`
-
-**Example** (`ResourceNotFoundException.java`):
-```java
-package com.feedback.fm.feedbackfm.exception;
-
-public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException(String message) {
-        super(message);
-    }
-    
-    public ResourceNotFoundException(String resource, String id) {
-        super(resource + " not found with id: " + id);
-    }
-}
-```
-
-**Example** (`InvalidRequestException.java`):
-```java
-package com.feedback.fm.feedbackfm.exception;
-
-public class InvalidRequestException extends RuntimeException {
-    public InvalidRequestException(String message) {
-        super(message);
-    }
-}
-```
-
-**Example** (`SpotifyApiException.java`):
-```java
-package com.feedback.fm.feedbackfm.exception;
-
-public class SpotifyApiException extends RuntimeException {
-    public SpotifyApiException(String message) {
-        super(message);
-    }
-    
-    public SpotifyApiException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-```
-
-**Example** (`AuthenticationException.java`):
-```java
-package com.feedback.fm.feedbackfm.exception;
-
-public class AuthenticationException extends RuntimeException {
-    public AuthenticationException(String message) {
-        super(message);
-    }
-}
-```
-
-### Step 6.2: Create Global Exception Handler
-
-**Create** `GlobalExceptionHandler.java`:
-**Location**: `backend/src/main/java/com/feedback/fm/feedbackfm/exception/GlobalExceptionHandler.java`
-
-```java
-package com.feedback.fm.feedbackfm.exception;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFound(
-            ResourceNotFoundException ex, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Resource Not Found");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
-    }
-    
-    @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidRequest(
-            InvalidRequestException ex, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Invalid Request");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-    }
-    
-    @ExceptionHandler(SpotifyApiException.class)
-    public ResponseEntity<Map<String, Object>> handleSpotifyApiException(
-            SpotifyApiException ex, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.SERVICE_UNAVAILABLE.value());
-        body.put("error", "Spotify API Error");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        
-        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
-    }
-    
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthenticationException(
-            AuthenticationException ex, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.UNAUTHORIZED.value());
-        body.put("error", "Authentication Failed");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        
-        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
-    }
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(
-            Exception ex, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Internal Server Error");
-        body.put("message", "An unexpected error occurred");
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        
-        // Log the full exception for debugging
-        ex.printStackTrace();
-        
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-}
-```
-
-### Step 6.3: Update Services to Use Custom Exceptions
-
-**Replace** `ResponseStatusException` with custom exceptions in all service implementations.
-
-**Example** (in `ListenerServiceImpl.java`):
-```java
-// Before:
-throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Listener not found with id: " + id);
-
-// After:
-throw new ResourceNotFoundException("Listener", id);
-```
-
-**Files to Update**:
+**Files to Update** (8 files):
 - `ListenerServiceImpl.java`
 - `SongServiceImpl.java`
 - `ArtistServiceImpl.java`
@@ -344,6 +66,142 @@ throw new ResourceNotFoundException("Listener", id);
 - `HistoryServiceImpl.java`
 - `SpotifyAuthService.java`
 - `SpotifyApiService.java`
+
+---
+
+## Phase 6.3: Update Services to Use Custom Exceptions
+
+**Goal**: Replace `ResponseStatusException` with custom exceptions in all service implementations to ensure consistent error handling.
+
+**Why This is Important**:
+- Provides consistent error response format across all endpoints
+- Better error messages for frontend
+- Easier debugging and logging
+- Required for project completion
+
+### Step 6.3.1: Update Import Statements
+
+**Add imports** for custom exceptions in each service file:
+```java
+import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
+import com.feedback.fm.feedbackfm.exception.SpotifyApiException;
+import com.feedback.fm.feedbackfm.exception.AuthenticationException;
+```
+
+**Remove** (if present):
+```java
+import org.springframework.web.server.ResponseStatusException;
+```
+
+### Step 6.3.2: Replace Exception Types
+
+**Mapping Guide**:
+
+| Old (ResponseStatusException) | New (Custom Exception) | HTTP Status |
+|-------------------------------|------------------------|-------------|
+| `ResponseStatusException(HttpStatus.NOT_FOUND, ...)` | `ResourceNotFoundException` | 404 |
+| `ResponseStatusException(HttpStatus.BAD_REQUEST, ...)` | `InvalidRequestException` | 400 |
+| `ResponseStatusException(HttpStatus.CONFLICT, ...)` | `InvalidRequestException` | 400 |
+| `ResponseStatusException(HttpStatus.UNAUTHORIZED, ...)` | `AuthenticationException` | 401 |
+| Spotify API errors | `SpotifyApiException` | 503 |
+
+### Step 6.3.3: Update Each Service File
+
+**Example** (in `ListenerServiceImpl.java`):
+
+**Before**:
+```java
+if (id == null || id.isBlank()) {
+    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+        "Listener ID cannot be null or blank");
+}
+
+Listener listener = repository.findById(id)
+    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
+        "Listener not found with id: " + id));
+
+if (repository.existsById(dto.listenerId())) {
+    throw new ResponseStatusException(HttpStatus.CONFLICT, 
+        "Listener with ID '" + dto.listenerId() + "' already exists");
+}
+```
+
+**After**:
+```java
+if (id == null || id.isBlank()) {
+    throw new InvalidRequestException("Listener ID cannot be null or blank");
+}
+
+Listener listener = repository.findById(id)
+    .orElseThrow(() -> new ResourceNotFoundException("Listener", id));
+
+if (repository.existsById(dto.listenerId())) {
+    throw new InvalidRequestException(
+        "Listener with ID '" + dto.listenerId() + "' already exists");
+}
+```
+
+### Step 6.3.4: Files to Update
+
+**Priority 1 - Core Services**:
+1. **`ListenerServiceImpl.java`**
+   - Replace NOT_FOUND → `ResourceNotFoundException("Listener", id)`
+   - Replace BAD_REQUEST → `InvalidRequestException(message)`
+   - Replace CONFLICT → `InvalidRequestException(message)`
+
+2. **`SongServiceImpl.java`**
+   - Replace NOT_FOUND → `ResourceNotFoundException("Song", id)`
+   - Replace BAD_REQUEST → `InvalidRequestException(message)`
+   - Replace CONFLICT → `InvalidRequestException(message)`
+
+3. **`ArtistServiceImpl.java`**
+   - Replace NOT_FOUND → `ResourceNotFoundException("Artist", id)`
+   - Replace BAD_REQUEST → `InvalidRequestException(message)`
+   - Replace CONFLICT → `InvalidRequestException(message)`
+
+4. **`AlbumServiceImpl.java`**
+   - Replace NOT_FOUND → `ResourceNotFoundException("Album", id)`
+   - Replace BAD_REQUEST → `InvalidRequestException(message)`
+   - Replace CONFLICT → `InvalidRequestException(message)`
+
+5. **`PlaylistServiceImpl.java`**
+   - Replace NOT_FOUND → `ResourceNotFoundException("Playlist", id)`
+   - Replace BAD_REQUEST → `InvalidRequestException(message)`
+   - Replace CONFLICT → `InvalidRequestException(message)`
+
+6. **`HistoryServiceImpl.java`**
+   - Replace NOT_FOUND → `ResourceNotFoundException("History", id)`
+   - Replace BAD_REQUEST → `InvalidRequestException(message)`
+
+**Priority 2 - Spotify Services**:
+7. **`SpotifyAuthService.java`**
+   - Replace API errors → `SpotifyApiException(message)`
+   - Replace authentication errors → `AuthenticationException(message)`
+
+8. **`SpotifyApiService.java`**
+   - Replace API errors → `SpotifyApiException(message, cause)`
+   - Use `SpotifyApiException(message, cause)` for exceptions with underlying causes
+
+### Step 6.3.5: Testing the Changes
+
+**After updating services**:
+1. Compile the project: `mvn clean compile`
+2. Start the backend server
+3. Test endpoints that should throw exceptions:
+   - GET non-existent resource → Should return 404 with consistent format
+   - POST invalid data → Should return 400 with consistent format
+   - POST duplicate resource → Should return 400 with consistent format
+4. Verify error responses match the format from `GlobalExceptionHandler`:
+   ```json
+   {
+     "timestamp": "2024-01-15T10:30:00",
+     "status": 404,
+     "error": "Resource Not Found",
+     "message": "Listener not found with id: user123",
+     "path": "/api/users/user123"
+   }
+   ```
 
 ---
 
@@ -397,6 +255,7 @@ import com.feedback.fm.feedbackfm.dtos.ListenerDTO;
 import com.feedback.fm.feedbackfm.model.Listener;
 import com.feedback.fm.feedbackfm.repository.ListenerRepository;
 import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
+import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -464,7 +323,15 @@ class ListenerServiceTest {
     void create_WhenIdExists_ThrowsException() {
         when(listenerRepository.existsById("listener123")).thenReturn(true);
         
-        assertThrows(Exception.class, () -> listenerService.create(testListenerDTO));
+        assertThrows(InvalidRequestException.class, () -> listenerService.create(testListenerDTO));
+    }
+    
+    @Test
+    void update_WhenNotFound_ThrowsResourceNotFoundException() {
+        when(listenerRepository.findById("nonexistent")).thenReturn(Optional.empty());
+        
+        assertThrows(ResourceNotFoundException.class, 
+            () -> listenerService.update("nonexistent", testListenerDTO));
     }
     
     // Add more test methods for update, delete, validation, etc.
@@ -951,21 +818,21 @@ Get user profile by ID.
 **Branches**:
 - `main` - Production-ready code (protected)
 - `develop` - Integration branch
-- `feature/*` - Feature branches (e.g., `feature/jwt-integration`, `feature/exception-handling`)
+- `feature/*` - Feature branches (e.g., `feature/exception-handling`, `feature/testing`)
 - `bugfix/*` - Bug fix branches
 - `hotfix/*` - Critical production fixes
 
 **Commands**:
 ```bash
 # Create feature branch
-git checkout -b feature/jwt-integration
+git checkout -b feature/exception-handling
 
 # Work on feature
 git add .
-git commit -m "feat: integrate JWT token generation in OAuth callback"
+git commit -m "feat(exception): replace ResponseStatusException with custom exceptions"
 
 # Push to remote
-git push origin feature/jwt-integration
+git push origin feature/exception-handling
 
 # Create pull request to merge into develop/main
 ```
@@ -985,7 +852,7 @@ git push origin feature/jwt-integration
 
 **Examples**:
 ```
-feat(auth): integrate JWT token generation in OAuth callback
+feat(exception): replace ResponseStatusException with custom exceptions
 fix(api): handle null pointer in user service
 docs(readme): update installation instructions
 test(service): add unit tests for ListenerService
@@ -1039,12 +906,13 @@ Thumbs.db
 - [x] Complete Phase 2 (Backend Foundation)
 - [x] Complete Phase 3 (Spotify API)
 - [x] Complete Phase 4 (Service Layer)
-- [x] Complete Phase 5 (JWT Infrastructure)
+- [x] Complete Phase 5 (JWT Integration)
+- [x] Complete Phase 6.1 (Custom Exceptions)
+- [x] Complete Phase 6.2 (Global Exception Handler)
 
-### 🚧 Week 3: Security & Error Handling (CURRENT)
-- [ ] Complete Phase 5 (JWT Integration) - **IMMEDIATE PRIORITY**
-- [ ] Complete Phase 6 (Exception Handling)
-- [ ] Start Phase 7 (Testing)
+### 🚧 Week 3: Error Handling & Testing (CURRENT)
+- [ ] Complete Phase 6.3 (Update Services to Use Custom Exceptions) - **IMMEDIATE PRIORITY**
+- [ ] Start Phase 7 (Testing) - Aim for 50%+ coverage
 
 ### 📋 Week 4: Testing & Frontend
 - [ ] Complete Phase 7 (Testing) - 50%+ coverage
@@ -1061,11 +929,18 @@ Thumbs.db
 
 ## Common Issues & Solutions
 
-### Issue: JWT Token Not Generated After OAuth
+### Issue: Custom Exceptions Not Being Caught
 **Solution**: 
-- Verify `JwtUtil` is injected in `SpotifyAuthController`
-- Check that `jwtUtil.generateToken(spotifyId)` is called in callback
-- Verify JWT properties in `application.properties`
+- Verify `GlobalExceptionHandler` is in the correct package (`com.feedback.fm.feedbackfm.exception`)
+- Ensure `@RestControllerAdvice` annotation is present
+- Check that services are throwing custom exceptions, not `ResponseStatusException`
+- Restart the Spring Boot application after changes
+
+### Issue: Inconsistent Error Response Format
+**Solution**:
+- Verify all services use custom exceptions
+- Check that `GlobalExceptionHandler` handles all exception types
+- Ensure no controllers are catching exceptions and returning custom responses
 
 ### Issue: 401 Unauthorized on Protected Endpoints
 **Solution**:
@@ -1113,14 +988,15 @@ Thumbs.db
 - Database setup and configuration
 - Backend foundation with service layer
 - Spotify API integration
-- JWT infrastructure (utilities, filter, security config)
+- JWT infrastructure and OAuth integration
+- Custom exception classes
+- Global exception handler
 
 ### 🎯 Next Steps (Priority Order)
-1. **Complete JWT Integration** - Update `SpotifyAuthController` to generate JWT tokens
-2. **Exception Handling** - Create custom exceptions and global handler
-3. **Testing** - Achieve 50%+ test coverage
-4. **Frontend Development** - Build React SPA
-5. **Documentation** - Create user stories, wireframes, ERD, API docs
-6. **Git Workflow** - Implement branching strategy and commit conventions
+1. **Phase 6.3: Update Services** - Replace `ResponseStatusException` with custom exceptions in all service implementations
+2. **Phase 7: Testing** - Achieve 50%+ test coverage
+3. **Phase 8: Frontend Development** - Build React SPA
+4. **Phase 9: Documentation** - Create user stories, wireframes, ERD, API docs
+5. **Phase 10: Git Workflow** - Implement branching strategy and commit conventions
 
 **Good luck with your project! 🎵**
