@@ -1,4 +1,4 @@
-package com.feedback.fm.Feedback_fm;
+package com.feedback.fm.feedbackfm;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,6 +11,5 @@ class FeedbackFmApplicationTests {
 	}
 
 }
-
 
 // this is old
