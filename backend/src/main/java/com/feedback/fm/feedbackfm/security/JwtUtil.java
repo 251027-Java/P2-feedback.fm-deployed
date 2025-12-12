@@ -5,15 +5,25 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.stereotype.Component;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 
+@Component
 public class JwtUtil {
 
-    private String secretKey = "secretKey";
+    private String secretKey;
 
     private Long expiration;
+
+    public JwtUtil(@Value("${jwt.secret}") String secretKey,
+            @Value("${jwt.expiration}") Long expiration) {
+        this.secretKey = secretKey;
+        this.expiration = expiration;
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
@@ -60,6 +70,18 @@ public class JwtUtil {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public String generateRefreshToken(String listenerId) {
+        return generateToken(listenerId);
+    }
+
+    public Boolean validateRefreshToken(String token, String listenerId) {
+        return validateToken(token, listenerId);
+    }
+
+    public String extractRefreshToken(String token) {
+        return extractListenerId(token);
     }
 
 }
