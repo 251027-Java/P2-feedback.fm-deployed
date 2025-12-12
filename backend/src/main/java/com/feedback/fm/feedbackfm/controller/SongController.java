@@ -1,5 +1,7 @@
 package com.feedback.fm.feedbackfm.controller;
 
+import com.feedback.fm.feedbackfm.dtos.SongDTO;
+import com.feedback.fm.feedbackfm.service.SongService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -11,86 +13,66 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class SongController {
 
+	private final SongService songService;
+
+	public SongController(SongService songService) {
+		this.songService = songService;
+	}
+
 	// Get all songs with pagination
 	@GetMapping
-	public ResponseEntity<List<Map<String, Object>>> getAllSongs( @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size, @RequestParam(required = false) String query) {
-		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000, "href", "https://open.spotify.com/track/2EqlS6tkEnglzr7tkKAAYD"),
-			Map.of("songId", "song2", "name", "Get Lucky", "durationMs", 248000, "href", "https://open.spotify.com/track/2Foc5Q5nqNiosCNqttzHof")
-		);
-		return ResponseEntity.ok(songs);
+	public ResponseEntity<List<SongDTO>> getAllSongs(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size, @RequestParam(required = false) String query) {
+		if (query != null && !query.isBlank()) {
+			return ResponseEntity.ok(songService.searchByName(query));
+		}
+		return ResponseEntity.ok(songService.getAllSongs());
 	}
 
 	// Get specific song by ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> getSongById(@PathVariable String id) {
-		Map<String, Object> song = Map.of(
-			"songId", id,
-			"name", "Come Together",
-			"durationMs", 259000,
-			"href", "https://open.spotify.com/track/2EqlS6tkEnglzr7tkKAAYD"
-		);
-		return ResponseEntity.ok(song);
+	public ResponseEntity<SongDTO> getSongById(@PathVariable String id) {
+		return songService.getById(id)
+			.map(ResponseEntity::ok)
+			.orElse(ResponseEntity.notFound().build());
 	}
 
 	// Create a new song (admin only)
 	@PostMapping
-	public ResponseEntity<Map<String, Object>> createSong(@RequestBody Map<String, Object> songData) {
-		Map<String, Object> newSong = Map.of(
-			"songId", "new-song-id",
-			"name", songData.getOrDefault("name", "Untitled"),
-			"durationMs", songData.getOrDefault("durationMs", 180000),
-			"message", "Song created successfully"
-		);
-		return ResponseEntity.status(201).body(newSong);
+	public ResponseEntity<SongDTO> createSong(@RequestBody SongDTO songDTO) {
+		SongDTO created = songService.create(songDTO);
+		return ResponseEntity.status(201).body(created);
 	}
 
 	// Update song details (admin only)
 	@PutMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> updateSong(@PathVariable String id, @RequestBody Map<String, Object> updates) {
-		Map<String, Object> updatedSong = Map.of(
-			"songId", id,
-			"name", updates.getOrDefault("name", "Updated Song"),
-			"message", "Song updated successfully"
-		);
-		return ResponseEntity.ok(updatedSong);
+	public ResponseEntity<SongDTO> updateSong(@PathVariable String id, @RequestBody SongDTO songDTO) {
+		SongDTO updated = songService.update(id, songDTO);
+		return ResponseEntity.ok(updated);
 	}
 
 	// Delete a song (admin only)
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Map<String, String>> deleteSong(@PathVariable String id) {
-		Map<String, String> response = Map.of("message", "Song " + id + " deleted successfully");
-		return ResponseEntity.ok(response);
+	public ResponseEntity<Void> deleteSong(@PathVariable String id) {
+		songService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 	// Get songs by artist
 	@GetMapping("/by-artist/{artistId}")
-	public ResponseEntity<List<Map<String, Object>>> getSongsByArtist(@PathVariable String artistId) {
-		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
-			Map.of("songId", "song3", "name", "Something", "durationMs", 182000)
-		);
-		return ResponseEntity.ok(songs);
+	public ResponseEntity<List<SongDTO>> getSongsByArtist(@PathVariable String artistId) {
+		return ResponseEntity.ok(List.of());
 	}
 
 	// Get songs by album
 	@GetMapping("/by-album/{albumId}")
-	public ResponseEntity<List<Map<String, Object>>> getSongsByAlbum(@PathVariable String albumId) {
-		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
-			Map.of("songId", "song2", "name", "Something", "durationMs", 182000)
-		);
-		return ResponseEntity.ok(songs);
+	public ResponseEntity<List<SongDTO>> getSongsByAlbum(@PathVariable String albumId) {
+		return ResponseEntity.ok(List.of());
 	}
 
 	// Search for songs
 	@GetMapping("/search")
-	public ResponseEntity<List<Map<String, Object>>> searchSongs(@RequestParam String query) {
-		List<Map<String, Object>> results = List.of(
-			Map.of("songId", "song1", "name", "Come Together"),
-			Map.of("songId", "song5", "name", "Come As You Are")
-		);
-		return ResponseEntity.ok(results);
+	public ResponseEntity<List<SongDTO>> searchSongs(@RequestParam String query) {
+		return ResponseEntity.ok(songService.searchByName(query));
 	}
 
 	// Like a song

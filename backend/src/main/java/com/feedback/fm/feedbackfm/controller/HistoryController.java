@@ -1,5 +1,7 @@
 package com.feedback.fm.feedbackfm.controller;
 
+import com.feedback.fm.feedbackfm.dtos.HistoryDTO;
+import com.feedback.fm.feedbackfm.service.HistoryService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -11,54 +13,47 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class HistoryController {
 
+	private final HistoryService historyService;
+
+	public HistoryController(HistoryService historyService) {
+		this.historyService = historyService;
+	}
+
 	// Get listening history for a user with optional filters
 	@GetMapping
-	public ResponseEntity<List<Map<String, Object>>> getListeningHistory(@RequestParam String listenerId, @RequestParam(required = false) String dateRange, @RequestParam(required = false) String query) {
-		List<Map<String, Object>> history = List.of(
-			Map.of("historyId", 1L, "songId", "song1", "songName", "Come Together", "playedAt", "2024-12-01T10:30:00"),
-			Map.of("historyId", 2L, "songId", "song2", "songName", "Get Lucky", "playedAt", "2024-12-01T09:15:00")
-		);
-		return ResponseEntity.ok(history);
+	public ResponseEntity<List<HistoryDTO>> getListeningHistory(@RequestParam String listenerId, @RequestParam(required = false) String dateRange, @RequestParam(required = false) String query) {
+		return ResponseEntity.ok(historyService.findByListenerId(listenerId));
 	}
 
 	// Get recently played songs
 	@GetMapping("/recent")
-	public ResponseEntity<List<Map<String, Object>>> getRecentlyPlayed(@RequestParam String listenerId, @RequestParam(defaultValue = "20") int limit) {
-		List<Map<String, Object>> recentSongs = List.of(
-			Map.of("songId", "song1", "name", "Come Together", "playedAt", "2024-12-01T10:30:00"),
-			Map.of("songId", "song2", "name", "Get Lucky", "playedAt", "2024-12-01T09:15:00")
-		);
-		return ResponseEntity.ok(recentSongs);
+	public ResponseEntity<List<HistoryDTO>> getRecentlyPlayed(@RequestParam String listenerId, @RequestParam(defaultValue = "20") int limit) {
+		return ResponseEntity.ok(historyService.getRecentHistoryByListener(listenerId, limit));
 	}
 
 	// Add a listening history record
 	@PostMapping
-	public ResponseEntity<Map<String, Object>> addHistoryRecord(@RequestBody Map<String, Object> historyData) {
-		Map<String, Object> response = Map.of(
-			"historyId", 999L,
-			"listenerId", historyData.get("listenerId"),
-			"songId", historyData.get("songId"),
-			"playedAt", historyData.getOrDefault("playedAt", "2024-12-01T12:00:00"),
-			"message", "History record added successfully"
-		);
-		return ResponseEntity.status(201).body(response);
+	public ResponseEntity<HistoryDTO> addHistoryRecord(@RequestBody HistoryDTO historyDTO) {
+		HistoryDTO created = historyService.create(historyDTO);
+		return ResponseEntity.status(201).body(created);
 	}
 
 	// Delete a listening history record
 	@DeleteMapping("/{historyId}")
-	public ResponseEntity<Map<String, String>> deleteHistoryRecord(@PathVariable Long historyId) {
-		Map<String, String> response = Map.of("message", "History record " + historyId + " deleted successfully");
-		return ResponseEntity.ok(response);
+	public ResponseEntity<Void> deleteHistoryRecord(@PathVariable Long historyId) {
+		historyService.delete(historyId);
+		return ResponseEntity.noContent().build();
 	}
 
 	// Get listening statistics for a user
 	@GetMapping("/stats")
 	public ResponseEntity<Map<String, Object>> getHistoryStats(@RequestParam String listenerId) {
+		List<HistoryDTO> history = historyService.findByListenerId(listenerId);
 		Map<String, Object> stats = Map.of(
-			"totalSongsPlayed", 3492,
-			"totalListeningTime", "187 hours",
-			"topGenre", "Pop",
-			"currentStreak", 15
+			"totalSongsPlayed", history.size(),
+			"totalListeningTime", "0 hours",
+			"topGenre", "N/A",
+			"currentStreak", 0
 		);
 		return ResponseEntity.ok(stats);
 	}

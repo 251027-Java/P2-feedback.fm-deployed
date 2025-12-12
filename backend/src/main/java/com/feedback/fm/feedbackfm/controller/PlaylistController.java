@@ -1,5 +1,7 @@
 package com.feedback.fm.feedbackfm.controller;
 
+import com.feedback.fm.feedbackfm.dtos.PlaylistDTO;
+import com.feedback.fm.feedbackfm.service.PlaylistService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -11,69 +13,56 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class PlaylistController {
 
+    private final PlaylistService playlistService;
+
+    public PlaylistController(PlaylistService playlistService) {
+        this.playlistService = playlistService;
+    }
+
     // Get all playlists for a user
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllPlaylists(@RequestParam String userId) {
-        List<Map<String, Object>> playlists = List.of(
-            Map.of("playlistId", "playlist1", "name", "Favorites", "ownerId", userId, "isPublic", true, "href", "https://open.spotify.com/playlist/example1"),
-            Map.of("playlistId", "playlist2", "name", "Workout Mix", "ownerId", userId, "isPublic", false, "href", "https://open.spotify.com/playlist/example2")
-        );
-        return ResponseEntity.ok(playlists);
+    public ResponseEntity<List<PlaylistDTO>> getAllPlaylists(@RequestParam(required = false) String userId) {
+        if (userId != null && !userId.isBlank()) {
+            return ResponseEntity.ok(playlistService.findByOwnerId(userId));
+        }
+        return ResponseEntity.ok(playlistService.getAllPlaylists());
     }
 
     // Get specific playlist by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getPlaylistById(@PathVariable String id) {
-        Map<String, Object> playlist = Map.of(
-            "playlistId", id,
-            "name", "Favorites",
-            "description", "My favorite songs",
-            "isPublic", true,
-            "href", "https://open.spotify.com/playlist/example1"
-        );
-        return ResponseEntity.ok(playlist);
+    public ResponseEntity<PlaylistDTO> getPlaylistById(@PathVariable String id) {
+        return playlistService.getById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     // Create a new playlist
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createPlaylist(@RequestBody Map<String, Object> playlistData) {
-        Map<String, Object> newPlaylist = Map.of(
-            "playlistId", "new-playlist-id",
-            "name", playlistData.getOrDefault("name", "New Playlist"),
-            "description", playlistData.getOrDefault("description", ""),
-            "isPublic", playlistData.getOrDefault("isPublic", false),
-            "message", "Playlist created successfully"
-        );
-        return ResponseEntity.status(201).body(newPlaylist);
+    public ResponseEntity<PlaylistDTO> createPlaylist(@RequestBody PlaylistDTO playlistDTO) {
+        PlaylistDTO created = playlistService.create(playlistDTO);
+        return ResponseEntity.status(201).body(created);
     }
 
     // Update playlist details
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updatePlaylist( @PathVariable String id, @RequestBody Map<String, Object> updates) {
-        Map<String, Object> updatedPlaylist = Map.of(
-            "playlistId", id,
-            "name", updates.getOrDefault("name", "Updated Playlist"),
-            "description", updates.getOrDefault("description", ""),
-            "message", "Playlist updated successfully"
-        );
-        return ResponseEntity.ok(updatedPlaylist);
+    public ResponseEntity<PlaylistDTO> updatePlaylist(@PathVariable String id, @RequestBody PlaylistDTO playlistDTO) {
+        PlaylistDTO updated = playlistService.update(id, playlistDTO);
+        return ResponseEntity.ok(updated);
     }
 
     // Delete a playlist
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deletePlaylist(@PathVariable String id) {
-        Map<String, String> response = Map.of("message", "Playlist " + id + " deleted successfully");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Void> deletePlaylist(@PathVariable String id) {
+        playlistService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // Get songs in a playlist
+    // Get songs in a playlist (returns full playlist DTO which includes songs)
     @GetMapping("/{id}/songs")
-    public ResponseEntity<List<Map<String, Object>>> getPlaylistSongs(@PathVariable String id) {
-        List<Map<String, Object>> songs = List.of(
-            Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
-            Map.of("songId", "song2", "name", "Get Lucky", "durationMs", 248000)
-        );
-        return ResponseEntity.ok(songs);
+    public ResponseEntity<PlaylistDTO> getPlaylistSongs(@PathVariable String id) {
+        return playlistService.getById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     // Add a song to a playlist
