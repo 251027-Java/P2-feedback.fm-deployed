@@ -1,8 +1,28 @@
+import { useState } from 'react';
+// import { authAPI } from '../services/api'; // Will be available after step 8.4
+
 function Login() {
+  const [username, setUsername] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle login - API call will be implemented in step 8.6
+    // const response = await authAPI.getAuthUrl();
+    console.log('Login submitted for:', username);
+  };
+
   return (
     <div>
       <h1>Login</h1>
-      <p>Login component - to be implemented</p>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+        />
+        <button type="submit">Login</button>
+      </form>
     </div>
   );
 }
