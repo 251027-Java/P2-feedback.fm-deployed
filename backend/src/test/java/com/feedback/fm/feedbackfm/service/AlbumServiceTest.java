@@ -1,10 +1,11 @@
-package com.feedback.fm.Feedback_fm.service;
+package com.feedback.fm.feedbackfm.service;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +21,7 @@ import com.feedback.fm.feedbackfm.dtos.AlbumDTO;
 import com.feedback.fm.feedbackfm.model.Album;
 import com.feedback.fm.feedbackfm.repository.AlbumRepository;
 import com.feedback.fm.feedbackfm.repository.ArtistRepository;
-import com.feedback.fm.feedbackfm.service.AlbumService;
+import com.feedback.fm.feedbackfm.service.AlbumServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class AlbumServiceTest {
@@ -32,17 +33,17 @@ public class AlbumServiceTest {
     private ArtistRepository artistRepository;
 
     @InjectMocks
-    private AlbumService service;
+    private AlbumServiceImpl service;
 
     private Album sampleAlbum;
 
     @BeforeEach
-    void setup() {
+    public void setup() {
         sampleAlbum = new Album("A1", "Test Album", 2020, "href");
     }
 
     @Test
-    void testGetAllAlbums() {
+    public void testGetAllAlbums() {
         when(albumRepository.findAll()).thenReturn(List.of(sampleAlbum));
 
         List<AlbumDTO> result = service.getAllAlbums();
@@ -52,23 +53,26 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testGetByIdSuccess() {
+    public void testGetByIdSuccess() {
         when(albumRepository.findById("A1")).thenReturn(Optional.of(sampleAlbum));
 
-        AlbumDTO result = service.getById("A1");
+        Optional<AlbumDTO> result = service.getById("A1");
 
-        assertEquals("A1", result.albumId());
+        assertTrue(result.isPresent());
+        assertEquals("A1", result.get().albumId());
     }
 
     @Test
-    void testGetByIdNotFound() {
+    public void testGetByIdNotFound() {
         when(albumRepository.findById("UNKNOWN")).thenReturn(Optional.empty());
 
-        assertThrows(ResponseStatusException.class, () -> service.getById("UNKNOWN"));
+        Optional<AlbumDTO> result = service.getById("UNKNOWN");
+        
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    void testSearchByTitle() {
+    public void testSearchByTitle() {
         when(albumRepository.findByTitleContainingIgnoreCase("test")).thenReturn(List.of(sampleAlbum));
 
         List<AlbumDTO> result = service.searchByTitle("test");
@@ -77,7 +81,7 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testFindByReleaseYear() {
+    public void testFindByReleaseYear() {
         when(albumRepository.findByReleaseYear(2020)).thenReturn(List.of(sampleAlbum));
 
         List<AlbumDTO> result = service.findByReleaseYear(2020);
@@ -86,9 +90,10 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testCreateAlbum() {
+    public void testCreateAlbum() {
         AlbumDTO dto = new AlbumDTO("A1", "New Album", 2020, "href", null, List.of());
 
+        when(albumRepository.existsById("A1")).thenReturn(false);
         when(albumRepository.save(any())).thenReturn(sampleAlbum);
         
         AlbumDTO result = service.create(dto);
@@ -97,7 +102,7 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testUpdateAlbumSuccess() {
+    public void testUpdateAlbumSuccess() {
         AlbumDTO dto = new AlbumDTO("A1", "Updated", 2021, "href", null, List.of());
         
         when(albumRepository.findById("A1")).thenReturn(Optional.of(sampleAlbum));
@@ -109,7 +114,7 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testUpdateAlbumNotFound() {
+    public void testUpdateAlbumNotFound() {
         AlbumDTO dto = new AlbumDTO("A1", "Updated", 2021, "href", null, List.of());
 
         when(albumRepository.findById("A1")).thenReturn(Optional.empty());
@@ -118,7 +123,7 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testDeleteAlbumSuccess() {
+    public void testDeleteAlbumSuccess() {
         when(albumRepository.existsById("A1")).thenReturn(true);
 
         service.delete("A1");
@@ -127,9 +132,10 @@ public class AlbumServiceTest {
     }
 
     @Test
-    void testDeleteAlbumNotFound() {
+    public void testDeleteAlbumNotFound() {
         when(albumRepository.existsById("UNKNOWN")).thenReturn(false);
 
         assertThrows(ResponseStatusException.class, () -> service.delete("UNKNOWN"));
     }
 }
+
