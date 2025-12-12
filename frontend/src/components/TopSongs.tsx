@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
+import { songsAPI } from '../services/api';
 
 function TopSongs() {
   const [timeRange, setTimeRange] = useState('medium_term');
   const [filterText, setFilterText] = useState('');
 
-  const handleTimeRangeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleTimeRangeChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setTimeRange(e.target.value);
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFilterText(e.target.value);
   };
 

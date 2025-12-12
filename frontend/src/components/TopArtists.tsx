@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
+import { artistsAPI } from '../services/api';
 
 function TopArtists() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
+import { userAPI } from '../services/api';
 
 function Dashboard() {
   const [refreshInterval, setRefreshInterval] = useState(30);
 
-  const handleIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIntervalChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value) && value > 0) {
       setRefreshInterval(value);
