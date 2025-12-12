@@ -1,106 +1,80 @@
 package com.feedback.fm.feedbackfm.controller;
 
+import com.feedback.fm.feedbackfm.dtos.AlbumDTO;
+import com.feedback.fm.feedbackfm.service.AlbumService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/albums")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AlbumController {
 
+	private final AlbumService albumService;
+
+	public AlbumController(AlbumService albumService) {
+		this.albumService = albumService;
+	}
+
 
 	// Get all albums for a user or by artist
 	@GetMapping
-	public ResponseEntity<List<Map<String, Object>>> getAllAlbums(@RequestParam(required = false) String userId, @RequestParam(required = false) String artistId) {
-
-		List<Map<String, Object>> albums = List.of(
-			Map.of("albumId", "album1", "title", "Abbey Road", "artistId", "artist1", "releaseYear", 1969),
-			Map.of("albumId", "album2", "title", "Random Access Memories", "artistId", "artist2", "releaseYear", 2013)
-		);
-		return ResponseEntity.ok(albums);
+	public ResponseEntity<List<AlbumDTO>> getAllAlbums(@RequestParam(required = false) String userId, @RequestParam(required = false) String artistId) {
+		if (artistId != null && !artistId.isBlank()) {
+			return ResponseEntity.ok(albumService.findByArtistId(artistId));
+		}
+		return ResponseEntity.ok(albumService.getAllAlbums());
 	}
 
 
 	// Get specific album by ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> getAlbumById(@PathVariable String id) {
-
-		Map<String, Object> album = Map.of(
-			"albumId", id,
-			"title", "Abbey Road",
-			"artistId", "artist1",
-			"releaseYear", 1969,
-			"href", "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN"
-		);
-		return ResponseEntity.ok(album);
+	public ResponseEntity<AlbumDTO> getAlbumById(@PathVariable String id) {
+		return albumService.getById(id)
+			.map(ResponseEntity::ok)
+			.orElse(ResponseEntity.notFound().build());
 	}
 
 
 	// Create a new album ADMIN ONLY (we can take this out later if not needed)
 	@PostMapping
-	public ResponseEntity<Map<String, Object>> createAlbum(@RequestBody Map<String, Object> albumData) {
-
-		Map<String, Object> newAlbum = Map.of(
-			"albumId", "new-album-id",
-			"title", albumData.getOrDefault("title", "Untitled Album"),
-			"artistId", albumData.getOrDefault("artistId", "unknown-artist"),
-			"releaseYear", albumData.getOrDefault("releaseYear", 2025),
-			"message", "Album created successfully"
-		);
-		return ResponseEntity.status(201).body(newAlbum);
+	public ResponseEntity<AlbumDTO> createAlbum(@RequestBody AlbumDTO albumDTO) {
+		AlbumDTO created = albumService.create(albumDTO);
+		return ResponseEntity.status(201).body(created);
 	}
 
 
 	// Update album details ADMIN ONLY (we can take this out later if not needed)
 	@PutMapping("/{id}")
-	public ResponseEntity<Map<String, Object>> updateAlbum(@PathVariable String id, @RequestBody Map<String, Object> updates) {
-
-		Map<String, Object> updatedAlbum = Map.of(
-			"albumId", id,
-			"title", updates.getOrDefault("title", "Updated Album"),
-			"artistId", updates.getOrDefault("artistId", "updated-artist"),
-			"releaseYear", updates.getOrDefault("releaseYear", 2025),
-			"message", "Album updated successfully"
-		);
-		return ResponseEntity.ok(updatedAlbum);
+	public ResponseEntity<AlbumDTO> updateAlbum(@PathVariable String id, @RequestBody AlbumDTO albumDTO) {
+		AlbumDTO updated = albumService.update(id, albumDTO);
+		return ResponseEntity.ok(updated);
 	}
 
 
 	// Delete an album ADMIN ONLY (we can take this out later if not needed)
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Map<String, String>> deleteAlbum(@PathVariable String id) {
-
-		Map<String, String> response = Map.of(
-			"message", "Album " + id + " deleted successfully"
-		);
-		return ResponseEntity.ok(response);
+	public ResponseEntity<Void> deleteAlbum(@PathVariable String id) {
+		albumService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 
 	// Get songs for an album
 	@GetMapping("/{id}/songs")
-	public ResponseEntity<List<Map<String, Object>>> getAlbumSongs(@PathVariable String id) {
-
-		List<Map<String, Object>> songs = List.of(
-			Map.of("songId", "song1", "name", "Come Together", "durationMs", 259000),
-			Map.of("songId", "song2", "name", "Something", "durationMs", 182000)
-		);
-		return ResponseEntity.ok(songs);
+	public ResponseEntity<AlbumDTO> getAlbumSongs(@PathVariable String id) {
+		return albumService.getById(id)
+			.map(ResponseEntity::ok)
+			.orElse(ResponseEntity.notFound().build());
 	}
 
 
 	// Search albums by name
 	@GetMapping("/search")
-	public ResponseEntity<List<Map<String, Object>>> searchAlbums(@RequestParam String query) {
-
-		List<Map<String, Object>> results = List.of(
-			Map.of("albumId", "album1", "title", "Abbey Road", "artistId", "artist1"),
-			Map.of("albumId", "album3", "title", "Abacab", "artistId", "artist3")
-		);
-		return ResponseEntity.ok(results);
+	public ResponseEntity<List<AlbumDTO>> searchAlbums(@RequestParam String query) {
+		return ResponseEntity.ok(albumService.searchByTitle(query));
 	}
 
 }
