@@ -1,5 +1,6 @@
 package com.feedback.fm.feedbackfm.controller;
 
+import com.feedback.fm.feedbackfm.security.JwtUtil;
 import com.feedback.fm.feedbackfm.service.ListenerService;
 import com.feedback.fm.feedbackfm.service.spotify.SpotifyApiService;
 import com.feedback.fm.feedbackfm.service.spotify.SpotifyAuthService;
@@ -18,12 +19,14 @@ public class SpotifyAuthController {
     private final SpotifyAuthService authService;
     private final SpotifyApiService apiService;
     private final ListenerService listenerService;
+    private final JwtUtil jwtUtil;
     
     @Autowired
-    public SpotifyAuthController(SpotifyAuthService authService, SpotifyApiService apiService, ListenerService listenerService) {
+    public SpotifyAuthController(SpotifyAuthService authService, SpotifyApiService apiService, ListenerService listenerService, JwtUtil jwtUtil) {
         this.authService = authService;
         this.apiService = apiService;
         this.listenerService = listenerService;
+        this.jwtUtil = jwtUtil;
     }
     
     @GetMapping("/login")
@@ -79,14 +82,19 @@ public class SpotifyAuthController {
                 ));
             }
             
-            // Return response with tokens and user info
+            // Generate JWT token for the authenticated user
+            String jwtToken = jwtUtil.generateToken(spotifyId);
+            
+            // Return response with JWT token (for API authentication) and user info
             Map<String, Object> response = new HashMap<>();
-            response.put("accessToken", accessToken);
-            if (refreshToken != null) {
-                response.put("refreshToken", refreshToken);
-            }
-            response.put("user", userProfile);
+            response.put("token", jwtToken);  // JWT token for API authentication
             response.put("listenerId", spotifyId);
+            response.put("user", userProfile);
+            // Optionally include Spotify tokens if needed for direct Spotify API calls
+            response.put("spotifyAccessToken", accessToken);
+            if (refreshToken != null) {
+                response.put("spotifyRefreshToken", refreshToken);
+            }
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
