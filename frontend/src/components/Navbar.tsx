@@ -85,6 +85,7 @@ function Navbar() {
       isFixed={true}
       closeOnClickAway={true}
       onItemClick={handleItemClick}
+      logoUrl=""
     />
   );
 }

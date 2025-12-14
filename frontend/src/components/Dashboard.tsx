@@ -91,12 +91,26 @@ function Dashboard() {
         backgroundColor: '#000'
       }}
     >
-      <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Dashboard</h1>
+      <h1 style={{ 
+        marginTop: '40px',
+        marginBottom: '40px', 
+        color: '#1DB954',
+        fontSize: '3rem',
+        fontWeight: '700',
+        letterSpacing: '-0.5px'
+      }}>
+        Dashboard
+      </h1>
 
       {dashboardData && (
         <div>
-          {/* USER INFO (new layout + old fields) */}
-          <h2 style={{ marginBottom: '20px', color: 'white' }}>User Info</h2>
+          <h2 style={{ 
+            marginBottom: '24px', 
+            color: 'white',
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            letterSpacing: '-0.3px'
+          }}>Profile</h2>
           <div
             style={{
               display: 'flex',
@@ -131,41 +145,116 @@ function Dashboard() {
                   }}
                 />
               ) : (
-                <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '3rem' }}>👤</div>
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#1DB954" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
               )}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '1.5rem' }}>
               <div>
-                <h3 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '1.5rem' }}>
+                <h3 style={{ 
+                  margin: '0 0 6px 0', 
+                  color: 'white', 
+                  fontSize: '2rem',
+                  fontWeight: '700',
+                  letterSpacing: '-0.5px'
+                }}>
                   {dashboardData.username || 'N/A'}
                 </h3>
-                <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem' }}>
+                <p style={{ 
+                  margin: 0, 
+                  color: 'rgba(255, 255, 255, 0.6)', 
+                  fontSize: '0.95rem',
+                  fontWeight: '400'
+                }}>
                   {dashboardData.email || 'N/A'}
                 </p>
               </div>
 
               {dashboardData.stats && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div>
-                    <strong style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Total Listening Time:</strong>{' '}
-                    <span style={{ color: 'white' }}>
-                      {dashboardData.stats.totalListeningTime || '0 hours'}
-                    </span>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '1.5rem',
+                  padding: '20px',
+                  backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(29, 185, 84, 0.2)'
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ 
+                      fontSize: '2rem', 
+                      fontWeight: '700',
+                      color: '#1DB954',
+                      marginBottom: '4px',
+                      letterSpacing: '-0.5px'
+                    }}>
+                      {dashboardData.stats.totalListeningTime || '0 min'}
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.8rem',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      fontWeight: '600'
+                    }}>
+                      Listening Time
+                    </div>
                   </div>
-                  <div>
-                    <strong style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Songs Played:</strong>{' '}
-                    <span style={{ color: 'white' }}>{dashboardData.stats.songsPlayed || 0}</span>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ 
+                      fontSize: '2rem', 
+                      fontWeight: '700',
+                      color: '#1DB954',
+                      marginBottom: '4px',
+                      letterSpacing: '-0.5px'
+                    }}>
+                      {dashboardData.stats.songsPlayed || 0}
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.8rem',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      fontWeight: '600'
+                    }}>
+                      Songs Played
+                    </div>
                   </div>
-                  <div>
-                    <strong style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Current Streak:</strong>{' '}
-                    <span style={{ color: 'white' }}>{dashboardData.stats.currentStreak || 0} days</span>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ 
+                      fontSize: '2rem', 
+                      fontWeight: '700',
+                      color: '#1DB954',
+                      marginBottom: '4px',
+                      letterSpacing: '-0.5px'
+                    }}>
+                      {dashboardData.stats.currentStreak || 0}
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.8rem',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      fontWeight: '600'
+                    }}>
+                      Day Streak
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <h2 style={{ marginBottom: '20px', color: 'white' }}>Top Artists</h2>
+          <h2 style={{ 
+            marginBottom: '24px',
+            marginTop: '48px',
+            color: 'white',
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            letterSpacing: '-0.3px'
+          }}>Top Artists</h2>
           {dashboardData.topArtists && dashboardData.topArtists.length > 0 ? (
             <div
               className="artists-grid"
@@ -210,10 +299,11 @@ function Dashboard() {
                     <p
                       style={{
                         color: 'white',
-                        fontSize: '0.9rem',
-                        fontWeight: '500',
+                        fontSize: '0.95rem',
+                        fontWeight: '600',
                         margin: 0,
-                        wordBreak: 'break-word'
+                        wordBreak: 'break-word',
+                        letterSpacing: '-0.2px'
                       }}
                     >
                       {getArtistName(artist)}
@@ -223,9 +313,16 @@ function Dashboard() {
               })}
             </div>
           ) : (
-            <p>No top artists data available</p>
+            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.95rem' }}>No top artists data available</p>
           )}
-          <h2 style={{ marginBottom: '20px', color: 'white' }}>Top Songs</h2>
+          <h2 style={{ 
+            marginBottom: '24px',
+            marginTop: '48px',
+            color: 'white',
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            letterSpacing: '-0.3px'
+          }}>Top Songs</h2>
           {dashboardData.topSongs && dashboardData.topSongs.length > 0 ? (
             <div
               className="songs-grid"
@@ -270,20 +367,22 @@ function Dashboard() {
                     <p
                       style={{
                         color: 'white',
-                        fontSize: '0.9rem',
-                        fontWeight: '500',
-                        margin: '0 0 4px 0',
-                        wordBreak: 'break-word'
+                        fontSize: '0.95rem',
+                        fontWeight: '600',
+                        margin: '0 0 6px 0',
+                        wordBreak: 'break-word',
+                        letterSpacing: '-0.2px'
                       }}
                     >
                       {getSongName(song)}
                     </p>
                     <p
                       style={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        fontSize: '0.75rem',
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        fontSize: '0.85rem',
                         margin: 0,
-                        wordBreak: 'break-word'
+                        wordBreak: 'break-word',
+                        fontWeight: '400'
                       }}
                     >
                       {getSongArtistName(song)}
@@ -293,7 +392,7 @@ function Dashboard() {
               })}
             </div>
           ) : (
-            <p>No top songs data available</p>
+            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.95rem' }}>No top songs data available</p>
           )}
         </div>
       )}

@@ -407,7 +407,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
               height={24}
             />
           ) : (
-            <span style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 600 }}>feedback.fm</span>
+            <span style={{ color: '#1DB954', fontSize: '1.5rem', fontWeight: 600 }}>feedback.fm</span>
           )}
         </div>
         <button
