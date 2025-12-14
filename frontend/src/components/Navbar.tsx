@@ -39,11 +39,11 @@ function Navbar() {
       items={menuItems}
       displaySocials={false}
       displayItemNumbering={true}
-      menuButtonColor="#fff"
-      openMenuButtonColor="#fff"
+      menuButtonColor="#1DB954"
+      openMenuButtonColor="#1DB954"
       changeMenuColorOnOpen={true}
-      colors={['#ff0000', '#ff4444']}
-      accentColor="#ff0000"
+      colors={['#1DB954', '#1ed760']}
+      accentColor="#1DB954"
       isFixed={true}
       closeOnClickAway={true}
       onItemClick={handleItemClick}

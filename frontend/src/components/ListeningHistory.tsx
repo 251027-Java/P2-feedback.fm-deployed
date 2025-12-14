@@ -25,19 +25,20 @@ function ListeningHistory() {
     fetchHistory();
   }, [limit]);
 
-  if (loading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
 
-  if (error) return <div style={{ padding: '20px', color: '#ff6b6b' }}>Error: {error}</div>;
+  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
 
   return (
     <div style={{ 
       padding: '0 20px 20px 20px', 
       color: 'white',
-      minHeight: '100%'
+      minHeight: '100%',
+      backgroundColor: '#000'
     }}>
-      <h1 style={{ marginBottom: '20px', color: 'white' }}>Listening History</h1>
-      <div>
-        <label>
+      <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Listening History</h1>
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ color: '#1DB954', fontWeight: '500' }}>
           Limit:
           <input
             type="number"
@@ -45,16 +46,36 @@ function ListeningHistory() {
             onChange={(e) => setLimit(parseInt(e.target.value, 10) || 50)}
             min="1"
             max="100"
+            style={{
+              marginLeft: '10px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              backgroundColor: '#1DB954',
+              color: '#000',
+              fontWeight: 'bold',
+              border: 'none'
+            }}
           />
         </label>
       </div>
       {history.length > 0 ? (
-        <ul>
+        <ul style={{ 
+          backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+          padding: '20px', 
+          borderRadius: '10px',
+          border: '1px solid rgba(29, 185, 84, 0.3)',
+          listStyle: 'none'
+        }}>
           {history.map((item: any, index: number) => (
-            <li key={item.id || index}>
-              {item.songName || 'Unknown Song'} - {item.artistName || 'Unknown Artist'}
+            <li key={item.id || index} style={{ 
+              marginBottom: '12px',
+              paddingBottom: '12px',
+              borderBottom: index < history.length - 1 ? '1px solid rgba(29, 185, 84, 0.2)' : 'none'
+            }}>
+              <span style={{ color: '#1DB954', fontWeight: 'bold' }}>{item.songName || 'Unknown Song'}</span>
+              <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}> - {item.artistName || 'Unknown Artist'}</span>
               {item.playedAt && (
-                <span> ({(() => {
+                <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.9em' }}> ({(() => {
                   try {
                     return new Date(item.playedAt).toLocaleString();
                   } catch {

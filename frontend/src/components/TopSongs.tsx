@@ -40,9 +40,9 @@ function TopSongs() {
     song.artist?.toLowerCase().includes(filterText.toLowerCase())
   );
 
-  if (loading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
 
-  if (error) return <div style={{ padding: '20px', color: '#ff6b6b' }}>Error: {error}</div>;
+  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
 
   return (
     <div style={{ 
@@ -52,9 +52,10 @@ function TopSongs() {
       width: '100%',
       boxSizing: 'border-box',
       position: 'relative',
-      zIndex: 50
+      zIndex: 50,
+      backgroundColor: '#000'
     }}>
-      <h1 style={{ marginBottom: '20px', color: 'white' }}>Top Songs</h1>
+      <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Top Songs</h1>
       <div style={{
         display: 'flex',
         gap: '1rem',
@@ -64,7 +65,7 @@ function TopSongs() {
         position: 'relative',
         zIndex: 100
       }}>
-        <label style={{ color: 'white', fontWeight: '500', position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
+        <label style={{ color: '#1DB954', fontWeight: '500', position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
           Time Range:
           <select 
             value={timeRange} 
@@ -78,10 +79,11 @@ function TopSongs() {
             style={{
               marginLeft: '0.5rem',
               padding: '6px 12px',
+              backgroundColor: '#1DB954',
+              color: '#000',
+              fontWeight: 'bold',
               borderRadius: '6px',
-              backgroundColor: '#1a1a1a',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              color: 'white',
+              border: '1px solid #1DB954',
               fontSize: '14px',
               cursor: 'pointer',
               position: 'relative',
@@ -92,8 +94,8 @@ function TopSongs() {
               appearance: 'menulist'
             }}
           >
-            <option value="short_term" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>Last 4 weeks</option>
-            <option value="medium_term" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>Last 6 months</option>
+            <option value="short_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 4 weeks</option>
+            <option value="medium_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 6 months</option>
             <option value="long_term" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>All time</option>
           </select>
         </label>

@@ -28,20 +28,21 @@ function CurrentlyPlaying() {
     return () => clearInterval(intervalId);
   }, []);
 
-  if (loading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
 
-  if (error) return <div style={{ padding: '20px', color: '#ff6b6b' }}>Error: {error}</div>;
+  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
 
   const pageStyle = { 
     padding: '0 20px 20px 20px', 
     color: 'white',
-    minHeight: '100%'
+    minHeight: '100%',
+    backgroundColor: '#000'
   };
 
   if (!currentTrack) {
     return (
       <div style={pageStyle}>
-        <h1 style={{ marginBottom: '20px', color: 'white' }}>Currently Playing</h1>
+        <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Currently Playing</h1>
         <p style={{ color: 'rgba(255, 255, 255, 0.7)' }}>No track is currently playing</p>
       </div>
     );
@@ -49,13 +50,18 @@ function CurrentlyPlaying() {
 
   return (
     <div style={pageStyle}>
-      <h1 style={{ marginBottom: '20px', color: 'white' }}>Currently Playing</h1>
-      <div>
-        <h2>{currentTrack.name || 'Unknown Track'}</h2>
-        <p>Artist: {currentTrack.artist || 'Unknown Artist'}</p>
-        <p>Album: {currentTrack.album || 'Unknown Album'}</p>
+      <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Currently Playing</h1>
+      <div style={{ 
+        backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+        padding: '30px', 
+        borderRadius: '15px',
+        border: '1px solid rgba(29, 185, 84, 0.3)'
+      }}>
+        <h2 style={{ color: '#1DB954', marginBottom: '15px' }}>{currentTrack.name || 'Unknown Track'}</h2>
+        <p style={{ fontSize: '1.1em', marginBottom: '10px' }}><strong style={{ color: '#1DB954' }}>Artist:</strong> {currentTrack.artist || 'Unknown Artist'}</p>
+        <p style={{ fontSize: '1.1em', marginBottom: '10px' }}><strong style={{ color: '#1DB954' }}>Album:</strong> {currentTrack.album || 'Unknown Album'}</p>
         {currentTrack.isPlaying !== undefined && (
-          <p>Status: {currentTrack.isPlaying ? 'Playing' : 'Paused'}</p>
+          <p style={{ fontSize: '1.1em' }}><strong style={{ color: '#1DB954' }}>Status:</strong> {currentTrack.isPlaying ? '▶️ Playing' : '⏸️ Paused'}</p>
         )}
       </div>
     </div>

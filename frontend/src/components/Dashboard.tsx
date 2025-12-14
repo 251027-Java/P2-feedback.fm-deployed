@@ -37,9 +37,9 @@ function Dashboard() {
     }
   }, []);
 
-  if (loading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
 
-  if (error) return <div style={{ padding: '20px', color: '#ff6b6b' }}>Error: {error}</div>;
+  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
 
   return (
     <div style={{ 
@@ -47,33 +47,52 @@ function Dashboard() {
       color: 'white',
       minHeight: '100%',
       width: '100%',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      backgroundColor: '#000'
     }}>
-      <h1 style={{ marginBottom: '20px', color: 'white' }}>Dashboard</h1>
+      <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Dashboard</h1>
       
       {dashboardData && (
         <div>
-          <h2>User Info</h2>
-          <div>
-            <p><strong>Username:</strong> {dashboardData.username || 'N/A'}</p>
-            <p><strong>Email:</strong> {dashboardData.email || 'N/A'}</p>
+          <h2 style={{ color: '#1DB954' }}>User Info</h2>
+          <div style={{ 
+            backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+            padding: '15px', 
+            borderRadius: '10px',
+            border: '1px solid rgba(29, 185, 84, 0.3)',
+            marginBottom: '20px'
+          }}>
+            <p><strong style={{ color: '#1DB954' }}>Username:</strong> {dashboardData.username || 'N/A'}</p>
+            <p><strong style={{ color: '#1DB954' }}>Email:</strong> {dashboardData.email || 'N/A'}</p>
           </div>
 
-          <h2>Statistics</h2>
+          <h2 style={{ color: '#1DB954' }}>Statistics</h2>
           {dashboardData.stats && (
-            <div>
-              <p><strong>Total Listening Time:</strong> {dashboardData.stats.totalListeningTime || '0 hours'}</p>
-              <p><strong>Songs Played:</strong> {dashboardData.stats.songsPlayed || 0}</p>
-              <p><strong>Current Streak:</strong> {dashboardData.stats.currentStreak || 0} days</p>
+            <div style={{ 
+              backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+              padding: '15px', 
+              borderRadius: '10px',
+              border: '1px solid rgba(29, 185, 84, 0.3)',
+              marginBottom: '20px'
+            }}>
+              <p><strong style={{ color: '#1DB954' }}>Total Listening Time:</strong> {dashboardData.stats.totalListeningTime || '0 hours'}</p>
+              <p><strong style={{ color: '#1DB954' }}>Songs Played:</strong> {dashboardData.stats.songsPlayed || 0}</p>
+              <p><strong style={{ color: '#1DB954' }}>Current Streak:</strong> {dashboardData.stats.currentStreak || 0} days</p>
             </div>
           )}
 
-          <h2>Top Artists</h2>
+          <h2 style={{ color: '#1DB954' }}>Top Artists</h2>
           {dashboardData.topArtists && dashboardData.topArtists.length > 0 ? (
-            <ul>
+            <ul style={{ 
+              backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+              padding: '20px', 
+              borderRadius: '10px',
+              border: '1px solid rgba(29, 185, 84, 0.3)',
+              marginBottom: '20px'
+            }}>
               {dashboardData.topArtists.slice(0, 10).map((artist: any, index: number) => (
-                <li key={artist.id || artist.artistId || index}>
-                  {index + 1}. {artist.name || artist.artistName || 'Unknown Artist'}
+                <li key={artist.id || artist.artistId || index} style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#1DB954', fontWeight: 'bold' }}>{index + 1}.</span> {artist.name || artist.artistName || 'Unknown Artist'}
                 </li>
               ))}
             </ul>
@@ -81,12 +100,18 @@ function Dashboard() {
             <p>No top artists data available</p>
           )}
 
-          <h2>Top Songs</h2>
+          <h2 style={{ color: '#1DB954' }}>Top Songs</h2>
           {dashboardData.topSongs && dashboardData.topSongs.length > 0 ? (
-            <ul>
+            <ul style={{ 
+              backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+              padding: '20px', 
+              borderRadius: '10px',
+              border: '1px solid rgba(29, 185, 84, 0.3)',
+              marginBottom: '20px'
+            }}>
               {dashboardData.topSongs.slice(0, 10).map((song: any, index: number) => (
-                <li key={song.id || song.songId || index}>
-                  {index + 1}. {song.name || song.songName || 'Unknown Song'} - {song.artistName || song.artist?.name || 'Unknown Artist'}
+                <li key={song.id || song.songId || index} style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#1DB954', fontWeight: 'bold' }}>{index + 1}.</span> {song.name || song.songName || 'Unknown Song'} - {song.artistName || song.artist?.name || 'Unknown Artist'}
                 </li>
               ))}
             </ul>
