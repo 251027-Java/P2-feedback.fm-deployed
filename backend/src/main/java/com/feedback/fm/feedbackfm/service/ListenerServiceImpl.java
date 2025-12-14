@@ -91,6 +91,9 @@ public class ListenerServiceImpl implements ListenerService {
                 dto.country(),
                 dto.href()
         );
+        // Initialize stats with values from DTO or defaults
+        listener.setTotalListeningTimeMs(dto.totalListeningTimeMs() != null ? dto.totalListeningTimeMs() : 0L);
+        listener.setTotalSongsPlayed(dto.totalSongsPlayed() != null ? dto.totalSongsPlayed() : 0);
         return listenerToDto(repository.save(listener));
     }
 
@@ -119,7 +122,15 @@ public class ListenerServiceImpl implements ListenerService {
         listener.setEmail(dto.email());
         listener.setCountry(dto.country());
         listener.setHref(dto.href());
-
+        
+        // Only update stats if provided in DTO (preserve existing if not provided)
+        if (dto.totalListeningTimeMs() != null) {
+            listener.setTotalListeningTimeMs(dto.totalListeningTimeMs());
+        }
+        if (dto.totalSongsPlayed() != null) {
+            listener.setTotalSongsPlayed(dto.totalSongsPlayed());
+        }
+        
         return listenerToDto(repository.save(listener));
     }
 
@@ -175,7 +186,9 @@ public class ListenerServiceImpl implements ListenerService {
                 listener.getDisplayName(),
                 listener.getEmail(),
                 listener.getCountry(),
-                listener.getHref()
+                listener.getHref(),
+                listener.getTotalListeningTimeMs(),
+                listener.getTotalSongsPlayed()
         );
     }
 }

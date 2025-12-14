@@ -30,6 +30,11 @@ public class Listener {
     @Column(columnDefinition = "TEXT")
     private String href;
 
+    @Column(name = "total_listening_time_ms")
+    private Long totalListeningTimeMs = 0L;
+
+    @Column(name = "total_songs_played")
+    private Integer totalSongsPlayed = 0;
 
     @OneToMany(mappedBy = "owner")
     private Set<Playlist> playlists = new HashSet<>(); 
@@ -100,6 +105,22 @@ public class Listener {
 
     public void setHistory(Set<History> history) {
         this.history = history;
+    }
+
+    public Long getTotalListeningTimeMs() {
+        return totalListeningTimeMs != null ? totalListeningTimeMs : 0L;
+    }
+
+    public void setTotalListeningTimeMs(Long totalListeningTimeMs) {
+        this.totalListeningTimeMs = totalListeningTimeMs != null ? totalListeningTimeMs : 0L;
+    }
+
+    public Integer getTotalSongsPlayed() {
+        return totalSongsPlayed != null ? totalSongsPlayed : 0;
+    }
+
+    public void setTotalSongsPlayed(Integer totalSongsPlayed) {
+        this.totalSongsPlayed = totalSongsPlayed != null ? totalSongsPlayed : 0;
     }
 
     @Override
