@@ -84,6 +84,17 @@ public class HistoryController {
 							}
 							historyItem.put("artistName", artistName);
 							
+							// Get album image (matching SongController pattern)
+							@SuppressWarnings("unchecked")
+							Map<String, Object> album = (Map<String, Object>) track.get("album");
+							if (album != null) {
+								@SuppressWarnings("unchecked")
+								List<Map<String, Object>> images = (List<Map<String, Object>>) album.get("images");
+								if (images != null && !images.isEmpty()) {
+									historyItem.put("image", images.get(0).get("url"));
+								}
+							}
+							
 							// Get played at timestamp
 							Object playedAtObj = item.get("played_at");
 							if (playedAtObj != null) {
