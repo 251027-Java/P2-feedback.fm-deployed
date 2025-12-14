@@ -6,13 +6,14 @@ function ListeningHistory() {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [limit, setLimit] = useState<number>(50);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await historyAPI.getHistory(50);
+        const response = await historyAPI.getHistory(limit);
         const historyData = response.data || [];
         setHistory(historyData);
       } catch (err: any) {
@@ -24,34 +25,51 @@ function ListeningHistory() {
     };
 
     fetchHistory();
-  }, []);
+  }, [limit]);
 
-  if (loading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
-
-  if (error) return <div style={{ padding: '20px', color: '#ff6b6b' }}>Error: {error}</div>;
+  if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
+  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
 
   return (
-    <div style={{ 
-      padding: '0 20px 20px 20px', 
-      color: 'white',
-      minHeight: '100%',
-      width: '100%',
-      boxSizing: 'border-box',
-      position: 'relative',
-      zIndex: 50
-    }}>
-      <h1 style={{ marginBottom: '20px', color: 'white' }}>Listening History</h1>
+    <div
+      style={{
+        padding: '0 20px 20px 20px',
+        color: 'white',
+        minHeight: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        backgroundColor: '#000',
+        position: 'relative',
+        zIndex: 50
+      }}
+    >
+      <h1 style={{ marginBottom: '20px', color: '#1DB954' }}>Listening History</h1>
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ color: '#1DB954', fontWeight: 500 }}>
+          Limit:
+          <input
+            type="number"
+            value={limit}
+            onChange={(e) => setLimit(parseInt(e.target.value, 10) || 50)}
+            min={1}
+            max={100}
+            style={{
+              marginLeft: '10px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              backgroundColor: '#1DB954',
+              color: '#000',
+              fontWeight: 'bold',
+              border: 'none'
+            }}
+          />
+        </label>
+      </div>
+
       {history.length > 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            padding: '20px 0'
-          }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '20px 0' }}>
           {history.map((item: any, index: number) => {
-            // Format date: month, date, hours, minutes (no seconds)
+            // Format date similar to main (short + no seconds), with fallback like Sidney2
             let formattedDate = '';
             if (item.playedAt) {
               try {
@@ -65,10 +83,16 @@ function ListeningHistory() {
                 formattedDate = item.playedAt;
               }
             }
-            
+
+            const songName = item.songName || item.song?.name || item.name || 'Unknown Song';
+            const artistName =
+              item.artistName || item.artist?.name || item.song?.artistName || item.song?.artist?.name || 'Unknown Artist';
+            const image =
+              item.image || item.song?.image || item.albumImage || item.song?.albumImage || item.song?.album?.images?.[0]?.url || null;
+
             return (
               <AnimatedContent
-                key={item.id || index}
+                key={item.id || item.historyId || index}
                 distance={100}
                 direction="vertical"
                 reverse={false}
@@ -97,56 +121,44 @@ function ListeningHistory() {
                     e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
                   }}
                 >
-                <div
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    minWidth: '64px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
-                  }}
-                >
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.songName || 'Song'}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  ) : (
-                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1.5rem' }}>
-                      🎵
-                    </div>
-                  )}
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flex: 1,
-                    minWidth: 0
-                  }}
-                >
-                  <p
+                  <div
                     style={{
-                      color: 'white',
-                      fontSize: '1rem',
-                      fontWeight: '500',
-                      margin: '0 0 4px 0',
-                      wordBreak: 'break-word'
+                      width: '64px',
+                      height: '64px',
+                      minWidth: '64px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
                     }}
                   >
-                    {item.songName || 'Unknown Song'}
-                  </p>
-                  {item.artistName && (
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={songName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1.5rem' }}>🎵</div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                    <p
+                      style={{
+                        color: 'white',
+                        fontSize: '1rem',
+                        fontWeight: 500,
+                        margin: '0 0 4px 0',
+                        wordBreak: 'break-word'
+                      }}
+                    >
+                      {songName}
+                    </p>
+
                     <p
                       style={{
                         color: 'rgba(255, 255, 255, 0.6)',
@@ -155,20 +167,14 @@ function ListeningHistory() {
                         wordBreak: 'break-word'
                       }}
                     >
-                      {item.artistName}
+                      {artistName}
                     </p>
-                  )}
-                  <p
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: '0.75rem',
-                      margin: 0
-                    }}
-                  >
-                    {formattedDate}
-                  </p>
+
+                    <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.75rem', margin: 0 }}>
+                      {formattedDate}
+                    </p>
+                  </div>
                 </div>
-              </div>
               </AnimatedContent>
             );
           })}
