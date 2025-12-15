@@ -11,7 +11,6 @@ function Dashboard() {
   const [imageError, setImageError] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<any>(null);
   const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
-  const [timeRange, setTimeRange] = useState('short_term');
   const [cycleMessage, setCycleMessage] = useState<string>('');
   const [cycleColor, setCycleColor] = useState<string>('#1DB954');
   const refreshInterval = 60;
@@ -43,6 +42,44 @@ function Dashboard() {
     song?.album?.images?.[0]?.url ||
     song?.images?.[0]?.url ||
     null;
+
+  const colorWithAlpha = (color: string, alpha: number) => {
+    const match = color.match(/\d+/g);
+    if (!match || match.length < 3) return `rgba(29, 185, 84, ${alpha})`;
+    const [r, g, b] = match.map(Number);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const computeDominantColor = (img: HTMLImageElement) => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    const width = Math.max(1, Math.min(50, img.width || 50));
+    const height = Math.max(1, Math.min(50, img.height || 50));
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(img, 0, 0, width, height);
+    const imageData = context.getImageData(0, 0, width, height);
+    const pixels = imageData.data;
+    const buckets: Record<string, number> = {};
+    const quant = 24;
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = Math.round(pixels[i] / quant) * quant;
+      const g = Math.round(pixels[i + 1] / quant) * quant;
+      const b = Math.round(pixels[i + 2] / quant) * quant;
+      const key = `${r},${g},${b}`;
+      buckets[key] = (buckets[key] || 0) + 1;
+    }
+    let dominant = null;
+    let max = 0;
+    Object.entries(buckets).forEach(([key, count]) => {
+      if (count > max) {
+        max = count;
+        dominant = key;
+      }
+    });
+    return dominant ? `rgb(${dominant})` : null;
+  };
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -116,10 +153,35 @@ function Dashboard() {
     const messages = cycleList.split(/\r?\n/).filter(Boolean);
     const palette = ['#1DB954', '#FF6B6B', '#FFD166', '#06D6A0', '#118AB2', '#C77DFF', '#F06595'];
     const message = messages[Math.floor(Math.random() * messages.length)];
-    const color = palette[Math.floor(Math.random() * palette.length)];
+    const fallbackColor = palette[Math.floor(Math.random() * palette.length)];
     setCycleMessage(message);
-    setCycleColor(color);
+
+    const imgUrl = currentTrack.albumImage || currentTrack.image;
+    if (!imgUrl) {
+      setCycleColor(fallbackColor);
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = imgUrl;
+    img.onload = () => {
+      const dominant = computeDominantColor(img);
+      setCycleColor(dominant || fallbackColor);
+    };
+    img.onerror = () => setCycleColor(fallbackColor);
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [currentTrack?.id, currentTrack?.name]);
+
+  // Push accent color to CSS variable for shared components (e.g., nav/logo)
+  useEffect(() => {
+    if (!cycleColor) return;
+    document.documentElement.style.setProperty('--accent-color', cycleColor);
+  }, [cycleColor]);
 
   // Fetch recently played tracks
   useEffect(() => {
@@ -150,7 +212,7 @@ function Dashboard() {
     );
   }
   
-  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
+  if (error) return <div style={{ padding: '20px', color: cycleColor }}>Error: {error}</div>;
 
   return (
     <div
@@ -167,7 +229,7 @@ function Dashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' }}>
         <h1 style={{ 
           margin: 0,
-          color: '#1DB954',
+          color: cycleColor,
           fontSize: '3rem',
           fontWeight: '700',
           letterSpacing: '-0.5px'
@@ -180,6 +242,28 @@ function Dashboard() {
 
       {dashboardData && (
         <div>
+          {/* Quip above Profile/Now Playing */}
+          <div style={{ marginBottom: '20px', width: '100%', display: 'flex' }}>
+            <div style={{
+              width: '100%',
+              maxWidth: '100%',
+              minHeight: '220px',
+              borderRadius: '0px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <ASCIIText
+                text={cycleMessage || '...'}
+                asciiFontSize={4}
+                textFontSize={90}
+                textColor={cycleColor}
+                enableWaves={false}
+              />
+            </div>
+          </div>
+
           {/* Profile and Now Playing Row */}
           <div style={{
             display: 'grid',
@@ -188,17 +272,35 @@ function Dashboard() {
             marginBottom: '40px'
           }}>
             {/* Profile Section */}
-            <div style={{
-              backgroundColor: 'rgba(29, 185, 84, 0.05)',
-              border: '1px solid rgba(29, 185, 84, 0.3)',
-              borderRadius: '16px',
-              padding: '24px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-            }}>
+            <a
+              href={`https://open.spotify.com/user/${dashboardData?.userId || ''}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              <div style={{
+                backgroundColor: colorWithAlpha(cycleColor, 0.05),
+                border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 6px 16px ${colorWithAlpha(cycleColor, 0.3)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.5)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
+              }}>
               <h2 style={{ 
                 marginTop: 0,
                 marginBottom: '20px', 
-                color: '#1DB954',
+                color: cycleColor,
                 fontSize: '0.7rem',
                 fontWeight: '700',
                 letterSpacing: '1px',
@@ -224,7 +326,7 @@ function Dashboard() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                    border: '2px solid rgba(29, 185, 84, 0.4)'
+                    border: `2px solid ${colorWithAlpha(cycleColor, 0.4)}`
                   }}
                 >
                   {dashboardData.profileImage && !imageError ? (
@@ -238,7 +340,7 @@ function Dashboard() {
                       }}
                     />
                   ) : (
-                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#1DB954" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke={cycleColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
@@ -267,33 +369,34 @@ function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            </a>
 
             {/* Now Playing Section */}
             <Link to="/currently-playing" style={{ textDecoration: 'none' }}>
               <div style={{
                 backgroundColor: 'rgba(29, 185, 84, 0.05)',
-                border: '1px solid rgba(29, 185, 84, 0.3)',
+              border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
                 borderRadius: '16px',
                 padding: '24px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(29, 185, 84, 0.3)';
-                e.currentTarget.style.border = '1px solid rgba(29, 185, 84, 0.5)';
+                e.currentTarget.style.boxShadow = `0 6px 16px ${colorWithAlpha(cycleColor, 0.3)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.5)}`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-                e.currentTarget.style.border = '1px solid rgba(29, 185, 84, 0.3)';
+                e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
               }}>
                 <h2 style={{
                   marginTop: 0,
                   marginBottom: '20px',
-                  color: '#1DB954',
+                  color: cycleColor,
                   fontSize: '0.7rem',
                   fontWeight: '700',
                   letterSpacing: '1px',
@@ -312,8 +415,8 @@ function Dashboard() {
                     height: '80px',
                     borderRadius: '8px',
                     overflow: 'hidden',
-                    backgroundColor: 'rgba(29, 185, 84, 0.2)',
-                    border: '1px solid rgba(29, 185, 84, 0.4)'
+                    backgroundColor: colorWithAlpha(cycleColor, 0.2),
+                    border: `1px solid ${colorWithAlpha(cycleColor, 0.4)}`
                   }}>
                     {currentTrack.albumImage || currentTrack.image ? (
                       <img
@@ -367,7 +470,7 @@ function Dashboard() {
                     </div>
                     <div style={{
                       fontSize: '0.9rem',
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: colorWithAlpha(cycleColor, 0.7),
                       fontWeight: '500',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -420,52 +523,29 @@ function Dashboard() {
             </Link>
           </div>
 
-          {/* Quip above Stats */}
-          <div style={{ marginBottom: '20px', width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <div style={{
-              width: '100%',
-              maxWidth: '1200px',
-              minHeight: '260px',
-              borderRadius: '16px',
-              border: '1px dashed rgba(255, 255, 255, 0.3)',
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              overflow: 'hidden',
-              position: 'relative'
-            }}>
-              <ASCIIText
-                text={cycleMessage || '...'}
-                asciiFontSize={8}
-                textFontSize={140}
-                textColor={cycleColor}
-                enableWaves={false}
-              />
-            </div>
-          </div>
-
           {/* Stats Section */}
           <div style={{ marginBottom: '40px' }}>
             <h2 style={{ 
               marginBottom: '24px', 
-              color: 'white',
+              color: cycleColor,
               fontSize: '1.5rem',
               fontWeight: '700',
               letterSpacing: '-0.3px'
             }}>Your Stats</h2>
-            {console.log('Rendering stats section with data:', dashboardData?.stats)}
             <div style={{ 
               display: 'grid',
               gridTemplateColumns: 'repeat(3, minmax(180px, 1fr))',
               gap: '1.5rem',
               padding: '20px',
-              backgroundColor: 'rgba(29, 185, 84, 0.1)',
+              backgroundColor: colorWithAlpha(cycleColor, 0.1),
               borderRadius: '12px',
-              border: '1px solid rgba(29, 185, 84, 0.2)'
+              border: `1px solid ${colorWithAlpha(cycleColor, 0.2)}`
             }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ 
                     fontSize: '2rem', 
                     fontWeight: '700',
-                    color: '#1DB954',
+                    color: cycleColor,
                     marginBottom: '4px',
                     letterSpacing: '-0.5px'
                   }}>
@@ -473,7 +553,7 @@ function Dashboard() {
                   </div>
                   <div style={{ 
                     fontSize: '0.8rem',
-                    color: 'rgba(255, 255, 255, 0.6)',
+                    color: colorWithAlpha(cycleColor, 0.6),
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     fontWeight: '600'
@@ -485,7 +565,7 @@ function Dashboard() {
                   <div style={{ 
                     fontSize: '2rem', 
                     fontWeight: '700',
-                    color: '#1DB954',
+                    color: cycleColor,
                     marginBottom: '4px',
                     letterSpacing: '-0.5px'
                   }}>
@@ -505,7 +585,7 @@ function Dashboard() {
                   <div style={{ 
                     fontSize: '2rem', 
                     fontWeight: '700',
-                    color: '#1DB954',
+                    color: cycleColor,
                     marginBottom: '4px',
                     letterSpacing: '-0.5px'
                   }}>
@@ -527,17 +607,17 @@ function Dashboard() {
           {/* Recently Played Section */}
           {recentlyPlayed.length > 0 && (
             <div style={{ marginBottom: '48px' }}>
-              <h2 style={{ 
-                marginBottom: '24px',
-                marginTop: '48px',
-                color: 'white',
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                letterSpacing: '-0.3px'
-              }}>Recently Played</h2>
+          <h2 style={{ 
+            marginBottom: '24px',
+            marginTop: '48px',
+            color: cycleColor,
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            letterSpacing: '-0.3px'
+          }}>Recently Played</h2>
               <div style={{
-                backgroundColor: 'rgba(29, 185, 84, 0.05)',
-                border: '1px solid rgba(29, 185, 84, 0.2)',
+                backgroundColor: colorWithAlpha(cycleColor, 0.05),
+                border: `1px solid ${colorWithAlpha(cycleColor, 0.2)}`,
                 borderRadius: '16px',
                 padding: '20px',
                 maxHeight: '400px',
@@ -576,18 +656,18 @@ function Dashboard() {
                         gap: '16px',
                         padding: '12px',
                         marginBottom: index < recentlyPlayed.length - 1 ? '8px' : 0,
-                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        backgroundColor: colorWithAlpha(cycleColor, 0.03),
                         borderRadius: '8px',
                         cursor: href ? 'pointer' : 'default',
                         transition: 'all 0.2s'
                       }}
                       onClick={() => href && window.open(href, '_blank')}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.backgroundColor = colorWithAlpha(cycleColor, 0.08);
                         if (href) e.currentTarget.style.transform = 'translateX(4px)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                        e.currentTarget.style.backgroundColor = colorWithAlpha(cycleColor, 0.03);
                         e.currentTarget.style.transform = 'translateX(0)';
                       }}
                     >
@@ -646,16 +726,16 @@ function Dashboard() {
                       )}
                       {/* Play Icon */}
                       {href && (
-                        <div style={{
-                          color: '#1DB954',
-                          fontSize: '1.1rem',
-                          opacity: 0.7,
-                          transition: 'opacity 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}>
-                          ▶
-                        </div>
+                      <div style={{
+                        color: cycleColor,
+                        fontSize: '1.1rem',
+                        opacity: 0.7,
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}>
+                        ▶
+                      </div>
                       )}
                     </div>
                   );
@@ -667,7 +747,7 @@ function Dashboard() {
           <h2 style={{ 
             marginBottom: '24px',
             marginTop: '48px',
-            color: 'white',
+            color: cycleColor,
             fontSize: '1.5rem',
             fontWeight: '700',
             letterSpacing: '-0.3px'
@@ -720,7 +800,7 @@ function Dashboard() {
                         transition: 'border-color 0.2s'
                       }}
                       onMouseEnter={(e) => {
-                        if (href) e.currentTarget.style.borderColor = '#1DB954';
+                        if (href) e.currentTarget.style.borderColor = cycleColor;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor = 'transparent';
@@ -758,7 +838,7 @@ function Dashboard() {
           <h2 style={{ 
             marginBottom: '24px',
             marginTop: '48px',
-            color: 'white',
+            color: cycleColor,
             fontSize: '1.5rem',
             fontWeight: '700',
             letterSpacing: '-0.3px'
@@ -811,7 +891,7 @@ function Dashboard() {
                         transition: 'border-color 0.2s'
                       }}
                       onMouseEnter={(e) => {
-                        if (href) e.currentTarget.style.borderColor = '#1DB954';
+                        if (href) e.currentTarget.style.borderColor = cycleColor;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor = 'transparent';
