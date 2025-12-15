@@ -6,6 +6,7 @@ import TopArtists from './components/TopArtists';
 import TopSongs from './components/TopSongs';
 import ListeningHistory from './components/ListeningHistory';
 import CurrentlyPlaying from './components/CurrentlyPlaying';
+import Playlists from './components/Playlists';
 
 function AppContent() {
   const location = useLocation();
@@ -42,6 +43,7 @@ function AppContent() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/top-artists" element={<TopArtists />} />
           <Route path="/top-songs" element={<TopSongs />} />
+          <Route path="/playlists" element={<Playlists />} />
           <Route path="/history" element={<ListeningHistory />} />
           <Route path="/currently-playing" element={<CurrentlyPlaying />} />
         </Routes>

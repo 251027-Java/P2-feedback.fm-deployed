@@ -78,9 +78,19 @@ export const historyAPI = {
 };
 
 export const playlistsAPI = {
-  getAll: () => api.get('/playlists'),
+  getAll: () => {
+    const spotifyToken = localStorage.getItem('spotifyAccessToken');
+    return api.get('/playlists/spotify', {
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+    });
+  },
   getById: (id: string) => api.get(`/playlists/${id}`),
-  getSongs: (id: string) => api.get(`/playlists/${id}/songs`),
+  getSongs: (id: string) => {
+    const spotifyToken = localStorage.getItem('spotifyAccessToken');
+    return api.get(`/playlists/spotify/${id}/tracks`, {
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+    });
+  },
 };
 
 export const albumsAPI = {

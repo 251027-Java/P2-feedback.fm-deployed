@@ -1,14 +1,19 @@
 package com.feedback.fm.feedbackfm.service.spotify;
 
-import com.feedback.fm.feedbackfm.exception.AuthenticationException;
-import com.feedback.fm.feedbackfm.exception.SpotifyApiException;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
+import com.feedback.fm.feedbackfm.exception.AuthenticationException;
+import com.feedback.fm.feedbackfm.exception.SpotifyApiException;
 
 @Service
 public class SpotifyApiService {
@@ -151,6 +156,25 @@ public class SpotifyApiService {
             }
         } catch (RestClientException e) {
             throw new SpotifyApiException("Error getting user playlists: " + e.getMessage(), e);
+        }
+    }
+    
+    public Map<String, Object> getPlaylistTracks(String accessToken, String playlistId) {
+        String url = apiBaseUrl + "/playlists/" + playlistId + "/tracks";
+        HttpHeaders headers = createHeaders(accessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, Map.class
+            );
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            } else {
+                throw new SpotifyApiException("Failed to get playlist tracks");
+            }
+        } catch (RestClientException e) {
+            throw new SpotifyApiException("Error getting playlist tracks: " + e.getMessage(), e);
         }
     }
     

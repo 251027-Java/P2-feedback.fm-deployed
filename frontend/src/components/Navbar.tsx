@@ -22,6 +22,7 @@ function Navbar() {
     { label: 'Dashboard', ariaLabel: 'Go to dashboard', link: '/dashboard' },
     { label: 'Top Artists', ariaLabel: 'View top artists', link: '/top-artists' },
     { label: 'Top Songs', ariaLabel: 'View top songs', link: '/top-songs' },
+    { label: 'Playlists', ariaLabel: 'View playlists', link: '/playlists' },
     { label: 'History', ariaLabel: 'View listening history', link: '/history' },
     { label: 'Now Playing', ariaLabel: 'View currently playing', link: '/currently-playing' },
     { label: 'Logout', ariaLabel: 'Logout', link: '/logout' },
