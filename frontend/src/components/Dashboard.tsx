@@ -440,7 +440,7 @@ function Dashboard() {
             fontSize: '1.5rem',
             fontWeight: '700',
             letterSpacing: '-0.3px'
-          }}>Top Artists</h2>
+          }}>Recent Top Artists</h2>
           {dashboardData.topArtists && dashboardData.topArtists.length > 0 ? (
             <div
               className="artists-grid"
@@ -508,7 +508,7 @@ function Dashboard() {
             fontSize: '1.5rem',
             fontWeight: '700',
             letterSpacing: '-0.3px'
-          }}>Top Songs</h2>
+          }}>Recent Top Songs</h2>
           {dashboardData.topSongs && dashboardData.topSongs.length > 0 ? (
             <div
               className="songs-grid"

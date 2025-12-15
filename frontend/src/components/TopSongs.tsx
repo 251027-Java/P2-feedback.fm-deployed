@@ -6,8 +6,9 @@ function TopSongs() {
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState('medium_term');
+  const [timeRange, setTimeRange] = useState('short_term');
   const [filterText, setFilterText] = useState('');
+  const [sortBy, setSortBy] = useState('default');
 
   const handleTimeRangeChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setTimeRange(e.target.value);
@@ -15,6 +16,10 @@ function TopSongs() {
 
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFilterText(e.target.value);
+  };
+
+  const handleSortChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value);
   };
 
   useEffect(() => {
@@ -35,10 +40,24 @@ function TopSongs() {
     fetchTopSongs();
   }, [timeRange]);
 
-  const filteredSongs = songs.filter((song: any) =>
-    song.name?.toLowerCase().includes(filterText.toLowerCase()) ||
-    song.artist?.toLowerCase().includes(filterText.toLowerCase())
-  );
+  const filteredSongs = songs
+    .filter((song: any) =>
+      song.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      song.artist?.toLowerCase().includes(filterText.toLowerCase()) ||
+      song.artistName?.toLowerCase().includes(filterText.toLowerCase())
+    )
+    .sort((a: any, b: any) => {
+      if (sortBy === 'name') {
+        return (a.name || '').localeCompare(b.name || '');
+      } else if (sortBy === 'artist') {
+        const artistA = a.artistName || a.artist || '';
+        const artistB = b.artistName || b.artist || '';
+        return artistA.localeCompare(artistB);
+      } else if (sortBy === 'popularity') {
+        return (b.popularity || 0) - (a.popularity || 0);
+      }
+      return 0; // default order from API
+    });
 
   if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
 
@@ -55,16 +74,24 @@ function TopSongs() {
       zIndex: 50,
       backgroundColor: '#000'
     }}>
-      <h1 style={{ 
-        marginTop: '40px',
-        marginBottom: '40px', 
-        color: '#1DB954',
-        fontSize: '3rem',
-        fontWeight: '700',
-        letterSpacing: '-0.5px'
-      }}>
-        Top Songs
-      </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '20px' }}>
+        <h1 style={{ 
+          margin: 0,
+          color: '#1DB954',
+          fontSize: '3rem',
+          fontWeight: '700',
+          letterSpacing: '-0.5px'
+        }}>
+          Top Songs
+        </h1>
+        <div style={{ 
+          color: 'rgba(255, 255, 255, 0.7)', 
+          fontSize: '1rem',
+          fontWeight: '500'
+        }}>
+          {filteredSongs.length} {filteredSongs.length === 1 ? 'song' : 'songs'}
+        </div>
+      </div>
       <div style={{
         display: 'flex',
         gap: '1rem',
@@ -103,9 +130,44 @@ function TopSongs() {
               appearance: 'menulist'
             }}
           >
-            <option value="short_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 4 weeks</option>
-            <option value="medium_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 6 months</option>
-            <option value="long_term" style={{ backgroundColor: '#1a1a1a', color: 'white' }}>All time</option>
+            <option value="short_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 4 Weeks</option>
+            <option value="medium_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 6 Months</option>
+            <option value="long_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>All Time</option>
+          </select>
+        </label>
+        <label style={{ color: '#1DB954', fontWeight: '500', position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
+          Sort By:
+          <select 
+            value={sortBy} 
+            onChange={handleSortChange}
+            onFocus={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.currentTarget.focus();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{
+              marginLeft: '0.5rem',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              backgroundColor: '#1DB954',
+              color: '#000',
+              fontWeight: 'bold',
+              border: '1px solid #1DB954',
+              fontSize: '14px',
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 101,
+              pointerEvents: 'auto',
+              WebkitAppearance: 'menulist',
+              MozAppearance: 'menulist',
+              appearance: 'menulist'
+            }}
+          >
+            <option value="default" style={{ backgroundColor: '#1DB954', color: '#000' }}>Default</option>
+            <option value="name" style={{ backgroundColor: '#1DB954', color: '#000' }}>Song Name (A-Z)</option>
+            <option value="artist" style={{ backgroundColor: '#1DB954', color: '#000' }}>Artist Name (A-Z)</option>
+            <option value="popularity" style={{ backgroundColor: '#1DB954', color: '#000' }}>Popularity</option>
           </select>
         </label>
         <input
@@ -159,7 +221,21 @@ function TopSongs() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                  position: 'relative'
+                }}
+                onClick={() => {
+                  if (song.href || song.external_urls?.spotify) {
+                    window.open(song.href || song.external_urls.spotify, '_blank');
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
               <div
@@ -173,7 +249,15 @@ function TopSongs() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                  border: '2px solid transparent',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#1DB954';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'transparent';
                 }}
               >
                 {song.image ? (
@@ -197,21 +281,42 @@ function TopSongs() {
               </div>
               <p style={{
                 color: 'white',
-                fontSize: '0.9rem',
-                fontWeight: '500',
+                fontSize: '0.95rem',
+                fontWeight: '600',
                 margin: '0 0 4px 0',
                 wordBreak: 'break-word'
               }}>
                 {song.name || 'Unknown Song'}
               </p>
               <p style={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '0.75rem',
-                margin: 0,
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '0.8rem',
+                margin: '0 0 6px 0',
                 wordBreak: 'break-word'
               }}>
                 {song.artistName || song.artist || 'Unknown Artist'}
               </p>
+              {song.album?.name && (
+                <p style={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '0.7rem',
+                  margin: '0 0 4px 0',
+                  wordBreak: 'break-word',
+                  fontStyle: 'italic'
+                }}>
+                  {song.album.name}
+                </p>
+              )}
+              {song.duration_ms && (
+                <p style={{
+                  color: '#1DB954',
+                  fontSize: '0.7rem',
+                  fontWeight: '500',
+                  margin: 0
+                }}>
+                  {Math.floor(song.duration_ms / 60000)}:{String(Math.floor((song.duration_ms % 60000) / 1000)).padStart(2, '0')}
+                </p>
+              )}
               </div>
             </AnimatedContent>
           ))}
