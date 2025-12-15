@@ -2,12 +2,13 @@
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [Features](#features)
-3. [Architecture](#architecture)
-4. [Implementation Details](#implementation-details)
-5. [API Endpoints](#api-endpoints)
-6. [Testing](#testing)
-7. [User Guide](#user-guide)
+2. [User Stories](#user-stories)
+3. [Features](#features)
+4. [Architecture](#architecture)
+5. [Implementation Details](#implementation-details)
+6. [API Endpoints](#api-endpoints)
+7. [Testing](#testing)
+8. [User Guide](#user-guide)
 
 ---
 
@@ -28,6 +29,149 @@
 - Display real-time currently playing information
 - Manage and view playlists
 - Analyze top artists and songs across different time periods
+
+---
+
+## User Stories
+
+### Authentication & Profile
+
+**US-001: Login with Spotify**
+- **As a** Spotify user
+- **I want to** log in using my Spotify account
+- **So that** I can access my listening data
+
+**US-002: View My Profile**
+- **As a** logged-in user
+- **I want to** see my profile information and avatar
+- **So that** I can confirm I'm using the correct account
+
+**US-003: Logout**
+- **As a** logged-in user
+- **I want to** log out securely
+- **So that** my data remains private
+
+---
+
+### Dashboard & Statistics
+
+**US-004: View Dashboard Stats**
+- **As a** music listener
+- **I want to** see my overall listening statistics
+- **So that** I can understand my music habits
+
+**US-005: View Currently Playing**
+- **As a** active listener
+- **I want to** see what's currently playing on my Spotify
+- **So that** I can track my active listening session
+
+**US-006: Navigate to Now Playing Details**
+- **As a** user
+- **I want to** click the Now Playing widget to see more details
+- **So that** I can view full playback information
+
+---
+
+### Top Artists & Songs
+
+**US-007: View Top Artists**
+- **As a** music enthusiast
+- **I want to** view my top artists for different time periods (4 weeks, 6 months, all time)
+- **So that** I can see how my music taste evolves
+
+**US-008: Search Artists**
+- **As a** user with many favorite artists
+- **I want to** search and filter my top artists
+- **So that** I can quickly find specific artists
+
+**US-009: View Top Songs**
+- **As a** music listener
+- **I want to** see my most played songs with album art and duration
+- **So that** I can revisit my favorite tracks
+
+**US-010: Sort Songs**
+- **As a** user
+- **I want to** sort songs by popularity, name, or artist
+- **So that** I can organize my music preferences
+
+---
+
+### Listening History
+
+**US-011: View Listening History**
+- **As a** music listener
+- **I want to** see my recent listening history with timestamps
+- **So that** I can remember what I've been listening to
+
+**US-012: Customize History Count**
+- **As a** user
+- **I want to** choose how many tracks to display (10-100)
+- **So that** I can control the amount of data shown
+
+---
+
+### Playlists
+
+**US-013: View All Playlists**
+- **As a** Spotify user
+- **I want to** see all my playlists with track counts
+- **So that** I can easily browse them
+
+**US-014: View Playlist Tracks**
+- **As a** playlist curator
+- **I want to** click a playlist to see all its songs
+- **So that** I can review playlist contents
+
+---
+
+### Navigation & UX
+
+**US-015: Navigate Between Pages**
+- **As a** user
+- **I want to** easily navigate between all sections
+- **So that** I can access features efficiently
+
+**US-016: See Visual Feedback**
+- **As a** user
+- **I want to** see hover effects and transitions on interactive elements
+- **So that** I know my actions are recognized
+
+---
+
+### Data & Performance
+
+**US-017: Auto-Update Now Playing**
+- **As a** user
+- **I want to** the Now Playing section to update automatically
+- **So that** I see current information without refreshing
+
+**US-018: Handle Token Expiration**
+- **As a** user
+- **I want to** be notified when my session expires
+- **So that** I know when to log in again
+
+**US-019: See Loading States**
+- **As a** user
+- **I want to** see loading indicators when data is being fetched
+- **So that** I know the app is working
+
+**US-020: Handle Errors Gracefully**
+- **As a** user
+- **I want to** see helpful error messages when something goes wrong
+- **So that** I understand what happened and what to do
+
+---
+
+### Priority Levels
+
+**High Priority (MVP):**
+- US-001, US-002, US-004, US-005, US-007, US-009, US-011, US-013, US-015
+
+**Medium Priority:**
+- US-003, US-006, US-008, US-010, US-012, US-014, US-017
+
+**Low Priority:**
+- US-016, US-018, US-019, US-020
 
 ---
 
