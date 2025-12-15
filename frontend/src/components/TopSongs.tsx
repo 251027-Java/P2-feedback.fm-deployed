@@ -177,7 +177,7 @@ function TopSongs() {
           onFocus={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
-          placeholder="Filter songs..."
+          placeholder="Search songs..."
           style={{
             padding: '6px 12px',
             borderRadius: '6px',

@@ -98,6 +98,7 @@ function ListeningHistory() {
               item.artistName || item.artist?.name || item.song?.artistName || item.song?.artist?.name || 'Unknown Artist';
             const image =
               item.image || item.song?.image || item.albumImage || item.song?.albumImage || item.song?.album?.images?.[0]?.url || null;
+            const href = item.href || item.song?.href || item.external_urls?.spotify || null;
 
             return (
               <AnimatedContent
@@ -121,13 +122,23 @@ function ListeningHistory() {
                     padding: '12px',
                     backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     borderRadius: '8px',
-                    transition: 'background-color 0.2s'
+                    transition: 'all 0.2s',
+                    cursor: href ? 'pointer' : 'default'
+                  }}
+                  onClick={() => {
+                    if (href) {
+                      window.open(href, '_blank');
+                    }
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    if (href) {
+                      e.currentTarget.style.transform = 'translateX(4px)';
+                    }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.transform = 'translateX(0)';
                   }}
                 >
                   <div
@@ -183,6 +194,25 @@ function ListeningHistory() {
                       {formattedDate}
                     </p>
                   </div>
+                  
+                  {href && (
+                    <div style={{
+                      color: '#1DB954',
+                      fontSize: '1.2rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      opacity: 0.7,
+                      transition: 'opacity 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '0.7';
+                    }}>
+                      ▶
+                    </div>
+                  )}
                 </div>
               </AnimatedContent>
             );
