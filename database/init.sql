@@ -21,20 +21,22 @@ CREATE TABLE song (
     href         TEXT
 );
 
--- 03_listeners.sql
-CREATE TABLE listeners (
+-- 03_listener.sql
+CREATE TABLE listener (
     listener_id   VARCHAR(64) PRIMARY KEY,
     display_name  TEXT,
     email         TEXT,
     country       VARCHAR(10),
-    href          TEXT
+    href          TEXT,
+    total_listening_time_ms BIGINT DEFAULT 0,
+    total_songs_played INTEGER DEFAULT 0
 );
 
 -- 04_playlists.sql
 CREATE TABLE playlists (
     playlist_id   VARCHAR(64) PRIMARY KEY,
     name          TEXT        NOT NULL,
-    owner_id      VARCHAR(64) NOT NULL REFERENCES listeners(listener_id),
+    owner_id      VARCHAR(64) NOT NULL REFERENCES listener(listener_id),
     is_public     BOOLEAN     NOT NULL DEFAULT TRUE,
     href          TEXT
 );
@@ -42,7 +44,7 @@ CREATE TABLE playlists (
 -- 05_history.sql
 CREATE TABLE history (
     history_id   BIGSERIAL PRIMARY KEY,
-    listener_id  VARCHAR(64) NOT NULL REFERENCES listeners(listener_id),
+    listener_id  VARCHAR(64) NOT NULL REFERENCES listener(listener_id),
     song_id      VARCHAR(64) NOT NULL REFERENCES song(song_id),
     played_at    TIMESTAMPTZ NOT NULL
 );

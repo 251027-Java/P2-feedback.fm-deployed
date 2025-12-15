@@ -77,6 +77,8 @@ public class ListenerController {
         Long totalListeningTimeMs = listener.totalListeningTimeMs() != null ? listener.totalListeningTimeMs() : 0L;
         Integer totalSongsPlayed = listener.totalSongsPlayed() != null ? listener.totalSongsPlayed() : 0;
         
+        System.out.println("[" + LocalDateTime.now() + "] Initial stats from DB - totalListeningTimeMs: " + totalListeningTimeMs + ", totalSongsPlayed: " + totalSongsPlayed);
+        
         // Convert milliseconds to hours and minutes
         long totalMinutes = totalListeningTimeMs / 60000;
         long hours = totalMinutes / 60;
@@ -96,8 +98,10 @@ public class ListenerController {
         // (We still use recently played for streak calculation as it's time-based)
         // Note: Spotify's recently played endpoint only returns the last 50 tracks maximum
         // Stats represent activity from those tracks - for comprehensive stats, we'd need database storage
+        System.out.println("[" + LocalDateTime.now() + "] Checking Spotify token - token provided: " + (spotifyToken != null && !spotifyToken.isBlank()));
         if (spotifyToken != null && !spotifyToken.isBlank()) {
             try {
+                System.out.println("[" + LocalDateTime.now() + "] Calling Spotify API to get recently played tracks...");
                 // Get recently played to calculate stats (limit 50 is max Spotify allows)
                 Map<String, Object> recentlyPlayed = spotifyApiService.getRecentlyPlayed(spotifyToken, 50);
                 System.out.println("[" + LocalDateTime.now() + "] Fetching dashboard stats - recently played response: " + 
@@ -148,14 +152,24 @@ public class ListenerController {
                         
                         // Also trigger sync to update cumulative stats with new plays
                         // This ensures stats are kept up-to-date when dashboard is accessed
+                        System.out.println("[" + LocalDateTime.now() + "] About to call syncRecentlyPlayed for listener: " + id);
                         try {
                             spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
+                            System.out.println("[" + LocalDateTime.now() + "] syncRecentlyPlayed completed successfully");
+                            
+                            // Recalculate stats from all history records to ensure accuracy
+                            // This handles cases where stats might be out of sync
+                            spotifySyncService.recalculateStatsFromHistory(id);
+                            
                             // Re-fetch listener to get updated stats
+                            // Note: Since syncRecentlyPlayed is @Transactional, changes should be committed
                             listenerOpt = listenerService.getById(id);
                             if (listenerOpt.isPresent()) {
                                 listener = listenerOpt.get();
                                 Long updatedTotalTime = listener.totalListeningTimeMs() != null ? listener.totalListeningTimeMs() : 0L;
                                 Integer updatedSongs = listener.totalSongsPlayed() != null ? listener.totalSongsPlayed() : 0;
+                                
+                                System.out.println("[" + LocalDateTime.now() + "] Stats after sync - totalListeningTimeMs: " + updatedTotalTime + ", totalSongsPlayed: " + updatedSongs);
                                 
                                 // Update stats with fresh values
                                 long updatedMinutes = updatedTotalTime / 60000;
@@ -165,26 +179,103 @@ public class ListenerController {
                                     stats.put("totalListeningTime", updatedHours + " hours " + updatedMins + " minutes");
                                 } else if (updatedMinutes > 0) {
                                     stats.put("totalListeningTime", updatedMins + " minutes");
+                                } else {
+                                    stats.put("totalListeningTime", "0 minutes");
                                 }
                                 stats.put("songsPlayed", updatedSongs);
+                            } else {
+                                System.err.println("[" + LocalDateTime.now() + "] Listener not found after sync for ID: " + id);
                             }
                         } catch (Exception syncException) {
-                            System.err.println("Error syncing recently played: " + syncException.getMessage());
-                            // Continue with existing stats if sync fails
+                            System.err.println("[" + LocalDateTime.now() + "] Error syncing recently played: " + syncException.getMessage());
+                            syncException.printStackTrace();
+                            
+                            // Even if sync fails, try to recalculate from existing history
+                            try {
+                                spotifySyncService.recalculateStatsFromHistory(id);
+                                listenerOpt = listenerService.getById(id);
+                                if (listenerOpt.isPresent()) {
+                                    listener = listenerOpt.get();
+                                    Long recalculatedTime = listener.totalListeningTimeMs() != null ? listener.totalListeningTimeMs() : 0L;
+                                    Integer recalculatedSongs = listener.totalSongsPlayed() != null ? listener.totalSongsPlayed() : 0;
+                                    
+                                    long recalcMinutes = recalculatedTime / 60000;
+                                    long recalcHours = recalcMinutes / 60;
+                                    long recalcMins = recalcMinutes % 60;
+                                    if (recalcHours > 0) {
+                                        stats.put("totalListeningTime", recalcHours + " hours " + recalcMins + " minutes");
+                                    } else if (recalcMinutes > 0) {
+                                        stats.put("totalListeningTime", recalcMins + " minutes");
+                                    }
+                                    stats.put("songsPlayed", recalculatedSongs);
+                                }
+                            } catch (Exception recalcException) {
+                                System.err.println("[" + LocalDateTime.now() + "] Error recalculating stats: " + recalcException.getMessage());
+                            }
                         }
                     } else {
-                        System.out.println("[" + LocalDateTime.now() + "] No items found in recently played");
+                        System.out.println("[" + LocalDateTime.now() + "] No items found in recently played - will still try to sync");
+                        // Even if no items, try to sync (might have new data)
+                        try {
+                            System.out.println("[" + LocalDateTime.now() + "] Calling sync even though items list is empty");
+                            spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
+                            spotifySyncService.recalculateStatsFromHistory(id);
+                        } catch (Exception syncException) {
+                            System.err.println("[" + LocalDateTime.now() + "] Error syncing with empty items: " + syncException.getMessage());
+                        }
                     }
                 } else {
-                    System.out.println("[" + LocalDateTime.now() + "] Recently played response missing 'items' key or is null");
+                    System.out.println("[" + LocalDateTime.now() + "] Recently played response missing 'items' key or is null - will still try to sync");
+                    // Try to sync anyway - might have data
+                    try {
+                        System.out.println("[" + LocalDateTime.now() + "] Calling sync even though response is missing items");
+                        spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
+                        spotifySyncService.recalculateStatsFromHistory(id);
+                    } catch (Exception syncException) {
+                        System.err.println("[" + LocalDateTime.now() + "] Error syncing with missing items: " + syncException.getMessage());
+                    }
                 }
             } catch (Exception e) {
                 // Keep default stats if calculation fails
                 System.err.println("[" + LocalDateTime.now() + "] Error calculating dashboard stats: " + e.getMessage());
                 e.printStackTrace();
+                // Still try to sync even if there's an error
+                try {
+                    System.out.println("[" + LocalDateTime.now() + "] Attempting sync after error");
+                    spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
+                    spotifySyncService.recalculateStatsFromHistory(id);
+                } catch (Exception syncException) {
+                    System.err.println("[" + LocalDateTime.now() + "] Error syncing after exception: " + syncException.getMessage());
+                }
             }
         } else {
             System.out.println("[" + LocalDateTime.now() + "] No Spotify token provided for dashboard stats");
+            // Even without token, recalculate stats from existing history to ensure accuracy
+            try {
+                spotifySyncService.recalculateStatsFromHistory(id);
+                listenerOpt = listenerService.getById(id);
+                if (listenerOpt.isPresent()) {
+                    listener = listenerOpt.get();
+                    Long recalculatedTime = listener.totalListeningTimeMs() != null ? listener.totalListeningTimeMs() : 0L;
+                    Integer recalculatedSongs = listener.totalSongsPlayed() != null ? listener.totalSongsPlayed() : 0;
+                    
+                    long recalcMinutes = recalculatedTime / 60000;
+                    long recalcHours = recalcMinutes / 60;
+                    long recalcMins = recalcMinutes % 60;
+                    if (recalcHours > 0) {
+                        stats.put("totalListeningTime", recalcHours + " hours " + recalcMins + " minutes");
+                    } else if (recalcMinutes > 0) {
+                        stats.put("totalListeningTime", recalcMins + " minutes");
+                    } else {
+                        stats.put("totalListeningTime", "0 minutes");
+                    }
+                    stats.put("songsPlayed", recalculatedSongs);
+                    
+                    System.out.println("[" + LocalDateTime.now() + "] Recalculated stats without token - totalListeningTimeMs: " + recalculatedTime + ", totalSongsPlayed: " + recalculatedSongs);
+                }
+            } catch (Exception recalcException) {
+                System.err.println("[" + LocalDateTime.now() + "] Error recalculating stats without token: " + recalcException.getMessage());
+            }
         }
         
         List<Map<String, Object>> topArtistsData = List.of();
@@ -304,6 +395,19 @@ public class ListenerController {
         } else {
             System.out.println("No Spotify token provided for profile image");
         }
+        
+        // Ensure stats object always exists with all required fields
+        if (!stats.containsKey("totalListeningTime")) {
+            stats.put("totalListeningTime", "0 minutes");
+        }
+        if (!stats.containsKey("songsPlayed")) {
+            stats.put("songsPlayed", 0);
+        }
+        if (!stats.containsKey("currentStreak")) {
+            stats.put("currentStreak", 0);
+        }
+        
+        System.out.println("[" + LocalDateTime.now() + "] Returning dashboard with stats: " + stats);
         
         Map<String, Object> dashboard = new HashMap<>();
         dashboard.put("userId", listener.listenerId());

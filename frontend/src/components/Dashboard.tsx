@@ -54,10 +54,16 @@ function Dashboard() {
         }
 
         console.log('Fetching dashboard data at:', new Date().toISOString());
+        const spotifyToken = localStorage.getItem('spotifyAccessToken');
+        console.log('Spotify token exists:', !!spotifyToken);
+        console.log('Spotify token length:', spotifyToken?.length || 0);
         const response = await userAPI.getDashboard(userId);
 
         console.log('Dashboard data received:', response.data);
         console.log('Profile image URL:', response.data?.profileImage);
+        console.log('Stats data:', response.data?.stats);
+        console.log('Total listening time:', response.data?.stats?.totalListeningTime);
+        console.log('Songs played:', response.data?.stats?.songsPlayed);
 
         setDashboardData(response.data);
         setImageError(false);
@@ -399,87 +405,86 @@ function Dashboard() {
           </div>
 
           {/* Stats Section */}
-          {dashboardData.stats && (
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ 
-                marginBottom: '24px', 
-                color: 'white',
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                letterSpacing: '-0.3px'
-              }}>Your Stats</h2>
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '1.5rem',
-                padding: '20px',
-                backgroundColor: 'rgba(29, 185, 84, 0.1)',
-                borderRadius: '12px',
-                border: '1px solid rgba(29, 185, 84, 0.2)'
-              }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ 
-                      fontSize: '2rem', 
-                      fontWeight: '700',
-                      color: '#1DB954',
-                      marginBottom: '4px',
-                      letterSpacing: '-0.5px'
-                    }}>
-                      {dashboardData.stats.totalListeningTime || '0 min'}
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.8rem',
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      fontWeight: '600'
-                    }}>
-                      Listening Time
-                    </div>
+          <div style={{ marginBottom: '40px' }}>
+            <h2 style={{ 
+              marginBottom: '24px', 
+              color: 'white',
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              letterSpacing: '-0.3px'
+            }}>Your Stats</h2>
+            {console.log('Rendering stats section with data:', dashboardData?.stats)}
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '1.5rem',
+              padding: '20px',
+              backgroundColor: 'rgba(29, 185, 84, 0.1)',
+              borderRadius: '12px',
+              border: '1px solid rgba(29, 185, 84, 0.2)'
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ 
+                    fontSize: '2rem', 
+                    fontWeight: '700',
+                    color: '#1DB954',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.5px'
+                  }}>
+                    {dashboardData?.stats?.totalListeningTime || '0 minutes'}
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ 
-                      fontSize: '2rem', 
-                      fontWeight: '700',
-                      color: '#1DB954',
-                      marginBottom: '4px',
-                      letterSpacing: '-0.5px'
-                    }}>
-                      {dashboardData.stats.songsPlayed || 0}
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.8rem',
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      fontWeight: '600'
-                    }}>
-                      Songs Played
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ 
-                      fontSize: '2rem', 
-                      fontWeight: '700',
-                      color: '#1DB954',
-                      marginBottom: '4px',
-                      letterSpacing: '-0.5px'
-                    }}>
-                      {dashboardData.stats.currentStreak || 0}
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.8rem',
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      fontWeight: '600'
-                    }}>
-                      Day Streak
-                    </div>
+                  <div style={{ 
+                    fontSize: '0.8rem',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    fontWeight: '600'
+                  }}>
+                    Listening Time
                   </div>
                 </div>
-            </div>
-          )}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ 
+                    fontSize: '2rem', 
+                    fontWeight: '700',
+                    color: '#1DB954',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.5px'
+                  }}>
+                    {dashboardData?.stats?.songsPlayed ?? 0}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.8rem',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    fontWeight: '600'
+                  }}>
+                    Songs Played
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ 
+                    fontSize: '2rem', 
+                    fontWeight: '700',
+                    color: '#1DB954',
+                    marginBottom: '4px',
+                    letterSpacing: '-0.5px'
+                  }}>
+                    {dashboardData?.stats?.currentStreak ?? 0}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.8rem',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    fontWeight: '600'
+                  }}>
+                    Day Streak
+                  </div>
+                </div>
+              </div>
+          </div>
 
           {/* Recently Played Section */}
           {recentlyPlayed.length > 0 && (

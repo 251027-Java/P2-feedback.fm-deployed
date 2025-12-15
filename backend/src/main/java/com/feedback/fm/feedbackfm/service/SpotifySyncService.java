@@ -89,13 +89,30 @@ public class SpotifySyncService {
     }
     
     public void syncRecentlyPlayed(String accessToken, String listenerId) {
+        System.out.println("[" + LocalDateTime.now() + "] Starting sync for listener: " + listenerId);
+        System.out.println("[" + LocalDateTime.now() + "] Access token provided: " + (accessToken != null && !accessToken.isBlank()));
+        
         Map<String, Object> recentlyPlayed = spotifyApiService.getRecentlyPlayed(accessToken, 50);
         
-        if (recentlyPlayed == null || !recentlyPlayed.containsKey("items")) {
+        if (recentlyPlayed == null) {
+            System.err.println("[" + LocalDateTime.now() + "] Spotify API returned null response");
             return;
         }
         
+        if (!recentlyPlayed.containsKey("items")) {
+            System.err.println("[" + LocalDateTime.now() + "] Spotify response missing 'items' key. Keys: " + recentlyPlayed.keySet());
+            return;
+        }
+        
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> items = (List<Map<String, Object>>) recentlyPlayed.get("items");
+        
+        if (items == null || items.isEmpty()) {
+            System.out.println("[" + LocalDateTime.now() + "] No items in recently played list");
+            return;
+        }
+        
+        System.out.println("[" + LocalDateTime.now() + "] Found " + items.size() + " items in recently played");
         
         // Get listener entity to update cumulative stats
         com.feedback.fm.feedbackfm.model.Listener listener = listenerRepository.findById(listenerId).orElse(null);
@@ -148,6 +165,8 @@ public class SpotifySyncService {
         }
         
         // Update cumulative stats
+        System.out.println("[" + LocalDateTime.now() + "] Sync completed - new songs: " + newSongsCount + ", new listening time: " + (newListeningTime / 60000) + " minutes");
+        
         if (newSongsCount > 0 || newListeningTime > 0) {
             long currentTotalTime = listener.getTotalListeningTimeMs() != null ? listener.getTotalListeningTimeMs() : 0L;
             int currentSongsPlayed = listener.getTotalSongsPlayed() != null ? listener.getTotalSongsPlayed() : 0;
@@ -156,8 +175,10 @@ public class SpotifySyncService {
             listener.setTotalSongsPlayed(currentSongsPlayed + newSongsCount);
             listenerRepository.save(listener);
             
-            System.out.println("Updated stats for listener " + listenerId + 
+            System.out.println("[" + LocalDateTime.now() + "] Updated stats for listener " + listenerId + 
                 ": +" + newSongsCount + " songs, +" + (newListeningTime / 60000) + " minutes");
+        } else {
+            System.out.println("[" + LocalDateTime.now() + "] No new songs to add (all may be duplicates)");
         }
     }
     
@@ -383,6 +404,48 @@ public class SpotifySyncService {
                 System.out.println("Updated stats from currently playing: +1 song, +" + (song.getDurationMs() / 60000) + " minutes");
             }
         }
+    }
+    
+    /**
+     * Recalculate cumulative stats from all existing history records for a listener.
+     * This ensures stats are accurate even if they were reset or not properly maintained.
+     */
+    @Transactional
+    public void recalculateStatsFromHistory(String listenerId) {
+        System.out.println("[" + LocalDateTime.now() + "] Recalculating stats from history for listener: " + listenerId);
+        
+        Listener listener = listenerRepository.findById(listenerId).orElse(null);
+        if (listener == null) {
+            System.err.println("[" + LocalDateTime.now() + "] Listener not found for stats recalculation: " + listenerId);
+            return;
+        }
+        
+        // Get all history records for this listener
+        List<com.feedback.fm.feedbackfm.dtos.HistoryDTO> allHistory = historyService.findByListenerId(listenerId);
+        System.out.println("[" + LocalDateTime.now() + "] Found " + allHistory.size() + " history records for recalculation");
+        
+        long totalListeningTime = 0L;
+        int totalSongsPlayed = allHistory.size();
+        
+        // Calculate total listening time from all history records
+        for (com.feedback.fm.feedbackfm.dtos.HistoryDTO history : allHistory) {
+            if (history.songId() != null) {
+                Song song = songRepository.findById(history.songId()).orElse(null);
+                if (song != null && song.getDurationMs() != null) {
+                    totalListeningTime += song.getDurationMs();
+                } else {
+                    System.out.println("[" + LocalDateTime.now() + "] Warning: Song not found or has no duration for songId: " + history.songId());
+                }
+            }
+        }
+        
+        // Update listener stats
+        listener.setTotalListeningTimeMs(totalListeningTime);
+        listener.setTotalSongsPlayed(totalSongsPlayed);
+        listenerRepository.save(listener);
+        
+        System.out.println("[" + LocalDateTime.now() + "] Recalculated stats for listener " + listenerId + 
+            ": " + totalSongsPlayed + " songs, " + (totalListeningTime / 60000) + " minutes");
     }
     
     private LocalDateTime parseSpotifyTimestamp(String timestamp) {
