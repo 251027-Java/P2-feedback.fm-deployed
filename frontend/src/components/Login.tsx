@@ -151,7 +151,8 @@ function Login() {
             height: 'auto',
             marginBottom: '1.5rem',
             filter: 'drop-shadow(0 4px 20px rgba(29, 185, 84, 0.5))',
-            display: 'block'
+            display: 'block',
+            borderRadius: '20px'
           }} 
         />
         <h1 style={{
