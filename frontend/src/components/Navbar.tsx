@@ -76,11 +76,11 @@ function Navbar() {
       items={menuItems}
       socialItems={socialItems}
       displaySocials={true}
-      displayItemNumbering={true}
-      menuButtonColor="#1DB954"
+      displayItemNumbering={false}
+      menuButtonColor="#FFFFFF"
       openMenuButtonColor="#1DB954"
       changeMenuColorOnOpen={true}
-      colors={['#1DB954', '#1ed760']}
+      colors={['#121212', '#181818', '#282828']}
       accentColor="#1DB954"
       isFixed={true}
       closeOnClickAway={true}
