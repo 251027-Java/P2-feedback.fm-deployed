@@ -152,7 +152,7 @@ public class SongController {
 				}
 				
 				// Get duration
-				song.put("duration", item.get("duration_ms"));
+				song.put("duration_ms", item.get("duration_ms"));
 				
 				// Get external URLs
 				@SuppressWarnings("unchecked")

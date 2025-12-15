@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { userAPI, songsAPI, historyAPI } from '../services/api';
 
 function Dashboard() {
@@ -248,28 +249,41 @@ function Dashboard() {
             </div>
 
             {/* Now Playing Section */}
-            <div style={{
-              backgroundColor: 'rgba(29, 185, 84, 0.05)',
-              border: '1px solid rgba(29, 185, 84, 0.3)',
-              borderRadius: '16px',
-              padding: '24px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-            }}>
-              <h2 style={{
-                marginTop: 0,
-                marginBottom: '20px',
-                color: '#1DB954',
-                fontSize: '0.7rem',
-                fontWeight: '700',
-                letterSpacing: '1px',
-                textTransform: 'uppercase'
-              }}>Now Playing</h2>
-              {currentTrack && currentTrack.name && currentTrack.name.trim() !== '' ? (
-                <div style={{
-                  display: 'flex',
-                  gap: '16px',
-                  alignItems: 'flex-start'
-                }}>
+            <Link to="/currently-playing" style={{ textDecoration: 'none' }}>
+              <div style={{
+                backgroundColor: 'rgba(29, 185, 84, 0.05)',
+                border: '1px solid rgba(29, 185, 84, 0.3)',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(29, 185, 84, 0.3)';
+                e.currentTarget.style.border = '1px solid rgba(29, 185, 84, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                e.currentTarget.style.border = '1px solid rgba(29, 185, 84, 0.3)';
+              }}>
+                <h2 style={{
+                  marginTop: 0,
+                  marginBottom: '20px',
+                  color: '#1DB954',
+                  fontSize: '0.7rem',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase'
+                }}>Now Playing</h2>
+                {currentTrack && currentTrack.name && currentTrack.name.trim() !== '' && currentTrack.isPlaying !== false ? (
+                  <div style={{
+                    display: 'flex',
+                    gap: '16px',
+                    alignItems: 'flex-start'
+                  }}>
                   {/* Album Artwork */}
                   <div style={{
                     flexShrink: 0,
@@ -380,7 +394,8 @@ function Dashboard() {
                   No track playing
                 </div>
               )}
-            </div>
+              </div>
+            </Link>
           </div>
 
           {/* Stats Section */}

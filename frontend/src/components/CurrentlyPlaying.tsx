@@ -41,7 +41,7 @@ function CurrentlyPlaying() {
     backgroundColor: '#000'
   };
 
-  if (!currentTrack) {
+  if (!currentTrack || !currentTrack.name || currentTrack.name.trim() === '' || currentTrack.isPlaying === false) {
     return (
       <div style={pageStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '40px' }}>
@@ -71,28 +71,16 @@ function CurrentlyPlaying() {
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ 
-              fontSize: '4rem', 
-              marginBottom: '20px',
-              opacity: 0.3
-            }}>
-              🎵
-            </div>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '1.2rem',
-              fontWeight: '500'
-            }}>
-              No track is currently playing
-            </p>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.4)',
-              fontSize: '0.9rem',
-              marginTop: '10px'
-            }}>
-              Start playing something on Spotify to see it here
-            </p>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            fontSize: '0.9rem',
+            color: 'rgba(255, 255, 255, 0.5)',
+            fontStyle: 'italic'
+          }}>
+            No track playing
           </div>
         </div>
       </div>
