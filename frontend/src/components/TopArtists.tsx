@@ -50,7 +50,7 @@ function TopArtists() {
       } else if (sortBy === 'popularity') {
         return (b.popularity || 0) - (a.popularity || 0);
       }
-      return 0; // default order from API
+      return 0;
     });
 
   if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
@@ -158,9 +158,8 @@ function TopArtists() {
               appearance: 'menulist'
             }}
           >
-            <option value="default" style={{ backgroundColor: '#1DB954', color: '#000' }}>Default</option>
+            <option value="default" style={{ backgroundColor: '#1DB954', color: '#000' }}>Most Played</option>
             <option value="name" style={{ backgroundColor: '#1DB954', color: '#000' }}>Name (A-Z)</option>
-            <option value="popularity" style={{ backgroundColor: '#1DB954', color: '#000' }}>Popularity</option>
           </select>
         </label>
         <input

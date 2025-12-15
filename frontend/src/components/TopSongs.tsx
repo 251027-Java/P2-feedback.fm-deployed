@@ -164,7 +164,7 @@ function TopSongs() {
               appearance: 'menulist'
             }}
           >
-            <option value="default" style={{ backgroundColor: '#1DB954', color: '#000' }}>Times Played</option>
+            <option value="default" style={{ backgroundColor: '#1DB954', color: '#000' }}>Most Played</option>
             <option value="name" style={{ backgroundColor: '#1DB954', color: '#000' }}>Song Name (A-Z)</option>
             <option value="artist" style={{ backgroundColor: '#1DB954', color: '#000' }}>Artist Name (A-Z)</option>
           </select>
