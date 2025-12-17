@@ -316,7 +316,7 @@ This error occurs when the redirect URI configured in your Spotify Developer Das
 1. **Go to Spotify Developer Dashboard:**
    - Navigate to https://developer.spotify.com/dashboard
    - Log in with your Spotify account
-   - Click on your app (the one with Client ID: `b7b4d4548e654e9baa16896cbe201097`)
+   - Click on your app
 
 2. **Click "Edit Settings"** (or the Settings icon)
 

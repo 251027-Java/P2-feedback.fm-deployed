@@ -6,23 +6,22 @@ Your Spotify credentials are used in the OAuth 2.0 authentication flow to secure
 
 ### Credentials Configuration
 
-**Client ID**: `b7b4d4548e654e9baa16896cbe201097`  
-**Client Secret**: `753cdfaf8476477683fe27acc0f30642`
+**Client ID**: `YOUR_CLIENT_ID` (get from Spotify Developer Dashboard)  
+**Client Secret**: `YOUR_CLIENT_SECRET` (get from Spotify Developer Dashboard)
 
 These are configured in `src/main/resources/application.properties`:
 
 ```properties
-spotify.client.id=${SPOTIFY_CLIENT_ID:b7b4d4548e654e9baa16896cbe201097}
-spotify.client.secret=${SPOTIFY_CLIENT_SECRET:753cdfaf8476477683fe27acc0f30642}
+spotify.client.id=${SPOTIFY_CLIENT_ID}
+spotify.client.secret=${SPOTIFY_CLIENT_SECRET}
 spotify.redirect.uri=http://127.0.0.1:8080/api/auth/callback
 ```
-
 ### How They're Used in the OAuth Flow
 
 #### 1. **Authorization URL Generation** (`SpotifyAuthService.getAuthorizationUrl()`)
    - Uses **Client ID** to build the authorization URL
    - Users are redirected to Spotify to grant permissions
-   - Example: `https://accounts.spotify.com/authorize?client_id=b7b4d4548e654e9baa16896cbe201097&...`
+   - Example: `https://accounts.spotify.com/authorize?client_id=YOUR_CLIENT_ID&...`
 
 #### 2. **Token Exchange** (`SpotifyAuthService.exchangeCodeForToken()`)
    - Uses **both Client ID and Secret** for Basic Authentication
@@ -51,12 +50,12 @@ spotify.redirect.uri=http://127.0.0.1:8080/api/auth/callback
 
 ⚠️ **For Production:**
 - **DO NOT** commit credentials to Git
-- Use environment variables instead:
+- **ALWAYS** use environment variables:
   ```bash
-  export SPOTIFY_CLIENT_ID=b7b4d4548e654e9baa16896cbe201097
-  export SPOTIFY_CLIENT_SECRET=753cdfaf8476477683fe27acc0f30642
+  export SPOTIFY_CLIENT_ID=your_client_id_here
+  export SPOTIFY_CLIENT_SECRET=your_client_secret_here
   ```
-- The `application.properties` will automatically use environment variables if set
+- The `application.properties` requires environment variables to be set
 - Consider using a secrets management service (AWS Secrets Manager, Azure Key Vault, etc.)
 
 ### OAuth Flow Diagram
