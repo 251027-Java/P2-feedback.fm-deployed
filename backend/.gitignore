@@ -37,3 +37,6 @@ build/
 application-local.properties
 .env
 *.env
+
+/package.json
+/package-lock.json
