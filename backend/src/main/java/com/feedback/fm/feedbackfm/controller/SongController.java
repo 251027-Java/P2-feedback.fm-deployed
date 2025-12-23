@@ -24,7 +24,6 @@ import com.feedback.fm.feedbackfm.service.spotify.SpotifyApiService;
 
 @RestController
 @RequestMapping("/api/songs")
-@CrossOrigin(origins = "http://localhost:3000")
 public class SongController {
 
 	private final SongService songService;

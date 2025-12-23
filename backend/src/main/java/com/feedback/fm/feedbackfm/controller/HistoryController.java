@@ -25,7 +25,6 @@ import com.feedback.fm.feedbackfm.service.spotify.SpotifyApiService;
 
 @RestController
 @RequestMapping("/api/history")
-@CrossOrigin(origins = "http://localhost:3000")
 public class HistoryController {
 
 	private final HistoryService historyService;

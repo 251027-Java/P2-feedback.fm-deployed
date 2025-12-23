@@ -169,36 +169,65 @@ The frontend will be available at `http://localhost:3000`
 npm run build
 ```
 
-## Running the Application
+## Running the Application (Docker)
 
-1. **Start the database:**
-   ```bash
-   cd database
-   docker-compose up -d
-   ```
+The easiest way to run the application is using Docker Compose, which orchestrates the Database, Backend, and Frontend services together.
 
-2. **Start the backend:**
-   ```bash
-   cd backend
-   # Windows
-   .\mvnw.cmd spring-boot:run
-   # Or if Maven is installed
-   mvn spring-boot:run
-   ```
-   Wait for: `Started FeedbackFmApplication`
+### 1. Configure Environment Variables
 
-3. **Start the frontend:**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+Create a file named `.env` in the root directory (same level as `docker-compose.yml`). Copy the following content and update it with your own credentials:
 
-4. **Access the application:**
-   - Open your browser to `http://localhost:3000`
-   - Click "Login with Spotify"
-   - Grant permissions when redirected to Spotify
-   - You'll be redirected back with authentication
-   - Navigate through the app to view your Spotify statistics
+```properties
+# Database Configuration
+POSTGRES_DB=spotifydb
+POSTGRES_USER=spotify_user
+POSTGRES_PASSWORD=spotify_pass
+POSTGRES_PORT=5432
+
+# PgAdmin Configuration
+PGADMIN_EMAIL=admin@admin.com
+PGADMIN_PASSWORD=admin
+PGADMIN_PORT=5050
+
+# Backend Configuration
+BACKEND_PORT=8080
+
+# Frontend Configuration
+FRONTEND_PORT=3000
+FRONTEND_URL=http://localhost:3000
+VITE_API_URL=http://localhost:8080
+
+# Spotify API Configuration
+# Get these from your Spotify Developer Dashboard
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+
+# JWT Configuration
+# Change this secret to a secure random string for production
+JWT_SECRET=averylongsecretkeythatissecureenoughforhmacsha256algorithm
+JWT_EXPIRATION=86400000
+```
+
+### 2. Start the Services
+
+Run the following command in the root directory, after making sure the docker daemon is running.
+
+```bash
+docker compose up --build
+```
+
+This will:
+- Build the backend (Maven) and frontend (Node/Vite) images
+- Start the PostgreSQL database
+- Start the Spring Boot backend
+- Start the React frontend
+
+### 3. Access the Application
+
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:8080
+- **PgAdmin:** http://localhost:5050 (Login: `admin@admin.com` / `admin`)
+
 
 ## Project Structure
 
