@@ -11,6 +11,7 @@ services:
     secrets:
       - jenkins_username
       - jenkins_password
+    restart: unless-stopped
 
 volumes:
   jenkins-data:

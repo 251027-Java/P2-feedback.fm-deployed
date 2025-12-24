@@ -116,5 +116,5 @@ delete-jobs:
     done
 
 # Webhook tunneling using https://smee.io/. Only for local development
-wh-tunnel:
-    npx smee-client -p 8080 --path {{ forward_slash }}github-webhook
+wh-tunnel port="8080":
+    npx smee-client -p {{ port }} --path {{ forward_slash }}github-webhook
