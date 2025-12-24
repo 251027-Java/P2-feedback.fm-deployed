@@ -4,8 +4,8 @@ services:
     volumes:
       - jenkins-data:/var/jenkins_home
     ports:
-      - 8080:8080
-      - 50000:50000
+      - ${JENKINS_PORT}:8080
+      - ${JENKINS_AGENT_PORT}:50000
     environment:
       JAVA_OPTS: -Djenkins.install.runSetupWizard=false
     secrets:

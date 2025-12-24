@@ -1,6 +1,8 @@
 set dotenv-load
 set dotenv-required
 
+jenkins_url := '$JENKINS_PROTOCOL://$JENKINS_HOST:$JENKINS_PORT'
+
 # git bash will treat a leading '/' as a path, so do this work-around
 forward_slash := if os_family() == 'windows' { '//' } else { '/'}
 
@@ -14,7 +16,7 @@ init: secrets start init-text
 # Instructions after initializing Jenkins
 [group("Init")]
 init-text:
-    @echo -e "1. Go to {{ YELLOW }}$JENKINS_URL/user/${JENKINS_USER}/security{{ NORMAL }} (login if prompted)\n\
+    @echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/${JENKINS_USER}/security{{ NORMAL }} (login if prompted)\n\
     2. Create your API token\n\
     3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
     4. Ensure all credentials are filled in {{ YELLOW }}creds/{{ NORMAL }}\n\
@@ -63,7 +65,7 @@ destroy:
 [group("Jenkins CLI")]
 @help:
     just jcli help
-    echo "You can also go to {{ YELLOW }}$JENKINS_URL/cli{{ NORMAL }} to view commands."
+    echo "You can also go to {{ YELLOW }}{{ jenkins_url }}/cli{{ NORMAL }} to view commands."
 
 # View help information for the Jenkins CLI
 [group("Jenkins CLI")]
@@ -73,12 +75,12 @@ destroy:
 # Downloads the Jenkins CLI locally
 [group("Init")]
 get-cli:
-    curl $JENKINS_URL/jnlpJars/jenkins-cli.jar --output $JENKINS_CLI
+    curl {{ jenkins_url }}/jnlpJars/jenkins-cli.jar --output $JENKINS_CLI
 
 # Shorthand to use the Jenkins CLI
 [group("Jenkins CLI")]
 @jcli *args:
-    java -jar $JENKINS_CLI -s $JENKINS_URL -auth $JENKINS_USER:$JENKINS_API_TOKEN {{ args }}
+    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth $JENKINS_USER:$JENKINS_API_TOKEN {{ args }}
 
 # Imports credentials to Jenkins
 [group("Jenkins CLI")]
@@ -116,5 +118,5 @@ delete-jobs:
     done
 
 # Webhook tunneling using https://smee.io/. Only for local development
-wh-tunnel port="8080":
-    npx smee-client -p {{ port }} --path {{ forward_slash }}github-webhook
+wh-tunnel:
+    npx smee-client -p $JENKINS_PORT --path {{ forward_slash }}github-webhook
