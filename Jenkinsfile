@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'java25'
+    }
+
     stages {
         stage('Hello') {
             steps {
@@ -13,14 +17,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline completed successfully!'
-            echo 'Artifact: target/*.jar'
+            echo 'Pipeline success'
         }
         failure {
-            echo '❌ Pipeline failed! Check the logs above for errors.'
-        }
-        always {
-            echo 'Pipeline finished.'
+            echo 'Pipeline failed'
         }
     }
 }

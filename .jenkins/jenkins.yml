@@ -1,0 +1,9 @@
+tool:
+  jdk:
+    installations:
+      - name: "java25"
+        properties:
+          - installSource:
+              installers:
+                - adoptOpenJdkInstaller:
+                    id: "jdk-25.0.1+8"

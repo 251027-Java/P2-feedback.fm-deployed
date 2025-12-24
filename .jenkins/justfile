@@ -1,0 +1,36 @@
+set dotenv-load
+set dotenv-required
+
+alias jc := jcli
+alias gc := get-cli
+
+init: start
+
+start:
+    docker compose up --build
+
+stop:
+    docker compose down
+
+init-password:
+    docker exec $JENKINS_CONTAINER cat var/jenkins_home/secrets/initialAdminPassword
+
+@help:
+    just jcli help
+    echo "You can also go to {{YELLOW}}$JENKINS_URL/cli{{NORMAL}} to view commands."
+
+get-cli:
+    curl $JENKINS_URL/jnlpJars/jenkins-cli.jar --output $JENKINS_CLI
+
+@jcli *args:
+    java -jar $JENKINS_CLI -s $JENKINS_URL -auth $JENKINS_USER:$JENKINS_PASSWORD {{ args }}
+
+add-creds:
+    just jcli create-credentials-by-xml $JENKINS_DEFAULT_STORE $JENKINS_DEFAULT_DOMAIN < creds/github-pat.xml
+
+import-config:
+    docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
+    just jcli reload-jcasc-configuration
+
+import-jobs:
+    just jcli create-job main < jobs/main.xml
