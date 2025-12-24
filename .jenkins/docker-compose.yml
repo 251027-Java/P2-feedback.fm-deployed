@@ -6,6 +6,17 @@ services:
     ports:
       - 8080:8080
       - 50000:50000
+    environment:
+      JAVA_OPTS: -Djenkins.install.runSetupWizard=false
+    secrets:
+      - jenkins_username
+      - jenkins_password
 
 volumes:
   jenkins-data:
+
+secrets:
+  jenkins_username:
+    file: ./secrets/jenkins_username
+  jenkins_password:
+    file: ./secrets/jenkins_password

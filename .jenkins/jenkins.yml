@@ -1,3 +1,18 @@
+jenkins:
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+        - id: ${jenkins_username}
+          name: "admin"
+          password: ${jenkins_password}
+unclassified:
+  gitHubPluginConfig:
+    hookUrl: "http://localhost:8080/github-webhook/"
 tool:
   jdk:
     installations:
