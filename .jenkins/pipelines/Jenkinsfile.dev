@@ -18,9 +18,11 @@ pipeline {
                     def apiUrl = "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls"
 
                     def response = httpRequest url: apiUrl,
-                                    customHeaders: [[name: 'X-GitHub-Api-Version', value: '2022-11-28']],
+                                    customHeaders: [
+                                        [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
+                                        [name: 'Accept', value: 'application/vnd.github+json']
+                                    ],
                                     authentication: 'main-github-pat',
-                                    acceptType: 'application/vnd.github+json'
                     
                     def prs = readJSON text: response.content
                     def openPrs = prs.findAll { it.state == 'open' }
