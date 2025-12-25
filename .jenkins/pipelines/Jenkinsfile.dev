@@ -12,55 +12,67 @@ pipeline {
     }
 
     stages {
-        stage('Check if should run') {
+        stage('Check run requirements') {
             steps {
                 script {
-                    def apiUrl = "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls"
+                    if (GIT_BRANCH == "origin/" + GITHUB_DEFAULT_BRANCH) {
+                        echo 'This is the default branch and will run'
+                        return
+                    }
 
-                    def response = httpRequest url: apiUrl,
+                    echo 'Checking if this is a PR that is targetting the default branch'
+
+                    def response = httpRequest
+                                    url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
                                     customHeaders: [
                                         [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
                                         [name: 'Accept', value: 'application/vnd.github+json']
                                     ],
                                     authentication: 'main-github-pat'
-                    
+
                     if (response.status != 200) {
                         error "Unsuccess API call for PRs: Code ${response.status}"
                     }
-                    
-                    def prs = readJSON text: response.content
-                    def validOpen = prs.any { it.state == 'open' && it.base.ref == GITHUB_DEFAULT_BRANCH }
 
-                    if (!validOpen) {
-                        currentBuild.result = 'ABORTED'
-                        error "Does not meet the requirements to run: ${GIT_COMMIT}"
+                    def prList = readJSON text: response.content
+                    def validOpen = prList.any { it.state == 'open' && it.base.ref == GITHUB_DEFAULT_BRANCH }
+
+                    if (validOpen) {
+                        echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
+                        return
                     }
 
-                    echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
+                    currentBuild.result = 'ABORTED'
+                    error "Does not meet the requirements to run: ${GIT_COMMIT}"
                 }
             }
         }
 
         stage('Info') {
             steps {
-                publishChecks(name: 'Build Info', status: 'IN_PROGRESS', summary: 'running', title: 'A title')
+                // publishChecks(name: 'Build Info', status: 'IN_PROGRESS', summary: 'running', title: 'A title')
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${GIT_BRANCH}"
                 echo "Commit: ${GIT_COMMIT}"
 
                 // for debugging. remove this later
                 sh 'printenv | sort'
-            }
-            post {
-                success {
-                    // githubNotify(context: 'Build Info', description: 'Success', status: 'SUCCESS')
-                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS', title: 'A title')
-                }
-                failure {
-                    // githubNotify(context: 'Build Info', description: 'Failed', status: 'FAILURE', title: 'A title')
-                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
+
+                script {
+                    // list all steps
+                    steps.each { k, v -> echo "${k}: ${v}"}
                 }
             }
+        // post {
+        //     success {
+        //         // githubNotify(context: 'Build Info', description: 'Success', status: 'SUCCESS')
+        //         publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS', title: 'A title')
+        //     }
+        //     failure {
+        //         // githubNotify(context: 'Build Info', description: 'Failed', status: 'FAILURE', title: 'A title')
+        //         publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
+        //     }
+        // }
         }
     }
 }
