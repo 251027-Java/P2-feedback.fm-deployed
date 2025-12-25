@@ -20,7 +20,7 @@ pipeline {
                         return
                     }
 
-                    echo 'Checking if this is a PR that is targetting the default branch'
+                    echo 'Checking if this has an open PR that is targetting the default branch'
 
                     def response = httpRequest authentication: 'main-github-pat',
                                     url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
@@ -56,22 +56,17 @@ pipeline {
 
                 // for debugging. remove this later
                 sh 'printenv | sort'
-
-                script {
-                    // list all steps
-                    steps.each { k, v -> echo "${k }: ${v}"}
-                }
             }
-        // post {
-        //     success {
-        //         // githubNotify(context: 'Build Info', description: 'Success', status: 'SUCCESS')
-        //         publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS', title: 'A title')
-        //     }
-        //     failure {
-        //         // githubNotify(context: 'Build Info', description: 'Failed', status: 'FAILURE', title: 'A title')
-        //         publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
-        //     }
-        // }
+            post {
+                success {
+                    publishChecks name: 'example', title: 'Pipeline Check', summary: 'check through pipeline',
+                        text: 'you can publish checks in pipeline script',
+                        detailsURL: 'https://github.com/jenkinsci/checks-api-plugin#pipeline-usage'
+                }
+                // failure {
+                //     publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
+                // }
+            }
         }
     }
 }
