@@ -15,20 +15,19 @@ pipeline {
         stage('Check run requirements') {
             steps {
                 script {
-                    if (GIT_BRANCH == "origin/" + GITHUB_DEFAULT_BRANCH) {
+                    if (GIT_BRANCH == 'origin/' + GITHUB_DEFAULT_BRANCH) {
                         echo 'This is the default branch and will run'
                         return
                     }
 
                     echo 'Checking if this is a PR that is targetting the default branch'
 
-                    def response = httpRequest
+                    def response = httpRequest authentication: 'main-github-pat',
                                     url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
                                     customHeaders: [
                                         [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
                                         [name: 'Accept', value: 'application/vnd.github+json']
-                                    ],
-                                    authentication: 'main-github-pat'
+                                    ]
 
                     if (response.status != 200) {
                         error "Unsuccess API call for PRs: Code ${response.status}"
@@ -60,7 +59,7 @@ pipeline {
 
                 script {
                     // list all steps
-                    steps.each { k, v -> echo "${k}: ${v}"}
+                    steps.each { k, v -> echo "${k }: ${v}"}
                 }
             }
         // post {
