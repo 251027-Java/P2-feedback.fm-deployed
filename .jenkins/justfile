@@ -123,3 +123,7 @@ delete-jobs:
 tunnel:
     @echo "Port: {{ GREEN }}$JENKINS_PORT{{ NORMAL }}"
     npx localtunnel -p $JENKINS_PORT --print-requests
+
+# Tunnel password
+tunnel-pw:
+    curl https://loca.lt/mytunnelpassword

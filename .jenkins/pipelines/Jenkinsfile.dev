@@ -1,0 +1,20 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'java25'
+    }
+
+    stages {
+        stage('Info') {
+            steps {
+                echo "Build tag: ${env.BUILD_TAG}"
+                echo "Branch: ${GIT_BRANCH}"
+                echo "Commit: ${GIT_COMMIT}"
+
+                // for debugging. remove this later
+                sh 'printenv | sort'
+            }
+        }
+    }
+}

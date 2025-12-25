@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'java25'
+    }
+
+    stages {
+        stage('Info') {
+            steps {
+                echo "Build tag: ${env.BUILD_TAG}"
+                echo "Branch: ${GIT_BRANCH}"
+                echo "Commit: ${GIT_COMMIT}"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('backend') {
+                    sh './mvnw -B test'
+                }
+            }
+        }
+    }
+}

@@ -1,20 +1,13 @@
-<?xml version="1.1" encoding="UTF-8"?><flow-definition plugin="workflow-job@1559.va_a_533730b_ea_d">
-  <actions>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1"/>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1">
-      <jobProperties/>
-      <triggers/>
-      <parameters/>
-      <options/>
-    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
-  </actions>
-  <description/>
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1559.va_a_533730b_ea_d">
+  <actions/>
+  <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.45.0">
-          <spec/>
+          <spec></spec>
         </com.cloudbees.jenkins.GitHubPushTrigger>
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
@@ -37,7 +30,7 @@
       <submoduleCfg class="empty-list"/>
       <extensions/>
     </scm>
-    <scriptPath>Jenkinsfile</scriptPath>
+    <scriptPath>.jenkins/pipelines/Jenkinsfile.dev</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>
