@@ -25,12 +25,13 @@ pipeline {
                                     authentication: 'main-github-pat'
                     
                     def prs = readJSON text: response.content
-                    def openPrs = prs.findAll { it.state == 'open' }
+                    def hasOpen = prs.any { it.state == 'open' }
 
-                    if (openPrs.size() == 0) {
-                        error "❌ Commit ${COMMIT_SHA} is not part of any open PR!"
+                    if (hasOpen) {
+                        currentBuild.result = 'ABORTED'
+                        error "Commit ${COMMIT_SHA} is not part of any open PR!"
                     } else {
-                        echo "✅ Commit is part of open PR(s): ${openPrs*.number}"
+                        echo "Commit has open pr"
                     }
                 }
             }
