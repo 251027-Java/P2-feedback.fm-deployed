@@ -61,7 +61,9 @@ pipeline {
                 success {
                     publishChecks name: 'example', title: 'Pipeline Check', summary: 'check through pipeline',
                         text: 'you can publish checks in pipeline script',
-                        detailsURL: 'https://github.com/jenkinsci/checks-api-plugin#pipeline-usage'
+                        detailsURL: 'https://github.com/jenkinsci/checks-api-plugin#pipeline-usage',
+                        status: 'COMPLETED',
+                        conclusion: 'SUCCESS'
                 }
                 // failure {
                 //     publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
