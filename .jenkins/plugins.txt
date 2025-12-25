@@ -13,3 +13,4 @@ pipeline-graph-view
 workflow-aggregator
 github-branch-source
 blueocean
+github-checks

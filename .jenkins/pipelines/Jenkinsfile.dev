@@ -8,12 +8,21 @@ pipeline {
     stages {
         stage('Info') {
             steps {
+                publishChecks(name: 'Build Info', status: 'IN_PROGRESS', summary: 'running')
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${GIT_BRANCH}"
                 echo "Commit: ${GIT_COMMIT}"
 
                 // for debugging. remove this later
                 sh 'printenv | sort'
+            }
+            post {
+                success {
+                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS')
+                }
+                failure {
+                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE')
+                }
             }
         }
     }

@@ -8,16 +8,27 @@ pipeline {
     stages {
         stage('Info') {
             steps {
+                publishChecks(name: 'Build Info', status: 'IN_PROGRESS', summary: 'running')
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${GIT_BRANCH}"
                 echo "Commit: ${GIT_COMMIT}"
+            }
+            post {
+                success {
+                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS')
+                }
+                failure {
+                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE')
+                }
             }
         }
 
         stage('Test') {
             steps {
                 dir('backend') {
-                    sh './mvnw -B test'
+                    withChecks(name: 'Maven Tests') {
+                        sh './mvnw -B test'
+                    }
                 }
             }
         }
