@@ -117,6 +117,8 @@ delete-jobs:
         just jcli delete-job $name; \
     done
 
-# Webhook tunneling using https://smee.io/. Only for local development
-wh-tunnel:
-    npx smee-client -p $JENKINS_PORT --path {{ forward_slash }}github-webhook
+# https://plugins.jenkins.io/github/#plugin-content-manual-mode
+# https://stackoverflow.com/a/51545557
+# Tunneling using localtunnel. Only for local development
+tunnel:
+    npx localtunnel -p $JENKINS_PORT --print-requests

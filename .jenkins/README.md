@@ -116,24 +116,29 @@ To destroy all of Jenkins, including its data, run:
 just destroy
 ```
 
-## Testing GitHub Webhooks Locally
+## Tunneling
 
-To test webhook interactions with our pipeline on our local environment, we can use a tunnel/proxy service to redirect payloads to our server without having to expose our own ports.
+To test webhook interactions with our pipeline on our local environment, we can use a tunnel to redirect payloads to our server without having to expose our own ports.
 
-To enable this ensure the Jenkins server is running and run:
+To enable this, ensure the Jenkins server is running and then run:
 
+```sh
+just tunnel # Outputs a URL where we can access our Jenkins server
 ```
-just wh-tunnel # Outputs a URL where webhooks can be sent to
-```
 
-This uses [smee](https://smee.io/) to redirect webhooks from GitHub to our server. 
+This uses [localtunnel](https://github.com/localtunnel/localtunnel) to easily give us a way to send webhooks from GitHub to our server. 
 
 1. Go to the GitHub repository where you want to utilize webhooks. 
 2. Settings
 3. Webhooks
 4. Create a webhook
-   - Supply the smee URL outputted from the command for `Payload URL`
+   - Supply the URL outputted from `localtunnel` for `Payload URL` and append `/github-webhook/` to it.
+     
+     It should look something like: `https://weak-beans-speak.loca.lt/github-webhook/`
    - Change `Content type` to `application/json`
-   - Adjust `events` if necessary. `push` is generally enough.
+   - Adjust `events` if necessary. `push` is usually enough for our needs.
 
-If the Jenkins server stops while there's an existing `smee` channel, you cannot use the same `smee` URL. You need to re-run `just wh-tunnel` with the Jenkins server running to establish a new channel and update the `Payload URL` in GitHub.
+> [!WARNING]
+> There is a difference between `<url>/github-webhook/` and `<url>/github-webhook`. If you use `<url>/github-webhook`, you'll likely run into 302 status codes. See this [post](https://stackoverflow.com/a/51545557) on Stack Overflow.
+
+Similar tools exist that could also be used, such as [ngrok](https://ngrok.com/). Some others can be found [here](https://free-for.dev/#/?id=tunneling-webrtc-web-socket-servers-and-other-routers).
