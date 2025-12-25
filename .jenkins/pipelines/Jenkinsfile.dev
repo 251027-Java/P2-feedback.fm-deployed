@@ -8,8 +8,7 @@ pipeline {
     stages {
         stage('Info') {
             steps {
-                githubNotify(context: 'Build Info', description: 'Running', status: 'PENDING')
-                // publishChecks(name: 'Build Info', status: 'IN_PROGRESS', summary: 'running')
+                publishChecks(name: 'Build Info', status: 'IN_PROGRESS', summary: 'running', title: 'A title')
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${GIT_BRANCH}"
                 echo "Commit: ${GIT_COMMIT}"
@@ -19,12 +18,12 @@ pipeline {
             }
             post {
                 success {
-                    githubNotify(context: 'Build Info', description: 'Success', status: 'SUCCESS')
-                    // publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS')
+                    // githubNotify(context: 'Build Info', description: 'Success', status: 'SUCCESS')
+                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Success', conclusion: 'SUCCESS', title: 'A title')
                 }
                 failure {
-                    githubNotify(context: 'Build Info', description: 'Failed', status: 'FAILURE')
-                    // publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE')
+                    // githubNotify(context: 'Build Info', description: 'Failed', status: 'FAILURE', title: 'A title')
+                    publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
                 }
             }
         }
