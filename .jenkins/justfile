@@ -121,4 +121,5 @@ delete-jobs:
 # https://stackoverflow.com/a/51545557
 # Tunneling using localtunnel. Only for local development
 tunnel:
+    @echo "Port: {{ GREEN }}$JENKINS_PORT{{ NORMAL }}"
     npx localtunnel -p $JENKINS_PORT --print-requests

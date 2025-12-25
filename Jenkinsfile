@@ -6,11 +6,11 @@ pipeline {
     }
 
     stages {
-        stage('Hello') {
+        stage('Simple') {
             steps {
-                echo 'Pipeline started!'
                 echo "Build number: ${env.BUILD_NUMBER}"
                 echo "Building on: ${env.NODE_NAME}"
+                sh 'printenv | sort'
             }
         }
     }
