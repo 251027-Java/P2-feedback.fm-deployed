@@ -59,11 +59,24 @@ pipeline {
             }
             post {
                 success {
-                    publishChecks name: 'example', title: 'Pipeline Check', summary: 'check through pipeline',
-                        text: 'you can publish checks in pipeline script',
-                        detailsURL: 'https://github.com/jenkinsci/checks-api-plugin#pipeline-usage',
-                        status: 'COMPLETED',
-                        conclusion: 'SUCCESS'
+                    httpRequest authentication: 'main-github-pat',
+                        url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/statuses/${GIT_COMMIT}",
+                        customHeaders: [
+                            [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
+                            [name: 'Accept', value: 'application/vnd.github+json']
+                        ],
+                        requestBody: '''
+                        {
+                            "state": "success",
+                            "description": "something succeeded",
+                            "context": "jenkins-random-check"
+                        }
+                        '''
+                    // publishChecks name: 'example', title: 'Pipeline Check', summary: 'check through pipeline',
+                    //     text: 'you can publish checks in pipeline script',
+                    //     detailsURL: 'https://github.com/jenkinsci/checks-api-plugin#pipeline-usage',
+                    //     status: 'COMPLETED',
+                    //     conclusion: 'SUCCESS'
                 }
                 // failure {
                 //     publishChecks(name: 'Build Info', status: 'COMPLETED', summary: 'Failed', conclusion: 'FAILURE', title: 'A title')
