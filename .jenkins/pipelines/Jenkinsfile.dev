@@ -16,20 +16,13 @@ pipeline {
             steps {
                 script {
                     def apiUrl = "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls"
+
+                    def response = httpRequest url: apiUrl,
+                                    customHeaders: [[name: 'X-GitHub-Api-Version', value: '2022-11-28']],
+                                    authorization: 'Bearer ${GITHUB_PAT}',
+                                    acceptType: 'application/vnd.github+json'
                     
-                    // https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#list-pull-requests-associated-with-a-commit
-                    def response = sh(
-                        script: """
-                        curl -L \
-                        -H "Accept: application/vnd.github+json" \
-                        -H "Authorization: Bearer ${GITHUB_PAT}" \
-                        -H "X-GitHub-Api-Version: 2022-11-28" \
-                        ${apiUrl}
-                        """,
-                        returnStdout: true
-                    ).trim();
-                    
-                    def prs = readJSON text: response
+                    def prs = readJSON text: response.content
                     def openPrs = prs.findAll { it.state == 'open' }
 
                     if (openPrs.size() == 0) {

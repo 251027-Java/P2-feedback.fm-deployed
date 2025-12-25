@@ -14,3 +14,5 @@ workflow-aggregator
 github-branch-source
 blueocean
 github-checks
+http_request
+pipeline-utility-steps
