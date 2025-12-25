@@ -27,3 +27,15 @@ tool:
               installers:
                 - adoptOpenJdkInstaller:
                     id: "jdk-25.0.1+8"
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              description: "GitHub PAT"
+              id: "main-github-pat"
+              password: ${main_github_pat_password}
+              scope: GLOBAL
+              username: ${main_github_pat_username}
+              usernameSecret: true
+        domain: {}

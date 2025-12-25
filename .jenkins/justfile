@@ -40,10 +40,12 @@ secrets:
     mkdir -p secrets
     echo $JENKINS_USER > secrets/jenkins_username
     echo $JENKINS_PASSWORD > secrets/jenkins_password
+    echo $CRED_MAIN_GITHUB_PAT_USERNAME > secrets/main_github_pat_username
+    echo $CRED_MAIN_GITHUB_PAT_PASSWORD > secrets/main_github_pat_password
 
 # Imports necessary configuration for Jenkins
 [group("Init")]
-post-init: import-creds import-jobs
+post-init: import-jobs
     @echo "{{ GREEN }}Jenkins is now fully configured"
 
 # Start Jenkins

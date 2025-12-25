@@ -11,6 +11,8 @@ services:
     secrets:
       - jenkins_username
       - jenkins_password
+      - main_github_pat_username
+      - main_github_pat_password
     restart: unless-stopped
 
 volumes:
@@ -21,3 +23,7 @@ secrets:
     file: ./secrets/jenkins_username
   jenkins_password:
     file: ./secrets/jenkins_password
+  main_github_pat_username:
+    file: ./secrets/main_github_pat_username
+  main_github_pat_password:
+    file: ./secrets/main_github_pat_password
