@@ -22,7 +22,7 @@ pipeline {
                                         [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
                                         [name: 'Accept', value: 'application/vnd.github+json']
                                     ],
-                                    authentication: 'main-github-pat',
+                                    authentication: 'main-github-pat'
                     
                     def prs = readJSON text: response.content
                     def openPrs = prs.findAll { it.state == 'open' }
