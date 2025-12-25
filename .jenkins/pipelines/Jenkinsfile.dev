@@ -8,7 +8,7 @@ pipeline {
     environment {
         GITHUB_OWNER = '251027-Java'
         GITHUB_REPO = 'P2-feedback.fm-deployed'
-        GITHUB_PAT = credentials('main-github-pat')
+        GITHUB_DEFAULT_BRANCH = 'main'
     }
 
     stages {
@@ -24,15 +24,19 @@ pipeline {
                                     ],
                                     authentication: 'main-github-pat'
                     
-                    def prs = readJSON text: response.content
-                    def hasOpen = prs.any { it.state == 'open' }
-
-                    if (hasOpen) {
-                        currentBuild.result = 'ABORTED'
-                        error "Commit ${COMMIT_SHA} is not part of any open PR!"
-                    } else {
-                        echo "Commit has open pr"
+                    if (response.status != 200) {
+                        error "Unsuccess API call for PRs: Code ${response.status}"
                     }
+                    
+                    def prs = readJSON text: response.content
+                    def validOpen = prs.any { it.state == 'open' && it.base.ref == GITHUB_DEFAULT_BRANCH }
+
+                    if (!validOpen) {
+                        currentBuild.result = 'ABORTED'
+                        error "Does not meet the requirements to run: ${GIT_COMMIT}"
+                    }
+
+                    echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
                 }
             }
         }
