@@ -15,7 +15,7 @@ pipeline {
         stage('Check run requirements') {
             steps {
                 script {
-                    if (GIT_BRANCH == 'origin/' + GITHUB_DEFAULT_BRANCH) {
+                    if (env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH) {
                         echo 'This is the default branch. Running.'
                         return
                     }
@@ -56,7 +56,7 @@ pipeline {
                     */
 
                     currentBuild.result = 'ABORTED'
-                    error "Does not meet the requirements to run: ${GIT_COMMIT}"
+                    error "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
             }
         }
@@ -66,8 +66,8 @@ pipeline {
                 publishChecks(name: 'Build Info', title: 'Build Info', summary: 'Running', status: 'IN_PROGRESS')
 
                 echo "Build tag: ${env.BUILD_TAG}"
-                echo "Branch: ${GIT_BRANCH}"
-                echo "Commit: ${GIT_COMMIT}"
+                echo "Branch: ${env.GIT_BRANCH}"
+                echo "Commit: ${env.GIT_COMMIT}"
 
                 // for debugging. remove this later
                 sh 'printenv | sort'
