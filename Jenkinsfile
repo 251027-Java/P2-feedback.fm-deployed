@@ -1,3 +1,5 @@
+def runPipeline = 'true'
+
 pipeline {
     agent any
 
@@ -9,7 +11,6 @@ pipeline {
         GITHUB_OWNER = '251027-Java'
         GITHUB_REPO = 'P2-feedback.fm-deployed'
         GITHUB_DEFAULT_BRANCH = 'main'
-        RUN_PIPELINE = 'true'
     }
 
     stages {
@@ -54,8 +55,7 @@ pipeline {
                     }
                     */
 
-                    currentBuild.result = 'ABORTED'
-                    env.RUN_PIPELINE = 'false'
+                    runPipeline = 'false'
 
                     echo "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
@@ -64,11 +64,15 @@ pipeline {
 
         stage('Info') {
             when {
-                expression { env.RUN_PIPELINE == 'true' }
+                expression { runPipeline == 'true' }
             }
 
             steps {
-                echo "this happens here: ${env.RUN_PIPELINE}"
+                script {
+                    echo runPipeline
+                    echo "string interop ${runPipeline}"
+                }
+                echo "this happens here: ${runPipeline}"
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${env.GIT_BRANCH}"
                 echo "Commit: ${env.GIT_COMMIT}"
@@ -80,11 +84,11 @@ pipeline {
 
         stage('Test') {
             when {
-                expression { env.RUN_PIPELINE == 'true' }
+                expression { runPipeline == 'true' }
             }
 
             steps {
-                echo "this happens here: ${env.RUN_PIPELINE}"
+                echo "this happens here: ${runPipeline}"
 
                 dir('backend') {
                     withChecks(name: 'Maven Tests', includeStage: true) {
@@ -98,7 +102,7 @@ pipeline {
 
     post {
         always {
-            echo "very last this happens here: ${env.RUN_PIPELINE}"
+            echo "very last this happens here: ${runPipeline}"
         }
     }
 }
