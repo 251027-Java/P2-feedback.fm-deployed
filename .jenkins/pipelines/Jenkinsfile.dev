@@ -61,6 +61,7 @@ pipeline {
             }
             post {
                 success {
+                    echo "success"
                     // httpRequest authentication: 'main-github-pat',
                     //     url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/statuses/${GIT_COMMIT}",
                     //     customHeaders: [
