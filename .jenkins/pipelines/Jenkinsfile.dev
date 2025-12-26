@@ -23,15 +23,14 @@ pipeline {
                     echo 'Checking if this has an open PR that is targetting the default branch'
 
                     // https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-an-api-token-in-my-pipeline
-                    // https://community.jenkins.io/t/github-application-credentials/10706/2
-                    withCredentials([string(credentialsId: 'github-app-team', variable: 'GITHUB_TOKEN')]) {
-                        echo "$GITHUB_TOKEN"
-                        
+                    withCredentials([usernamePassword(credentialsId: 'github-app-team', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_ACCESS_TOKEN')]) {
+                        echo "$GITHUB_ACCESS_TOKEN"
+
                         def response = httpRequest url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
                             customHeaders: [
                                 [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
                                 [name: 'Accept', value: 'application/vnd.github+json'],
-                                [name: 'Authorization', value: 'Bearer ${GITHUB_TOKEN}']
+                                [name: 'Authorization', value: 'Bearer ${GITHUB_ACCESS_TOKEN}']
                             ]
 
                         if (response.status != 200) {
