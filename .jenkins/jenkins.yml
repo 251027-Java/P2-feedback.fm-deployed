@@ -42,4 +42,11 @@ credentials:
               privateKey: ${github_app_team_key}
               repositoryAccessStrategy:
                 specificRepositories: {}
+          - usernamePassword:
+              description: "GitHub PAT"
+              id: "github-pat"
+              password: ${github_pat_password}
+              scope: GLOBAL
+              username: ${github_pat_username}
+              usernameSecret: true
         domain: {}

@@ -126,5 +126,7 @@ tunnel-pw:
 @_get-secret prop:
     grep "^{{ prop }}=" ./secrets/secrets.properties | cut -d "=" -f 2-
 
+# https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc#creating-the-github-app
+# Convert GitHub keys to a compatible Jenkins format
 convert-key in out:
     openssl pkcs8 -topk8 -inform PEM -outform PEM -in {{ in }} -out {{ out }} -nocrypt

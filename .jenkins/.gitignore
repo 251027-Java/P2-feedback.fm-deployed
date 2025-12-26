@@ -1,4 +1,5 @@
 *.jar
 creds/*.xml
-secrets
+secrets/*
+!secrets/*.example
 *.pem
