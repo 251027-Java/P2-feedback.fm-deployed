@@ -54,6 +54,9 @@ In order for Jenkins to retrieve our code or interact with GitHub, the server wi
 
 To obtain a higher limit, we can use [personal access tokens (PATs)](https://github.com/settings/personal-access-tokens) or [GitHub Apps](https://docs.github.com/en/apps) from GitHub. A guide on [creating and using GitHub Apps](https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc) with Jenkins has already been written by Jenkins themselves. 
 
+> [!NOTE]
+> If you're testing locally and don't have your Jenkins server accessible through the internet, you won't be able to supply a webhook URL in your GitHub App or repository webhook configuration. An alternative solution would be to use tunneling. See [Tunneling](#tunneling) for more information.
+
 For our secret configuration, we need the **App ID** and a private key. The **App ID** can be found on the **General** page of the App. Jenkins' guide goes over the private key process and provides a command to convert a GitHub key to a compatible key for Jenkins. That command exists in our `justfile` there's a command in the `justfile` that easily allows for your to handle that conversion.
 
 Usage:
@@ -136,19 +139,10 @@ To enable this, ensure the Jenkins server is running and then run:
 just tunnel # Outputs a URL where we can access our Jenkins server
 ```
 
-This uses [localtunnel](https://github.com/localtunnel/localtunnel) to easily give us a way to send webhooks from GitHub to our server. 
+This uses [localtunnel](https://github.com/localtunnel/localtunnel) to easily give us a way to send webhooks from GitHub to our server. Similar tools exist that could also be used, such as [ngrok](https://ngrok.com/). Some others can be found [here](https://free-for.dev/#/?id=tunneling-webrtc-web-socket-servers-and-other-routers).
 
-1. Go to the GitHub repository where you want to utilize webhooks. 
-2. Settings
-3. Webhooks
-4. Create a webhook
-   - Supply the URL outputted from `localtunnel` for `Payload URL` and append `/github-webhook/` to it.
-     
-     It should look something like: `https://weak-beans-speak.loca.lt/github-webhook/`
-   - Change `Content type` to `application/json`
-   - Adjust `events` if necessary. `push` is usually enough for our needs.
+Once you have the URL, your webhook URL that you enter in GitHub will look something like `https://weak-beans-speak.loca.lt/github-webhook/`.
 
 > [!WARNING]
 > There is a difference between `<url>/github-webhook/` and `<url>/github-webhook`. If you use `<url>/github-webhook`, you'll likely run into 302 status codes. See this [post](https://stackoverflow.com/a/51545557) on Stack Overflow.
 
-Similar tools exist that could also be used, such as [ngrok](https://ngrok.com/). Some others can be found [here](https://free-for.dev/#/?id=tunneling-webrtc-web-socket-servers-and-other-routers).
