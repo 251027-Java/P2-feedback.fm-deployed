@@ -55,7 +55,7 @@ pipeline {
 
         stage('Info') {
             steps {
-                publishChecks(name: 'Build Info', title: 'A title', summary: 'running', status: 'IN_PROGRESS')
+                publishChecks(name: 'Build Info', title: 'Build Info', summary: 'Running', status: 'IN_PROGRESS')
                 
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${GIT_BRANCH}"
@@ -64,15 +64,16 @@ pipeline {
                 // for debugging. remove this later
                 sh 'printenv | sort'
 
-                publishChecks(name: 'Build Info', title: 'A title', summary: 'Success', status: 'COMPLETED', conclusion: 'SUCCESS')
+                publishChecks(name: 'Build Info', title: 'Build Info', summary: 'Success', status: 'COMPLETED', conclusion: 'SUCCESS')
             }
         }
 
         stage('Test') {
             steps {
                 dir('backend') {
-                    withChecks(name: 'Maven Tests') {
+                    withChecks(name: 'Maven Tests', includeStage: true) {
                         sh './mvnw -B test'
+                        junit '**/target/surefire-reports/TEST-*.xml'
                     }
                 }
             }
