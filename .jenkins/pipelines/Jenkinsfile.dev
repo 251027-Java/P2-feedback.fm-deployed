@@ -22,27 +22,29 @@ pipeline {
 
                     echo 'Checking if this has an open PR that is targetting the default branch'
 
-                    def response = httpRequest authentication: 'main-github-pat',
-                                    url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
-                                    customHeaders: [
-                                        [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
-                                        [name: 'Accept', value: 'application/vnd.github+json']
-                                    ]
+                    withCredentials([usernamePassword(credentialsId: 'github-app-team', usernameVariable: 'GITHUB_APP_USERNAME_TOKEN', passwordVariable: 'GITHUB_APP_PASSWORD_TOKEN')]) {
+                        def response = httpRequest url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
+                            customHeaders: [
+                                [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
+                                [name: 'Accept', value: 'application/vnd.github+json'],
+                                [name: 'Authorization', value: 'Bearer ${GITHUB_APP_PASSWORD_TOKEN}']
+                            ]
 
-                    if (response.status != 200) {
-                        error "Unsuccess API call for PRs: Code ${response.status}"
+                        if (response.status != 200) {
+                            error "Unsuccess API call for PRs: Code ${response.status}"
+                        }
+
+                        def prList = readJSON text: response.content
+                        def validOpen = prList.any { it.state == 'open' && it.base.ref == GITHUB_DEFAULT_BRANCH }
+
+                        if (validOpen) {
+                            echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
+                            return
+                        }
+
+                        currentBuild.result = 'ABORTED'
+                        error "Does not meet the requirements to run: ${GIT_COMMIT}"
                     }
-
-                    def prList = readJSON text: response.content
-                    def validOpen = prList.any { it.state == 'open' && it.base.ref == GITHUB_DEFAULT_BRANCH }
-
-                    if (validOpen) {
-                        echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
-                        return
-                    }
-
-                    currentBuild.result = 'ABORTED'
-                    error "Does not meet the requirements to run: ${GIT_COMMIT}"
                 }
             }
         }
@@ -59,19 +61,19 @@ pipeline {
             }
             post {
                 success {
-                    httpRequest authentication: 'main-github-pat',
-                        url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/statuses/${GIT_COMMIT}",
-                        customHeaders: [
-                            [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
-                            [name: 'Accept', value: 'application/vnd.github+json']
-                        ],
-                        requestBody: '''
-                        {
-                            "state": "success",
-                            "description": "something succeeded",
-                            "context": "jenkins-random-check"
-                        }
-                        '''
+                    // httpRequest authentication: 'main-github-pat',
+                    //     url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/statuses/${GIT_COMMIT}",
+                    //     customHeaders: [
+                    //         [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
+                    //         [name: 'Accept', value: 'application/vnd.github+json']
+                    //     ],
+                    //     requestBody: '''
+                    //     {
+                    //         "state": "success",
+                    //         "description": "something succeeded",
+                    //         "context": "jenkins-random-check"
+                    //     }
+                    //     '''
                     // publishChecks name: 'example', title: 'Pipeline Check', summary: 'check through pipeline',
                     //     text: 'you can publish checks in pipeline script',
                     //     detailsURL: 'https://github.com/jenkinsci/checks-api-plugin#pipeline-usage',
