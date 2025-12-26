@@ -95,7 +95,7 @@ Use `just help` to view available commands, or in your browser, go to `<jenkins-
 
 ### Importing/Exporting Jobs
 
-To share Jenkins jobs across multiple computers or users, we can export and import them using the Jenkins CLI. Existing jobs for our server can found in the `jobs/` directory. These will be imported when running `just post-init` or can be manually ran with `just import-jobs`.
+To share Jenkins jobs across multiple computers or users, we can export and import them using the Jenkins CLI. Existing jobs for our server can found in the `jobs/` directory. These will be imported when running `just instructions` or can be manually ran with `just import-jobs`.
 
 ```sh
 just export-jobs # Job configs will be output to the jobs/ directory
