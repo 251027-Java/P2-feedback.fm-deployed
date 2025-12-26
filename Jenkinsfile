@@ -56,6 +56,8 @@ pipeline {
 
                     currentBuild.result = 'ABORTED'
                     env.RUN_PIPELINE = 'false'
+
+                    echo "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
             }
         }
@@ -66,6 +68,7 @@ pipeline {
             }
 
             steps {
+                echo "this happens here: ${env.RUN_PIPELINE}"
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${env.GIT_BRANCH}"
                 echo "Commit: ${env.GIT_COMMIT}"
@@ -81,6 +84,8 @@ pipeline {
             }
 
             steps {
+                echo "this happens here: ${env.RUN_PIPELINE}"
+
                 dir('backend') {
                     withChecks(name: 'Maven Tests', includeStage: true) {
                         sh './mvnw -B test'
@@ -88,6 +93,12 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "very last this happens here: ${env.RUN_PIPELINE}"
         }
     }
 }
