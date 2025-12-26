@@ -25,6 +25,7 @@ pipeline {
                     // https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-an-api-token-in-my-pipeline
                     withCredentials([usernamePassword(credentialsId: 'github-app-team', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_ACCESS_TOKEN')]) {
                         env.TEMP_VAR = "$GITHUB_ACCESS_TOKEN"
+                        echo "${TEMP_VAR}"
 
                         def response = httpRequest url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
                             customHeaders: [
