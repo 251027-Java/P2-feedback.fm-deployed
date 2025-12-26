@@ -8,18 +8,18 @@ alias gc := get-cli
 
 # Initialize Jenkins
 [group("Init")]
-init: start init-text
+init-jenkins: start instructions
 
 # Instructions after initializing Jenkins
 [group("Init")]
-init-text:
+instructions:
     @echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security{{ NORMAL }} (login if prompted)\n\
     2. Create your API token\n\
     3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
     4. Ensure all credentials are filled in {{ YELLOW }}creds/{{ NORMAL }}\n\
     5. Run {{ GREEN }}just get-cli{{ NORMAL }} to download the Jenkins CLI\n\
-    6. Run {{ GREEN }}just post-init{{ NORMAL }} to finish initialization\n\
-    \nIf you want to see this text again use {{ GREEN }}just init-text{{ NORMAL }}"
+    6. Run {{ GREEN }}just finalize{{ NORMAL }} to finish initialization\n\n\
+    If you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"
 
 # Check if Jenkins is ready
 [group("Init")]
@@ -31,21 +31,16 @@ init-text:
         echo "{{RED}}Jenkins is not ready"; \
     fi
 
-# Create secrets from .env
+# Create initial files
 [group("Init")]
-init-secrets:
-    mkdir -p secrets
-    file=""
-    asd=("jenkins_username.txt" "jenkins_password.txt" "github_team_app_id.txt" "github_team_app_key.pem"); \
-    echo ${#asd[0]}
-# for file in "${files[0]}"; do \
-#     echo "hello"; \
-# done
-# for file in "${files[0]}"; do if [ ! -f "./secrets/$file" ]; then echo "hello"; fi; done
+init-files:
+    file=".env"; if [ ! -f "$file" ]; then cp ${file}.example $file ; fi
+    file="./secrets/secrets.properties"; if [ ! -f "$file" ]; then cp ${file}.example $file ; fi
+    file="./secrets/github_app_team_key.pem"; touch $file
 
 # Imports necessary configuration for Jenkins
 [group("Init")]
-post-init: import-jobs
+finalize: import-jobs
     @echo "{{ GREEN }}Jenkins is now fully configured"
 
 # Start Jenkins

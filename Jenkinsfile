@@ -16,16 +16,23 @@ pipeline {
             steps {
                 script {
                     if (GIT_BRANCH == 'origin/' + GITHUB_DEFAULT_BRANCH) {
-                        echo 'This is the default branch and will run'
+                        echo 'This is the default branch. Running.'
                         return
                     }
 
                     echo 'Checking if this has an open PR that is targetting the default branch'
 
+                    if (CHANGE_TARGET == 'main') {
+                        echo 'This is an PR to the default branch. Running'
+                        return
+                    }
+
+                    /*
+                    // old PR check code
                     // tried the URL below but doesn't work
                     // https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-an-api-token-in-my-pipeline
 
-                    // try separate PAT instead 
+                    // try separate PAT instead
                     // maybe manually create my own installation access token:
                     // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app
                     def response = httpRequest authentication: 'github-pat',
@@ -46,6 +53,7 @@ pipeline {
                         echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
                         return
                     }
+                    */
 
                     currentBuild.result = 'ABORTED'
                     error "Does not meet the requirements to run: ${GIT_COMMIT}"
@@ -56,7 +64,7 @@ pipeline {
         stage('Info') {
             steps {
                 publishChecks(name: 'Build Info', title: 'Build Info', summary: 'Running', status: 'IN_PROGRESS')
-                
+
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${GIT_BRANCH}"
                 echo "Commit: ${GIT_COMMIT}"

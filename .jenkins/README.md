@@ -30,29 +30,52 @@ To run commands, you'll need a `.env` file. See [this section](#initialization) 
 
 ## Initialization
 
-### `.env` Configuration
+There's some configuration involved to start up Jenkins. We use a `.env` and secrets in the `secrets/` directory to contain that configuration.
 
-In order to run, an `.env` file must be present and configured. 
-
-Copy the example `.env`:
+Use the following command to create the necessary files automatically:
 
 ```sh
-cp .env.example .env
+just init-files
 ```
+
+### `.env` Configuration
 
 Some variables already have provided values. These values can be modified to better suit your configuration if necessary.
 
-In order to use Jenkins, an account is necessary. This account information is local to the Jenkins instance, and the account will be created upon initialization. Specify values for `JENKINS_USER` and `JENKINS_PASSWORD` to set the username and password, respectively.
+The `JENKINS_API_TOKEN` will be necessary later but does not need to be specified when initializing Jenkins.
+
+### Secrets Configuration
+
+Provide values for the variables in the `secrets/secrets.properties` file.
+
+#### GitHub Secrets
+
+In order for Jenkins to retrieve our code or interact with GitHub, the server will send API requests to GitHub. GitHub has [limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#about-primary-rate-limits) for unauthenticated and authenticated users. Notably, unauthenticated requests are limited to only 60 requests per hour, which impact the running of our pipelines if we remain unauthenticated. 
+
+To obtain a higher limit, we can use [personal access tokens (PATs)](https://github.com/settings/personal-access-tokens) or [GitHub Apps](https://docs.github.com/en/apps) from GitHub. A guide on [creating and using GitHub Apps](https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc) with Jenkins has already been written by Jenkins themselves. 
+
+For our secret configuration, we need the **App ID** and a private key. The **App ID** can be found on the **General** page of the App. Jenkins' guide goes over the private key process and provides a command to convert a GitHub key to a compatible key for Jenkins. That command exists in our `justfile` there's a command in the `justfile` that easily allows for your to handle that conversion.
+
+Usage:
+
+```sh
+just convert-key <in> <out>
+
+# Example
+just convert-key ./secrets/github.pem ./secrets/jenkins.pem 
+```
+
+For our configuration, the key for Jenkins should be named `github_app_team_key.pem` and in the `secrets/` directory.
 
 ### Creation
 
-Once set, the Jenkins server can be created:
+Once configuration has been set, the Jenkins server can be created:
 
 ```sh
-just init
+just init-jenkins
 ```
 
-This will create the Jenkins server with the necessary plugins installed and minimal configuration. After running this command, there will be additional instructions output to the terminal that should be completed to finish the set up which will briefly be discussed in this guide. If you want to see those instructions at any point, use `just init-text`.
+This will create the Jenkins server with the necessary plugins installed and minimal configuration. After running this command, there will be additional instructions output to the terminal that should be completed to finish the set up which will briefly be discussed in this guide. If you want to see those instructions at any point, use `just instructions`.
 
 ### Jenkins API Token and Jenkins CLI
 
@@ -69,19 +92,6 @@ just jc version
 
 Use `just help` to view available commands, or in your browser, go to `<jenkins-url>/cli`. Substitute `<jenkins-url>` with the URL of your Jenkins server. 
 
-### GitHub Rate Limiting
-
-In order for Jenkins to retrieve our code or interact with GitHub, the server will send API requests to GitHub. GitHub has [limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#about-primary-rate-limits) for unauthenticated and authenticated users. Notably, unauthenticated requests are limited to only 60 requests per hour, which impact the running of our pipelines if we remain unauthenticated. 
-
-To obtain a higher limit, we can use [personal access tokens (PATs)](https://github.com/settings/personal-access-tokens) from GitHub. After creating a token, provide your username and the token as credentials in Jenkins.
-
-An example file is provided in the `creds/` directory. Copy the file:
-
-```sh
-cp creds/github-pat.xml.example creds/github-pat.xml
-```
-
-Replace the placeholder content for the username and password elements with your GitHub username and the PAT. If following the instructions from `just init`, these credentials will be imported to Jenkins with `just post-init`. They can also be manually imported with `just import-creds`.
 
 ### Importing/Exporting Jobs
 
