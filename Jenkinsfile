@@ -22,7 +22,7 @@ pipeline {
 
                     echo 'Checking if this has an open PR that is targetting the default branch'
 
-                    if (CHANGE_TARGET == 'main') {
+                    if (env.CHANGE_TARGET == 'main') {
                         echo 'This is an PR to the default branch. Running'
                         return
                     }
