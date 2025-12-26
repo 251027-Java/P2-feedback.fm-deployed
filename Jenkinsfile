@@ -20,10 +20,8 @@ pipeline {
                         return
                     }
 
-                    echo 'Checking if this has an open PR that is targetting the default branch'
-
-                    if (env.CHANGE_TARGET == 'main') {
-                        echo 'This is an PR to the default branch. Running'
+                    if (env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH) {
+                        echo 'This is a PR to the default branch. Running'
                         return
                     }
 
@@ -63,16 +61,12 @@ pipeline {
 
         stage('Info') {
             steps {
-                publishChecks(name: 'Build Info', title: 'Build Info', summary: 'Running', status: 'IN_PROGRESS')
-
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${env.GIT_BRANCH}"
                 echo "Commit: ${env.GIT_COMMIT}"
 
                 // for debugging. remove this later
                 sh 'printenv | sort'
-
-                publishChecks(name: 'Build Info', title: 'Build Info', summary: 'Success', status: 'COMPLETED', conclusion: 'SUCCESS')
             }
         }
 
