@@ -1,5 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@1559.va_a_533730b_ea_d">
+<?xml version="1.1" encoding="UTF-8"?><flow-definition plugin="workflow-job@1559.va_a_533730b_ea_d">
   <actions>
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1"/>
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2277.v00573e73ddf1">
@@ -9,13 +8,13 @@
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
   </actions>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.45.0">
-          <spec></spec>
+          <spec/>
         </com.cloudbees.jenkins.GitHubPushTrigger>
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
@@ -26,7 +25,7 @@
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
           <url>https://github.com/251027-Java/P2-feedback.fm-deployed</url>
-          <credentialsId>main-github-pat</credentialsId>
+          <credentialsId>github-app-team</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>

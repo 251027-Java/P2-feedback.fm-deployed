@@ -1,8 +1,12 @@
 # https://plugins.jenkins.io/configuration-as-code/
 # Only putting some segments from `just jc export-configuration` here.
 # Everything else can have default values.
-# Credentials, such as a GitHub PAT should NOT be provided here. They are not portable.
+# 
+# Putting credentials using encrypted text is NOT portable.
 # https://github.com/jenkinsci/configuration-as-code-plugin/issues/1141
+# 
+# We can still pass in credentials using other ways, such as secrets
+# https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/docs/features/secrets.adoc#docker-secrets
 jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
@@ -31,11 +35,11 @@ credentials:
   system:
     domainCredentials:
       - credentials:
-          - usernamePassword:
-              description: "GitHub PAT"
-              id: "main-github-pat"
-              password: ${main_github_pat_password}
-              scope: GLOBAL
-              username: ${main_github_pat_username}
-              usernameSecret: true
+          - gitHubApp:
+              appID: ${github_app_team_id}
+              description: "GitHub App Team"
+              id: "github-app-team"
+              privateKey: ${github_app_team_key}
+              repositoryAccessStrategy:
+                specificRepositories: {}
         domain: {}

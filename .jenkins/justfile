@@ -3,20 +3,17 @@ set dotenv-required
 
 jenkins_url := '$JENKINS_PROTOCOL://$JENKINS_HOST:$JENKINS_PORT'
 
-# git bash will treat a leading '/' as a path, so do this work-around
-forward_slash := if os_family() == 'windows' { '//' } else { '/'}
-
 alias jc := jcli
 alias gc := get-cli
 
 # Initialize Jenkins
 [group("Init")]
-init: secrets start init-text
+init: start init-text
 
 # Instructions after initializing Jenkins
 [group("Init")]
 init-text:
-    @echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/${JENKINS_USER}/security{{ NORMAL }} (login if prompted)\n\
+    @echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security{{ NORMAL }} (login if prompted)\n\
     2. Create your API token\n\
     3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
     4. Ensure all credentials are filled in {{ YELLOW }}creds/{{ NORMAL }}\n\
@@ -36,12 +33,15 @@ init-text:
 
 # Create secrets from .env
 [group("Init")]
-secrets:
+init-secrets:
     mkdir -p secrets
-    echo $JENKINS_USER > secrets/jenkins_username
-    echo $JENKINS_PASSWORD > secrets/jenkins_password
-    echo $CRED_MAIN_GITHUB_PAT_USERNAME > secrets/main_github_pat_username
-    echo $CRED_MAIN_GITHUB_PAT_PASSWORD > secrets/main_github_pat_password
+    file=""
+    asd=("jenkins_username.txt" "jenkins_password.txt" "github_team_app_id.txt" "github_team_app_key.pem"); \
+    echo ${#asd[0]}
+# for file in "${files[0]}"; do \
+#     echo "hello"; \
+# done
+# for file in "${files[0]}"; do if [ ! -f "./secrets/$file" ]; then echo "hello"; fi; done
 
 # Imports necessary configuration for Jenkins
 [group("Init")]
@@ -82,14 +82,7 @@ get-cli:
 # Shorthand to use the Jenkins CLI
 [group("Jenkins CLI")]
 @jcli *args:
-    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth $JENKINS_USER:$JENKINS_API_TOKEN {{ args }}
-
-# Imports credentials to Jenkins
-[group("Jenkins CLI")]
-import-creds:
-    for filepath in creds/*.xml; do \
-        just jc create-credentials-by-xml $JENKINS_PRIMARY_STORE $JENKINS_PRIMARY_DOMAIN < $filepath; \
-    done
+    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth `just _get-secret jenkins_username`:$JENKINS_API_TOKEN {{ args }}
 
 # Imports and reloads the JCasC configuration to Jenkins
 [group("Jenkins CLI")]
@@ -124,8 +117,14 @@ delete-jobs:
 # Tunneling using localtunnel. Only for local development
 tunnel:
     @echo "Port: {{ GREEN }}$JENKINS_PORT{{ NORMAL }}"
-    npx localtunnel -p $JENKINS_PORT --print-requests
+    npx localtunnel -p $JENKINS_PORT -s "$TUNNEL_SUBDOMAIN" --print-requests
 
 # Tunnel password
 tunnel-pw:
     curl https://loca.lt/mytunnelpassword
+
+@_get-secret prop:
+    grep "^{{ prop }}=" ./secrets/secrets.properties | cut -d "=" -f 2-
+
+convert-key in out:
+    openssl pkcs8 -topk8 -inform PEM -outform PEM -in {{ in }} -out {{ out }} -nocrypt

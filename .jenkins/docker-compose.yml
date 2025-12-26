@@ -9,21 +9,15 @@ services:
     environment:
       JAVA_OPTS: -Djenkins.install.runSetupWizard=false
     secrets:
-      - jenkins_username
-      - jenkins_password
-      - main_github_pat_username
-      - main_github_pat_password
+      - secrets.properties
+      - github_app_team_key
     restart: unless-stopped
 
 volumes:
   jenkins-data:
 
 secrets:
-  jenkins_username:
-    file: ./secrets/jenkins_username
-  jenkins_password:
-    file: ./secrets/jenkins_password
-  main_github_pat_username:
-    file: ./secrets/main_github_pat_username
-  main_github_pat_password:
-    file: ./secrets/main_github_pat_password
+  secrets.properties:
+    file: ./secrets/secrets.properties
+  github_app_team_key:
+    file: ./secrets/github_app_team_key.pem
