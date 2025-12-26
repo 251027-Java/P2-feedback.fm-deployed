@@ -9,6 +9,7 @@ pipeline {
         GITHUB_OWNER = '251027-Java'
         GITHUB_REPO = 'P2-feedback.fm-deployed'
         GITHUB_DEFAULT_BRANCH = 'main'
+        RUN_PIPELINE = 'true'
     }
 
     stages {
@@ -54,12 +55,16 @@ pipeline {
                     */
 
                     currentBuild.result = 'ABORTED'
-                    error "Does not meet the requirements to run: ${env.GIT_COMMIT}"
+                    env.RUN_PIPELINE = 'false'
                 }
             }
         }
 
         stage('Info') {
+            when {
+                expression { env.RUN_PIPELINE == 'true' }
+            }
+
             steps {
                 echo "Build tag: ${env.BUILD_TAG}"
                 echo "Branch: ${env.GIT_BRANCH}"
@@ -71,6 +76,10 @@ pipeline {
         }
 
         stage('Test') {
+            when {
+                expression { env.RUN_PIPELINE == 'true' }
+            }
+
             steps {
                 dir('backend') {
                     withChecks(name: 'Maven Tests', includeStage: true) {
