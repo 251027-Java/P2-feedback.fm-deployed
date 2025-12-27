@@ -61,21 +61,21 @@ services:
         condition: service_healthy
 
   # Frontend Service
-  frontend:
-    image: node:20
-    container_name: spotify_frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
-    environment:
-      - VITE_API_URL=${VITE_API_URL}
-      - VITE_PORT=${FRONTEND_PORT:-3000}
-    command: sh -c "npm install && npm run dev -- --host"
-    depends_on:
-      - backend
+  # frontend:
+  #   image: node:20
+  #   container_name: spotify_frontend
+  #   working_dir: /app
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   ports:
+  #     - "${FRONTEND_PORT:-3000}:3000"
+  #   environment:
+  #     - VITE_API_URL=${VITE_API_URL}
+  #     - VITE_PORT=${FRONTEND_PORT:-3000}
+  #   command: sh -c "npm install && npm run dev -- --host"
+  #   depends_on:
+  #     - backend
 
 volumes:
   postgres_data:
