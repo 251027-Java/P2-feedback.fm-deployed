@@ -5,7 +5,7 @@ This guide covers how to set up Jenkins locally.
 ## Prequisites
 
 - [Docker](https://www.docker.com/get-started/)
-- [Just](https://just.systems/man/en/packages.html)
+- [Just](https://just.systems/man/en/introduction.html)
   
   An easy way to install Just is using `npm`:
 
@@ -50,14 +50,14 @@ Provide values for the variables in the `secrets/secrets.properties` file.
 
 #### GitHub Secrets
 
-In order for Jenkins to retrieve our code or interact with GitHub, the server will send API requests to GitHub. GitHub has [limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#about-primary-rate-limits) for unauthenticated and authenticated users. Notably, unauthenticated requests are limited to only 60 requests per hour, which impact the running of our pipelines if we remain unauthenticated. 
+In order for Jenkins to retrieve our code or interact with GitHub, the server will send API requests to GitHub. GitHub has [limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#about-primary-rate-limits) for unauthenticated and authenticated users. Notably, unauthenticated requests are limited to only 60 requests per hour, which can impact the running of our pipelines if we remain unauthenticated. 
 
-To obtain a higher limit, we can use [personal access tokens (PATs)](https://github.com/settings/personal-access-tokens) or [GitHub Apps](https://docs.github.com/en/apps) from GitHub. A guide on [creating and using GitHub Apps](https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc) with Jenkins has already been written by Jenkins themselves. 
+To obtain a higher limit, we can use [personal access tokens (PATs)](https://github.com/settings/personal-access-tokens) or [GitHub Apps](https://docs.github.com/en/apps) from GitHub. A guide on [creating and using GitHub Apps with Jenkins](https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc) has already been written by Jenkins themselves. 
 
 > [!NOTE]
 > If you're testing locally and don't have your Jenkins server accessible through the internet, you won't be able to supply a webhook URL in your GitHub App or repository webhook configuration. An alternative solution would be to use tunneling. See [Tunneling](#tunneling) for more information.
 
-For our secret configuration, we need the **App ID** and a private key. The **App ID** can be found on the **General** page of the App. Jenkins' guide goes over the private key process and provides a command to convert a GitHub key to a compatible key for Jenkins. That command exists in our `justfile` there's a command in the `justfile` that easily allows for your to handle that conversion.
+With our initialization process, we use [JCasC](https://plugins.jenkins.io/configuration-as-code/) to provide these credentials to our Jenkins server on creation. For our secret configuration, we need the **App ID** and a private key. The **App ID** can be found on the **General** page of the App. Jenkins' guide goes over the private key process and provides a command to convert a GitHub key to a compatible key for Jenkins. That command is provided in our `justfile` to easily handle that conversion.
 
 Usage:
 
@@ -78,11 +78,11 @@ Once configuration has been set, the Jenkins server can be created:
 just init-jenkins
 ```
 
-This will create the Jenkins server with the necessary plugins installed and minimal configuration. After running this command, there will be additional instructions output to the terminal that should be completed to finish the set up which will briefly be discussed in this guide. If you want to see those instructions at any point, use `just instructions`.
+This will create the Jenkins server with the necessary plugins installed and minimal configuration. After running this command, there will be additional instructions output to the terminal that should be completed to finish the set up, which will briefly be discussed in this guide. If you want to see those instructions at any point, use `just instructions`.
 
 ### Jenkins API Token and Jenkins CLI
 
-Using the Jenkins CLI allows for remote use, scriptability, and interaction with the Jenkins server through the terminal. In order to send commands to a Jenkins server, you need an API token. A password could also be used rather than an API token, but for security management, it's recommended to use an API token as multiple can be made and also be deleted if necessary.
+Using the Jenkins CLI allows for remote use, scriptability, and interaction with the Jenkins server through the terminal. In order to send commands to a Jenkins server, you need an API token. A password could also be used rather than an API token, but for security management, it's recommended to use an API token as multiple can be made and deleted if necessary.
 
 To create an API token for a user, go to `<jenkins-url>/user/<username>/security` in your browser where `<jenkins-url>` is the URL to the Jenkins server and `<username>` is the name of the user, e.g. `http://localhost:8080/user/admin/security`. After creating the token, copy the token and set the `JENKINS_API_TOKEN` variable in the `.env` file to the token.
 
