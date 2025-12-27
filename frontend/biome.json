@@ -32,7 +32,7 @@
 				"noUnusedTemplateLiteral": "error",
 				"useNumberNamespace": "error",
 				"noUselessElse": "error",
-				"useConsistentCurlyBraces": "error",
+				"useConsistentCurlyBraces": "error"
 			}
 		}
 	},
