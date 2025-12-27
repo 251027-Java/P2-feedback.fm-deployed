@@ -44,27 +44,12 @@
           <repository>P2-feedback.fm-deployed</repository>
           <repositoryUrl>https://github.com/251027-Java/P2-feedback.fm-deployed</repositoryUrl>
           <traits>
+            <org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>
+              <strategyId>1</strategyId>
+            </org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>
             <org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
               <strategyId>2</strategyId>
             </org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
-          </traits>
-        </source>
-        <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
-          <properties class="empty-list"/>
-        </strategy>
-      </jenkins.branch.BranchSource>
-      <jenkins.branch.BranchSource>
-        <source class="org.jenkinsci.plugins.github_branch_source.GitHubSCMSource" plugin="github-branch-source@1925.v62fb_7ffb_08ce">
-          <id>2</id>
-          <apiUri>https://api.github.com</apiUri>
-          <credentialsId>github-app-team</credentialsId>
-          <repoOwner>251027-Java</repoOwner>
-          <repository>P2-feedback.fm-deployed</repository>
-          <repositoryUrl>https://github.com/251027-Java/P2-feedback.fm-deployed</repositoryUrl>
-          <traits>
-            <jenkins.scm.impl.trait.RegexSCMHeadFilterTrait plugin="scm-api@724.v7d839074eb_5c">
-              <regex>main</regex>
-            </jenkins.scm.impl.trait.RegexSCMHeadFilterTrait>
           </traits>
         </source>
         <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
