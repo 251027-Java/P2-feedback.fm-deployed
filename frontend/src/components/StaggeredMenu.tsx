@@ -451,6 +451,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
             arr.splice(mid, 1);
           }
           return arr.map((c, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: no other suitable key
             <div key={i} className="sm-prelayer" style={{ background: c }} />
           ));
         })()}
@@ -490,6 +491,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
           >
             <span ref={textInnerRef} className="sm-toggle-textInner">
               {textLines.map((l, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: text is not unique and has no other properties that should qualify as a key
                 <span className="sm-toggle-line" key={i}>
                   {l}
                 </span>
