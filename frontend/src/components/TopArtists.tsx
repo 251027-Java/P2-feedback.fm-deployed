@@ -274,6 +274,7 @@ function TopArtists() {
             >
               <button
                 type="button"
+                className="focus:outline-2 focus:outline-brand rounded-sm"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',

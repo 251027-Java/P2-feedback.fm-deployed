@@ -107,7 +107,9 @@ function Playlists() {
             }}
           >
             {playlists.map((playlist: any, index: number) => (
-              <div
+              <button
+                type="button"
+                className="focus:outline-2 focus:outline-brand"
                 key={playlist.playlistId || index}
                 onClick={() => handlePlaylistClick(playlist)}
                 style={{
@@ -139,6 +141,7 @@ function Playlists() {
                 }}
               >
                 <div
+                  className="items-start"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -237,7 +240,7 @@ function Playlists() {
                     )}
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </AnimatedContent>
@@ -245,6 +248,8 @@ function Playlists() {
 
       {/* Modal for showing playlist songs */}
       {showSongs && selectedPlaylist && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: Modal logic to allow clicks outside of primary modal to close the modal
+        // biome-ignore lint/a11y/useKeyWithClickEvents: The modal content has a close button that users can use
         <div
           onClick={closeModal}
           style={{
@@ -261,6 +266,8 @@ function Playlists() {
             padding: '20px',
           }}
         >
+          {/** biome-ignore lint/a11y/noStaticElementInteractions: Users should be able to click on the modal content to copy text, etc  */}
+          {/** biome-ignore lint/a11y/useKeyWithClickEvents: Key events are not needed */}
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -310,7 +317,7 @@ function Playlists() {
               </div>
               <button
                 type="button"
-                className="focus:outline-2 focus:outline-brand"
+                className="focus:outline-2 focus:outline-brand rounded-sm"
                 onClick={closeModal}
                 style={{
                   background: 'none',
@@ -355,6 +362,7 @@ function Playlists() {
                 >
                   {selectedPlaylist.songs.map((song: any, index: number) => (
                     <div
+                      className="border border-white/10 bg-white/3 hover:border-[rgba(29,185,84,0.3)] hover:bg-[rgba(29,185,84,0.1)]"
                       key={song.songId || index}
                       style={{
                         display: 'flex',
@@ -362,21 +370,7 @@ function Playlists() {
                         gap: '16px',
                         padding: '12px',
                         borderRadius: '8px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
                         transition: 'all 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(29, 185, 84, 0.1)';
-                        e.currentTarget.style.border =
-                          '1px solid rgba(29, 185, 84, 0.3)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          'rgba(255, 255, 255, 0.03)';
-                        e.currentTarget.style.border =
-                          '1px solid rgba(255, 255, 255, 0.1)';
                       }}
                     >
                       {/* Track Number */}

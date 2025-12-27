@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import cycleList from '../../resources/cycleList?raw';
@@ -272,14 +273,17 @@ function Dashboard() {
 
   return (
     <div
-      style={{
-        padding: '0 20px 20px 20px',
-        color: 'white',
-        minHeight: '100%',
-        width: '100%',
-        boxSizing: 'border-box',
-        backgroundColor: '#000',
-      }}
+      style={
+        {
+          padding: '0 20px 20px 20px',
+          color: 'white',
+          minHeight: '100%',
+          width: '100%',
+          boxSizing: 'border-box',
+          backgroundColor: '#000',
+          '--color-cycle': cycleColor,
+        } as React.CSSProperties
+      }
     >
       {/* Header with Time Range Selector */}
       <div
@@ -347,315 +351,313 @@ function Dashboard() {
               href={`https://open.spotify.com/user/${dashboardData?.userId || ''}`}
               target="_blank"
               rel="noreferrer"
-              style={{ textDecoration: 'none' }}
+              // style={{ textDecoration: 'none' }}
+              style={{
+                textDecoration: 'none',
+                backgroundColor: colorWithAlpha(cycleColor, 0.05),
+                border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 6px 16px ${colorWithAlpha(cycleColor, 0.3)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.5)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
+              }}
             >
-              <div
+              <h2
                 style={{
-                  backgroundColor: colorWithAlpha(cycleColor, 0.05),
-                  border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
-                  borderRadius: '16px',
-                  padding: '24px',
-                  boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = `0 6px 16px ${colorWithAlpha(cycleColor, 0.3)}`;
-                  e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.5)}`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
-                  e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
+                  marginTop: 0,
+                  marginBottom: '20px',
+                  color: cycleColor,
+                  fontSize: '0.7rem',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
                 }}
               >
-                <h2
+                Profile
+              </h2>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  gap: '1.5rem',
+                }}
+              >
+                <div
                   style={{
-                    marginTop: 0,
-                    marginBottom: '20px',
-                    color: cycleColor,
-                    fontSize: '0.7rem',
-                    fontWeight: '700',
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
+                    width: '100px',
+                    height: '100px',
+                    minWidth: '100px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                    border: `2px solid ${colorWithAlpha(cycleColor, 0.4)}`,
                   }}
                 >
-                  Profile
-                </h2>
+                  {dashboardData.profileImage && !imageError ? (
+                    <img
+                      src={dashboardData.profileImage}
+                      alt={dashboardData.username || 'User'}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                      onError={() => {
+                        console.error(
+                          'Failed to load profile image:',
+                          dashboardData.profileImage,
+                        );
+                        setImageError(true);
+                      }}
+                    />
+                  ) : (
+                    <svg
+                      width="50"
+                      height="50"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={cycleColor}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <title>Profile picture</title>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  )}
+                </div>
+
                 <div
                   style={{
                     display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'flex-start',
-                    gap: '1.5rem',
+                    flexDirection: 'column',
+                    flex: 1,
+                    justifyContent: 'center',
+                    gap: '8px',
                   }}
                 >
-                  <div
-                    style={{
-                      width: '100px',
-                      height: '100px',
-                      minWidth: '100px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                      border: `2px solid ${colorWithAlpha(cycleColor, 0.4)}`,
-                    }}
-                  >
-                    {dashboardData.profileImage && !imageError ? (
-                      <img
-                        src={dashboardData.profileImage}
-                        alt={dashboardData.username || 'User'}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                        onError={() => {
-                          console.error(
-                            'Failed to load profile image:',
-                            dashboardData.profileImage,
-                          );
-                          setImageError(true);
-                        }}
-                      />
-                    ) : (
-                      <svg
-                        width="50"
-                        height="50"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={cycleColor}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      flex: 1,
-                      justifyContent: 'center',
-                      gap: '8px',
-                    }}
-                  >
-                    <div>
-                      <h3
-                        style={{
-                          margin: '0 0 4px 0',
-                          color: 'white',
-                          fontSize: '1.5rem',
-                          fontWeight: '700',
-                          letterSpacing: '-0.5px',
-                        }}
-                      >
-                        {dashboardData.username || 'N/A'}
-                      </h3>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          fontSize: '0.9rem',
-                          fontWeight: '400',
-                        }}
-                      >
-                        {dashboardData.email || 'N/A'}
-                      </p>
-                    </div>
+                  <div>
+                    <h3
+                      style={{
+                        margin: '0 0 4px 0',
+                        color: 'white',
+                        fontSize: '1.5rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.5px',
+                      }}
+                    >
+                      {dashboardData.username || 'N/A'}
+                    </h3>
+                    <p
+                      style={{
+                        margin: 0,
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        fontSize: '0.9rem',
+                        fontWeight: '400',
+                      }}
+                    >
+                      {dashboardData.email || 'N/A'}
+                    </p>
                   </div>
                 </div>
               </div>
             </a>
 
             {/* Now Playing Section */}
-            <Link to="/currently-playing" style={{ textDecoration: 'none' }}>
-              <div
+            <Link
+              to="/currently-playing"
+              style={{
+                textDecoration: 'none',
+                backgroundColor: 'rgba(29, 185, 84, 0.05)',
+                border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 6px 16px ${colorWithAlpha(cycleColor, 0.3)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.5)}`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
+                e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
+              }}
+            >
+              <h2
                 style={{
-                  backgroundColor: 'rgba(29, 185, 84, 0.05)',
-                  border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
-                  borderRadius: '16px',
-                  padding: '24px',
-                  boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = `0 6px 16px ${colorWithAlpha(cycleColor, 0.3)}`;
-                  e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.5)}`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
-                  e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
+                  marginTop: 0,
+                  marginBottom: '20px',
+                  color: cycleColor,
+                  fontSize: '0.7rem',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
                 }}
               >
-                <h2
+                Now Playing
+              </h2>
+              {currentTrack?.name &&
+              currentTrack.name.trim() !== '' &&
+              currentTrack.isPlaying !== false ? (
+                <div
                   style={{
-                    marginTop: 0,
-                    marginBottom: '20px',
-                    color: cycleColor,
-                    fontSize: '0.7rem',
-                    fontWeight: '700',
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
+                    display: 'flex',
+                    gap: '16px',
+                    alignItems: 'flex-start',
                   }}
                 >
-                  Now Playing
-                </h2>
-                {currentTrack &&
-                currentTrack.name &&
-                currentTrack.name.trim() !== '' &&
-                currentTrack.isPlaying !== false ? (
+                  {/* Album Artwork */}
                   <div
                     style={{
-                      display: 'flex',
-                      gap: '16px',
-                      alignItems: 'flex-start',
+                      flexShrink: 0,
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      backgroundColor: colorWithAlpha(cycleColor, 0.2),
+                      border: `1px solid ${colorWithAlpha(cycleColor, 0.4)}`,
                     }}
                   >
-                    {/* Album Artwork */}
-                    <div
-                      style={{
-                        flexShrink: 0,
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        backgroundColor: colorWithAlpha(cycleColor, 0.2),
-                        border: `1px solid ${colorWithAlpha(cycleColor, 0.4)}`,
-                      }}
-                    >
-                      {currentTrack.albumImage || currentTrack.image ? (
-                        <img
-                          src={currentTrack.albumImage || currentTrack.image}
-                          alt={currentTrack.album || 'Album'}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement!.innerHTML =
-                              '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1DB954;font-size:2rem;">🎵</div>';
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#1DB954',
-                            fontSize: '2rem',
-                          }}
-                        >
-                          🎵
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Track Info */}
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px',
-                      }}
-                    >
+                    {currentTrack.albumImage || currentTrack.image ? (
+                      <img
+                        src={currentTrack.albumImage || currentTrack.image}
+                        alt={currentTrack.album || 'Album'}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML =
+                            '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1DB954;font-size:2rem;">🎵</div>';
+                        }}
+                      />
+                    ) : (
                       <div
                         style={{
-                          fontSize: '1.05rem',
-                          fontWeight: '700',
-                          color: 'white',
-                          lineHeight: '1.3',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#1DB954',
+                          fontSize: '2rem',
                         }}
                       >
-                        {currentTrack.name}
+                        🎵
                       </div>
+                    )}
+                  </div>
+
+                  {/* Track Info */}
+                  <div
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.05rem',
+                        fontWeight: '700',
+                        color: 'white',
+                        lineHeight: '1.3',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {currentTrack.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.9rem',
+                        color: colorWithAlpha(cycleColor, 0.7),
+                        fontWeight: '500',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {currentTrack.artist || 'Unknown Artist'}
+                    </div>
+                    {currentTrack.album && (
                       <div
                         style={{
-                          fontSize: '0.9rem',
-                          color: colorWithAlpha(cycleColor, 0.7),
-                          fontWeight: '500',
+                          fontSize: '0.8rem',
+                          color: 'rgba(255, 255, 255, 0.5)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {currentTrack.artist || 'Unknown Artist'}
+                        {currentTrack.album}
                       </div>
-                      {currentTrack.album && (
-                        <div
-                          style={{
-                            fontSize: '0.8rem',
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {currentTrack.album}
-                        </div>
-                      )}
-                      {currentTrack.isPlaying !== undefined && (
-                        <div
-                          style={{
-                            marginTop: '4px',
-                            fontSize: '0.75rem',
-                            color: currentTrack.isPlaying
-                              ? '#1DB954'
-                              : 'rgba(255, 255, 255, 0.5)',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>{currentTrack.isPlaying ? '▶' : '⏸'}</span>
-                          <span>
-                            {currentTrack.isPlaying ? 'Playing' : 'Paused'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {currentTrack.isPlaying !== undefined && (
+                      <div
+                        style={{
+                          marginTop: '4px',
+                          fontSize: '0.75rem',
+                          color: currentTrack.isPlaying
+                            ? '#1DB954'
+                            : 'rgba(255, 255, 255, 0.5)',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span>{currentTrack.isPlaying ? '▶' : '⏸'}</span>
+                        <span>
+                          {currentTrack.isPlaying ? 'Playing' : 'Paused'}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '20px',
-                      fontSize: '0.9rem',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    No track playing
-                  </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    fontSize: '0.9rem',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  No track playing
+                </div>
+              )}
             </Link>
           </div>
 
@@ -811,7 +813,9 @@ function Dashboard() {
                     : '';
 
                   return (
-                    <div
+                    <button
+                      type="button"
+                      className="w-full"
                       key={item.id || index}
                       style={{
                         display: 'flex',
@@ -879,7 +883,7 @@ function Dashboard() {
                         )}
                       </div>
                       {/* Song Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="flex flex-col items-start flex-1">
                         <div
                           style={{
                             color: 'white',
@@ -921,23 +925,17 @@ function Dashboard() {
                       {/* Play Icon */}
                       {href && (
                         <div
+                          className="opacity-70 hover:opacity-100"
                           style={{
                             color: cycleColor,
                             fontSize: '1.1rem',
-                            opacity: 0.7,
                             transition: 'opacity 0.2s',
                           }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.opacity = '1')
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.opacity = '0.7')
-                          }
                         >
                           ▶
                         </div>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -972,7 +970,8 @@ function Dashboard() {
                   const artistImage = getArtistImage(artist);
                   const href = artist.href || artist.external_urls?.spotify;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={getArtistKey(artist, index)}
                       style={{
                         display: 'flex',
@@ -992,6 +991,10 @@ function Dashboard() {
                       }}
                     >
                       <div
+                        className={clsx(
+                          'border-2 border-transparent',
+                          href ? 'hover:border-(--color-cycle)' : '',
+                        )}
                         style={{
                           width: '100%',
                           aspectRatio: '1',
@@ -1003,15 +1006,7 @@ function Dashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                          border: '2px solid transparent',
                           transition: 'border-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (href)
-                            e.currentTarget.style.borderColor = cycleColor;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'transparent';
                         }}
                       >
                         {artistImage ? (
@@ -1047,7 +1042,7 @@ function Dashboard() {
                       >
                         {getArtistName(artist)}
                       </p>
-                    </div>
+                    </button>
                   );
                 })}
             </div>
@@ -1086,7 +1081,8 @@ function Dashboard() {
                   const songImage = getSongImage(song);
                   const href = song.href || song.external_urls?.spotify;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={getSongKey(song, index)}
                       style={{
                         display: 'flex',
@@ -1106,6 +1102,10 @@ function Dashboard() {
                       }}
                     >
                       <div
+                        className={clsx(
+                          'border-2 border-transparent',
+                          href ? 'hover:border-(--color-cycle)' : '',
+                        )}
                         style={{
                           width: '100%',
                           aspectRatio: '1',
@@ -1117,15 +1117,7 @@ function Dashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                          border: '2px solid transparent',
                           transition: 'border-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (href)
-                            e.currentTarget.style.borderColor = cycleColor;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'transparent';
                         }}
                       >
                         {songImage ? (
@@ -1172,7 +1164,7 @@ function Dashboard() {
                       >
                         {getSongArtistName(song)}
                       </p>
-                    </div>
+                    </button>
                   );
                 })}
             </div>

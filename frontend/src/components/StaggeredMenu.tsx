@@ -428,7 +428,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   return (
     <div
       className={
-        (className ? className + ' ' : '') +
+        (className ? `${className} ` : '') +
         'staggered-menu-wrapper' +
         (isFixed ? ' fixed-wrapper' : '')
       }
@@ -438,10 +438,9 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     >
       <div ref={preLayersRef} className="sm-prelayers" aria-hidden="true">
         {(() => {
-          const raw =
-            colors && colors.length
-              ? colors.slice(0, 4)
-              : ['#1e1e22', '#35353c'];
+          const raw = colors?.length
+            ? colors.slice(0, 4)
+            : ['#1e1e22', '#35353c'];
           const arr = [...raw];
           if (arr.length >= 3) {
             const mid = Math.floor(arr.length / 2);
@@ -452,9 +451,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
           ));
         })()}
       </div>
-      <header
-        className="staggered-menu-header"
-      >
+      <header className="staggered-menu-header">
         <div className="sm-logo">
           {logoUrl ? (
             <img
@@ -513,9 +510,9 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
             className="sm-panel-list"
             data-numbering={displayItemNumbering || undefined}
           >
-            {items && items.length ? (
+            {items?.length ? (
               items.map((it, idx) => (
-                <li className="sm-panel-itemWrap" key={it.label + idx}>
+                <li className="sm-panel-itemWrap" key={it.label}>
                   <a
                     className="sm-panel-item"
                     href={it.link}
@@ -544,11 +541,11 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
             )}
           </ul>
           {displaySocials && socialItems && socialItems.length > 0 && (
-            <div className="sm-socials" aria-label="Social links">
+            <div className="sm-socials">
               <h3 className="sm-socials-title">Socials</h3>
-              <ul className="sm-socials-list" role="list">
-                {socialItems.map((s, i) => (
-                  <li key={s.label + i} className="sm-socials-item">
+              <ul className="sm-socials-list">
+                {socialItems.map((s) => (
+                  <li key={s.label} className="sm-socials-item">
                     <a
                       href={s.link}
                       target="_blank"

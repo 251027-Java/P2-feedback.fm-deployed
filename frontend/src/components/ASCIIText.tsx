@@ -450,7 +450,7 @@ class CanvAscii {
   }
 
   render() {
-    const time = new Date().getTime() * 0.001;
+    const time = Date.now() * 0.001;
 
     this.textCanvas.render();
     this.texture.needsUpdate = true;

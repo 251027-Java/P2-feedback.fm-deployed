@@ -211,7 +211,7 @@ h1 {
   box-sizing: border-box;
 }
 
-.main-content-wrapper>* {
+.main-content-wrapper > * {
   position: relative;
   z-index: 1;
   width: 100%;

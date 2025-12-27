@@ -764,7 +764,8 @@ export default function LiquidEther({
           dt?: number;
         };
         if (!this.uniforms) return;
-        let fbo_in: any, fbo_out: any;
+        let fbo_in: any;
+        let fbo_out: any;
         if (typeof viscous === 'number') this.uniforms.v.value = viscous;
         const iter = iterations ?? 0;
         for (let i = 0; i < iter; i++) {
@@ -831,7 +832,8 @@ export default function LiquidEther({
       }
       update(...args: any[]) {
         const { iterations } = (args[0] || {}) as { iterations?: number };
-        let p_in: any, p_out: any;
+        let p_in: any;
+        let p_out: any;
         const iter = iterations ?? 0;
         for (let i = 0; i < iter; i++) {
           if (i % 2 === 0) {
@@ -1156,8 +1158,7 @@ export default function LiquidEther({
           Mouse.dispose();
           if (Common.renderer) {
             const canvas = Common.renderer.domElement;
-            if (canvas && canvas.parentNode)
-              canvas.parentNode.removeChild(canvas);
+            if (canvas?.parentNode) canvas.parentNode.removeChild(canvas);
             Common.renderer.dispose();
           }
         } catch {
