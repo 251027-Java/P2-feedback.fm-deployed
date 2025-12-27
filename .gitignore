@@ -17,8 +17,7 @@ dist-ssr
 .temp
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode
 .idea
 .DS_Store
 Thumbs.db
@@ -27,3 +26,4 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.code-workspace
