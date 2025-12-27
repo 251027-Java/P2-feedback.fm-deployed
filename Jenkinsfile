@@ -1,3 +1,11 @@
+/*
+possibly useful references in the future
+https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-an-api-token-in-my-pipeline
+https://plugins.jenkins.io/checks-api/
+ */
+
+def runPipeline = true
+
 pipeline {
     agent any
 
@@ -9,10 +17,15 @@ pipeline {
         GITHUB_OWNER = '251027-Java'
         GITHUB_REPO = 'P2-feedback.fm-deployed'
         GITHUB_DEFAULT_BRANCH = 'main'
-        RUN_PIPELINE = 'true'
     }
 
     stages {
+        stage('Info') {
+            steps {
+                sh 'printenv | sort'
+            }
+        }
+
         stage('Check run requirements') {
             steps {
                 script {
@@ -26,58 +39,15 @@ pipeline {
                         return
                     }
 
-                    /*
-                    // old PR check code
-                    // tried the URL below but doesn't work
-                    // https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-an-api-token-in-my-pipeline
-
-                    // try separate PAT instead
-                    // maybe manually create my own installation access token:
-                    // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app
-                    def response = httpRequest authentication: 'github-pat',
-                        url: "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/commits/${GIT_COMMIT}/pulls",
-                        customHeaders: [
-                            [name: 'X-GitHub-Api-Version', value: '2022-11-28'],
-                            [name: 'Accept', value: 'application/vnd.github+json']
-                        ]
-
-                    if (response.status != 200) {
-                        error "Unsuccess API call for PRs: Code ${response.status}"
-                    }
-
-                    def prList = readJSON text: response.content
-                    def validOpen = prList.any { it.state == 'open' && it.base.ref == GITHUB_DEFAULT_BRANCH }
-
-                    if (validOpen) {
-                        echo "Commit has an open PR to ${GITHUB_DEFAULT_BRANCH}"
-                        return
-                    }
-                    */
-
-                    currentBuild.result = 'ABORTED'
-                    env.RUN_PIPELINE = 'false'
+                    runPipeline = false
+                    echo "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
-            }
-        }
-
-        stage('Info') {
-            when {
-                expression { env.RUN_PIPELINE == 'true' }
-            }
-
-            steps {
-                echo "Build tag: ${env.BUILD_TAG}"
-                echo "Branch: ${env.GIT_BRANCH}"
-                echo "Commit: ${env.GIT_COMMIT}"
-
-                // for debugging. remove this later
-                sh 'printenv | sort'
             }
         }
 
         stage('Test') {
             when {
-                expression { env.RUN_PIPELINE == 'true' }
+                expression { runPipeline }
             }
 
             steps {
