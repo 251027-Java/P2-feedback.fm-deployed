@@ -32,9 +32,10 @@ To run commands, you'll need a `.env` file. See [this section](#initialization) 
 
 There's some configuration involved to start up Jenkins. We use a `.env` and secrets in the `secrets/` directory to contain that configuration.
 
-Use the following command to create the necessary files automatically:
+Use the following commands to create the necessary files automatically:
 
 ```sh
+cp .env.example .env
 just init-files
 ```
 
