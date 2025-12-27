@@ -202,7 +202,7 @@ function ListeningHistory() {
               >
                 <button
                   type="button"
-                  className="w-full"
+                  className="w-full focus:outline-2 focus:outline-brand"
                   style={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -313,19 +313,13 @@ function ListeningHistory() {
 
                   {href && (
                     <div
+                      className="opacity-70 hover:opacity-100"
                       style={{
                         color: '#1DB954',
                         fontSize: '1.2rem',
                         display: 'flex',
                         alignItems: 'center',
-                        opacity: 0.7,
                         transition: 'opacity 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.opacity = '1';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.opacity = '0.7';
                       }}
                     >
                       ▶

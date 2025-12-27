@@ -335,6 +335,7 @@ function CurrentlyPlaying() {
             {currentTrack.href && (
               <div style={{ marginTop: '10px' }}>
                 <button
+                  type="button"
                   onClick={() => window.open(currentTrack.href, '_blank')}
                   style={{
                     backgroundColor: '#1DB954',

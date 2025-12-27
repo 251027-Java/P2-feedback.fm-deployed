@@ -454,9 +454,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       </div>
       <header
         className="staggered-menu-header"
-        aria-label="Main navigation header"
       >
-        <div className="sm-logo" aria-label="Logo">
+        <div className="sm-logo">
           {logoUrl ? (
             <img
               src={logoUrl}
@@ -512,7 +511,6 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         <div className="sm-panel-inner">
           <ul
             className="sm-panel-list"
-            role="list"
             data-numbering={displayItemNumbering || undefined}
           >
             {items && items.length ? (

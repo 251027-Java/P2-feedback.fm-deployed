@@ -272,7 +272,8 @@ function TopArtists() {
               threshold={0.4}
               delay={index * 0.1}
             >
-              <div
+              <button
+                type="button"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -298,6 +299,7 @@ function TopArtists() {
                 }}
               >
                 <div
+                  className="border-2 border-transparent hover:border-[#1DB954]"
                   style={{
                     width: '100%',
                     aspectRatio: '1',
@@ -309,14 +311,7 @@ function TopArtists() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    border: '2px solid transparent',
                     transition: 'border-color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#1DB954';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
                   }}
                 >
                   {artist.image ? (
@@ -375,7 +370,7 @@ function TopArtists() {
                     {(artist.followers.total / 1000000).toFixed(1)}M followers
                   </p>
                 )}
-              </div>
+              </button>
             </AnimatedContent>
           ))}
         </div>

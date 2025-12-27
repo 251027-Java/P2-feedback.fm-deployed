@@ -309,6 +309,8 @@ function Playlists() {
                 )}
               </div>
               <button
+                type="button"
+                className="focus:outline-2 focus:outline-brand"
                 onClick={closeModal}
                 style={{
                   background: 'none',

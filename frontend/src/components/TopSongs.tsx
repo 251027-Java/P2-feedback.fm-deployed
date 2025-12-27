@@ -284,14 +284,15 @@ function TopSongs() {
               scale={0.8}
               delay={index * 0.1}
             >
-              <div
+              <button
+                type="button"
+                className="translate-y-0 hover:-translate-y-2 transform transition-transform duration-200 ease-in-out h-full focus:outline-2 focus:outline-brand rounded-sm"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
                   cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
                   position: 'relative',
                 }}
                 onClick={() => {
@@ -302,14 +303,9 @@ function TopSongs() {
                     );
                   }
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
               >
                 <div
+                  className="border-2 border-transparent hover:border-[#1DB954]"
                   style={{
                     width: '100%',
                     aspectRatio: '1',
@@ -321,14 +317,7 @@ function TopSongs() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-                    border: '2px solid transparent',
                     transition: 'border-color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#1DB954';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
                   }}
                 >
                   {song.image ? (
@@ -401,7 +390,7 @@ function TopSongs() {
                     ).padStart(2, '0')}
                   </p>
                 )}
-              </div>
+              </button>
             </AnimatedContent>
           ))}
         </div>
