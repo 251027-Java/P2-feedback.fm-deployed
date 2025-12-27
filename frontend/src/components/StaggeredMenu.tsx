@@ -411,10 +411,14 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     if (!closeOnClickAway || !open) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target as Node)
-      ) {
+      if (!panelRef.current || !toggleBtnRef.current) return;
+
+      const clickedSidebar = panelRef.current.contains(event.target as Node);
+      const clickedToggleBtn = toggleBtnRef.current.contains(
+        event.target as Node,
+      );
+
+      if (!clickedSidebar && !clickedToggleBtn) {
         closeMenu();
       }
     };
