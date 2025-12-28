@@ -44,7 +44,7 @@ check:
 [group("Init")]
 init-files:
     file="./secrets/secrets.properties"; if [ ! -f "$file" ]; then cp ${file}.example $file; echo "Created $file"; fi
-    file="./secrets/github_app_team_key.pem"; if [ ! -f "$file" ]; then cp ${file}.example $file; echo "Created $file"; fi
+    file="./secrets/github_app_team_key.pem"; if [ ! -f "$file" ]; then touch $file; echo "Created $file"; fi
 
 # Start Jenkins
 [group("Docker")]
@@ -134,7 +134,8 @@ urls:
     printf "%-${width}s %s\n" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "{{ jenkins_url }}/plugin/job-dsl/api-viewer/index.html"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"
+    printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}Main URL{{ NORMAL }}" "{{ jenkins_url }}"
 
 # Watch logs
 [group("Extra")]
