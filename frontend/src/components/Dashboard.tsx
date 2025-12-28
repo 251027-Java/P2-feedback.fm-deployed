@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import cycleList from '../../resources/cycleList?raw';
 import { historyAPI, songsAPI, userAPI } from '../services/api';
 import ASCIIText from './ASCIIText';
 
@@ -159,8 +158,28 @@ function Dashboard() {
 
   // Pick a random cycle message and color whenever the track changes
   useEffect(() => {
-    if (!currentTrack || !currentTrack.name) return;
-    const messages = cycleList.split(/\r?\n/).filter(Boolean);
+    if (!currentTrack?.isPlaying || !currentTrack?.name) {
+      setCycleMessage('');
+      return;
+    }
+
+    const messages = [
+      '😭 you actually like this kinda music 😭',
+      'you are not niche and mysterious bro.',
+      'ok this one is a banger 🔥',
+      'TURN THIS OFF!!!!!!! 😭😭😭',
+      'never give this guy aux 🕳️👨‍🦯',
+      'you should listen to starting over by LSD and the search for god 🙄',
+      'yea that songs ok i guess..',
+      'FAHHHHH',
+      "she don't want you big bro 😭",
+      'rehash performing jan 11th at club dada.',
+      'hey richard',
+      'im down $400 because carti never refunded me for wlr',
+      '🕳️👨‍🦯',
+      '🤡',
+    ];
+
     const palette = [
       '#1DB954',
       '#FF6B6B',
@@ -170,6 +189,7 @@ function Dashboard() {
       '#C77DFF',
       '#F06595',
     ];
+
     const message = messages[Math.floor(Math.random() * messages.length)];
     const fallbackColor = palette[Math.floor(Math.random() * palette.length)];
     setCycleMessage(message);
@@ -193,7 +213,7 @@ function Dashboard() {
       img.onload = null;
       img.onerror = null;
     };
-  }, [currentTrack?.id, currentTrack?.name]);
+  }, [currentTrack?.name, currentTrack?.isPlaying]);
 
   // Push accent color to CSS variable for shared components (e.g., nav/logo)
   useEffect(() => {
@@ -816,7 +836,7 @@ function Dashboard() {
                     <button
                       type="button"
                       className="w-full"
-                      key={item.id || index}
+                      key={item.playedAt}
                       style={{
                         display: 'flex',
                         alignItems: 'center',

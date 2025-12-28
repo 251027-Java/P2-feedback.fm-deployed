@@ -470,10 +470,16 @@ class CanvAscii {
     this.mesh.rotation.y += (y - this.mesh.rotation.y) * 0.05;
   }
 
+  private isMesh(
+    data: THREE.Object3D<THREE.Object3DEventMap>,
+  ): data is THREE.Mesh {
+    return 'isMesh' in data;
+  }
+
   clear() {
-    this.scene.traverse((object) => {
-      const obj = object as unknown as THREE.Mesh;
-      if (!obj.isMesh) return;
+    this.scene.traverse((obj) => {
+      if (!this.isMesh(obj)) return;
+
       [obj.material].flat().forEach((material) => {
         material.dispose();
         Object.keys(material).forEach((key) => {
