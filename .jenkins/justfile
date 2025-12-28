@@ -19,7 +19,7 @@ init-jenkins: start instructions
 # Instructions after initializing Jenkins
 [group("Init")]
 instructions:
-    echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security{{ NORMAL }} (login if prompted)\n\
+    echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security{{ NORMAL }} (login if prompted)\n\
     2. Create your API token\n\
     3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
     4. Run {{ GREEN }}just dl{{ NORMAL }} to download the Jenkins CLI\n\
@@ -35,7 +35,7 @@ instructions:
 # Check if Jenkins is ready
 [group("Init")]
 check:
-    count=`{{ sudo }}docker compose logs | grep -i -c "Jenkins is fully up and running"`; \
+    count=$({{ sudo }}docker compose logs | grep -i -c "Jenkins is fully up and running"); \
     if [ $count -gt 0 ]; then \
         echo "Jenkins is ready"; \
     else \
@@ -82,7 +82,7 @@ download:
 # Shorthand to use the Jenkins CLI
 [group("Jenkins CLI")]
 jcli *args:
-    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth `just _get-secret jenkins_username`:$JENKINS_API_TOKEN {{ args }}
+    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth $(just _get-secret jenkins_username):$JENKINS_API_TOKEN {{ args }}
 
 # Sends the JCasC configuration to the Jenkins container
 [group("Jenkins CLI")]
@@ -116,13 +116,6 @@ tunnel-pw:
 _get-secret prop:
     grep "^{{ prop }}=" ./secrets/secrets.properties | cut -d "=" -f 2-
 
-_job-exists job:
-    for name in `just j list-jobs`; do \
-        if [ $name = "{{ job }}" ]; then \
-            echo 1; break; \
-        fi \
-    done
-
 # https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc#creating-the-github-app
 # Convert GitHub keys to a compatible Jenkins format
 [group("Extra")]
@@ -134,7 +127,7 @@ convert-key in out:
 urls:
     width=30; \
     printf "%-${width}s %s\n" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "{{ jenkins_url }}/plugin/job-dsl/api-viewer/index.html"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security"; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}Main URL{{ NORMAL }}" "{{ jenkins_url }}"
