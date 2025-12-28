@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  # Database Service 
+  # Database Service
   db:
     image: postgres:16
     container_name: spotify_db
@@ -16,7 +16,7 @@ services:
       - ./database/db/init:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -61,21 +61,21 @@ services:
         condition: service_healthy
 
   # Frontend Service
-  # frontend:
-  #   image: node:20
-  #   container_name: spotify_frontend
-  #   working_dir: /app
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   ports:
-  #     - "${FRONTEND_PORT:-3000}:3000"
-  #   environment:
-  #     - VITE_API_URL=${VITE_API_URL}
-  #     - VITE_PORT=${FRONTEND_PORT:-3000}
-  #   command: sh -c "npm install && npm run dev -- --host"
-  #   depends_on:
-  #     - backend
+  frontend:
+    image: node:20
+    container_name: spotify_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_PORT=${FRONTEND_PORT:-3000}
+    command: sh -c "npm install && npm run dev -- --host"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
