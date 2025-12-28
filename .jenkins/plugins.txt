@@ -16,3 +16,4 @@ blueocean
 github-checks
 http_request
 pipeline-utility-steps
+job-dsl

@@ -4,8 +4,10 @@ set quiet
 
 jenkins_url := '$JENKINS_PROTOCOL://$JENKINS_HOST:$JENKINS_PORT'
 
-alias jc := jcli
+alias j := jcli
 alias gc := get-cli
+alias s := send-config
+alias r := reload-config
 
 # Initialize Jenkins
 [group("Init")]
@@ -18,7 +20,7 @@ instructions:
     2. Create your API token\n\
     3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
     4. Ensure all credentials are filled in {{ YELLOW }}creds/{{ NORMAL }}\n\
-    5. Run {{ GREEN }}just get-cli{{ NORMAL }} to download the Jenkins CLI\n\
+    5. Run {{ GREEN }}just gc{{ NORMAL }} to download the Jenkins CLI\n\
     6. Run {{ GREEN }}just finalize{{ NORMAL }} to finish initialization\n\n\
     If you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"
 
@@ -61,7 +63,7 @@ destroy:
 # View commands for the Jenkins server
 [group("Jenkins CLI")]
 help:
-    just jc help
+    just j help
     echo "You can also go to {{ YELLOW }}{{ jenkins_url }}/cli{{ NORMAL }} to view commands."
 
 # View help information for the Jenkins CLI
@@ -79,11 +81,15 @@ get-cli:
 jcli *args:
     java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth `just _get-secret jenkins_username`:$JENKINS_API_TOKEN {{ args }}
 
-# Imports and reloads the JCasC configuration to Jenkins
+# Sends the JCasC configuration to the Jenkins container
 [group("Jenkins CLI")]
-import-config:
+send-config:
     docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
-    just jc reload-jcasc-configuration
+
+# Reloads the JCasC configuration on the Jenkins container
+[group("Jenkins CLI")]
+reload-config:
+    just j reload-jcasc-configuration
     echo "JCasC config reloaded"
 
 # Imports/updates jobs in Jenkins
@@ -93,27 +99,27 @@ import-jobs:
         name=`basename ${filepath%.*}`; \
         if [ "`just _job-exists $name`" = "1" ]; then \
             echo "Updating job: {{ YELLOW }}$name{{ NORMAL }}"; \
-            just jc update-job $name < $filepath; \
+            just j update-job $name < $filepath; \
         else \
             echo "Importing job: {{ YELLOW }}$name{{ NORMAL }}"; \
-            just jc create-job $name < $filepath; \
+            just j create-job $name < $filepath; \
         fi \
     done
 
 # Exports jobs from Jenkins
 [group("Jenkins CLI")]
 export-jobs:
-    for name in `just jc list-jobs`; do \
+    for name in `just j list-jobs`; do \
         echo "Exporting job: {{ YELLOW }}$name{{ NORMAL }}"; \
-        just jc get-job $name > jobs/$name.xml; \
+        just j get-job $name > jobs/$name.xml; \
     done
 
 # Deletes all jobs from Jenkins
 [group("Jenkins CLI")]
 delete-jobs:
-    for name in `just jc list-jobs`; do \
+    for name in `just j list-jobs`; do \
         echo "Deleting job: {{ YELLOW }}$name{{ NORMAL }}"; \
-        just jc delete-job $name; \
+        just j delete-job $name; \
     done
 
 # https://plugins.jenkins.io/github/#plugin-content-manual-mode
@@ -131,7 +137,7 @@ _get-secret prop:
     grep "^{{ prop }}=" ./secrets/secrets.properties | cut -d "=" -f 2-
 
 _job-exists job:
-    for name in `just jc list-jobs`; do \
+    for name in `just j list-jobs`; do \
         if [ $name = "{{ job }}" ]; then \
             echo 1; break; \
         fi \

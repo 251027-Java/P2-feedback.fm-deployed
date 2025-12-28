@@ -7,7 +7,7 @@ https://plugins.jenkins.io/checks-api/
 def runPipeline = true
 
 pipeline {
-    agent none
+    agent any
 
     tools {
         jdk 'java25'
@@ -21,16 +21,12 @@ pipeline {
 
     stages {
         stage('Info') {
-            agent any
-
             steps {
                 sh 'printenv | sort'
             }
         }
 
         stage('Check run requirements') {
-            agent any
-
             steps {
                 script {
                     /*
@@ -58,6 +54,10 @@ pipeline {
         }
 
         stage('Frontend dependencies') {
+            when {
+                expression { runPipeline }
+            }
+
             agent {
                 docker { image 'node:lts-alpine' }
             }
@@ -71,6 +71,10 @@ pipeline {
         }
 
         stage('Frontend - Lint') {
+            when {
+                expression { runPipeline }
+            }
+
             agent {
                 docker { image 'node:lts-alpine' }
             }
@@ -87,8 +91,6 @@ pipeline {
         }
 
         stage('Test') {
-            agent any
-
             when {
                 expression { runPipeline }
             }
