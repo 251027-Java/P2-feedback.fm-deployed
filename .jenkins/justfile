@@ -4,7 +4,7 @@ set quiet
 
 jenkins_url := '${JENKINS_PROTOCOL}://${JENKINS_HOST}:${JENKINS_PORT}'
 
-sudo := if '$SUDO' == '1' { 'sudo ' } else { '' }
+sudo := if env('SUDO') == '1' { 'sudo ' } else { '' }
 
 alias j := jcli
 alias dl := download
