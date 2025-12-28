@@ -141,4 +141,7 @@ urls:
 logs:
     docker compose logs -f -t
 
-# TODO sort plugins
+# Sort plugins.txt
+[group("Extra")]
+plugins:
+    cat plugins.txt | sort > plugins.txt
