@@ -2,12 +2,13 @@ set dotenv-load
 set dotenv-required
 set quiet
 
-jenkins_url := '$JENKINS_PROTOCOL://$JENKINS_HOST:$JENKINS_PORT'
+jenkins_url := '${JENKINS_PROTOCOL}://${JENKINS_HOST}:${JENKINS_PORT}'
 
 alias j := jcli
-alias gc := get-cli
+alias dl := download
 alias s := send-config
 alias r := reload-config
+alias v := view-config
 
 # Initialize Jenkins
 [group("Init")]
@@ -19,10 +20,15 @@ instructions:
     echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security{{ NORMAL }} (login if prompted)\n\
     2. Create your API token\n\
     3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
-    4. Ensure all credentials are filled in {{ YELLOW }}creds/{{ NORMAL }}\n\
-    5. Run {{ GREEN }}just gc{{ NORMAL }} to download the Jenkins CLI\n\
-    6. Run {{ GREEN }}just finalize{{ NORMAL }} to finish initialization\n\n\
-    If you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"
+    4. Run {{ GREEN }}just dl{{ NORMAL }} to download the Jenkins CLI\n\
+    \nJenkins and your local environment should now be fully setup.\n\
+    \nIf you make changes to the configuration via the Jenkins UI and want to save\n\
+    those changes, you can view the current configuration used by Jenkins using\n\
+    {{ GREEN }}just v{{ NORMAL }}, copy the modified parts, and update the {{ YELLOW }}jenkins.yml{{ NORMAL }} file.\n\
+    \n{{ BG_BLUE }} NOTE {{ NORMAL }}\n\
+    Job configurations are not obtainable in Job DSL API syntax and need to\n\
+    be manually written in {{ YELLOW }}jenkins.yml{{ NORMAL }}.\n\
+    \nIf you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"
 
 # Check if Jenkins is ready
 [group("Init")]
@@ -39,11 +45,6 @@ check:
 init-files:
     file="./secrets/secrets.properties"; if [ ! -f "$file" ]; then cp ${file}.example $file; echo "Created $file"; fi
     file="./secrets/github_app_team_key.pem"; if [ ! -f "$file" ]; then cp ${file}.example $file; echo "Created $file"; fi
-
-# Imports necessary configuration for Jenkins
-[group("Init")]
-finalize: import-jobs
-    echo "{{ GREEN }}Jenkins is now fully configured"
 
 # Start Jenkins
 [group("Docker")]
@@ -73,7 +74,7 @@ help-cli:
 
 # Downloads the Jenkins CLI locally
 [group("Init")]
-get-cli:
+download:
     curl {{ jenkins_url }}/jnlpJars/jenkins-cli.jar --output $JENKINS_CLI
 
 # Shorthand to use the Jenkins CLI
@@ -85,6 +86,7 @@ jcli *args:
 [group("Jenkins CLI")]
 send-config:
     docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
+# TODO send secrets
 
 # Reloads the JCasC configuration on the Jenkins container
 [group("Jenkins CLI")]
@@ -92,44 +94,21 @@ reload-config:
     just j reload-jcasc-configuration
     echo "JCasC config reloaded"
 
-# Imports/updates jobs in Jenkins
+# Displays the current JCasC configuration used by Jenkins
 [group("Jenkins CLI")]
-import-jobs:
-    for filepath in jobs/*; do \
-        name=`basename ${filepath%.*}`; \
-        if [ "`just _job-exists $name`" = "1" ]; then \
-            echo "Updating job: {{ YELLOW }}$name{{ NORMAL }}"; \
-            just j update-job $name < $filepath; \
-        else \
-            echo "Importing job: {{ YELLOW }}$name{{ NORMAL }}"; \
-            just j create-job $name < $filepath; \
-        fi \
-    done
-
-# Exports jobs from Jenkins
-[group("Jenkins CLI")]
-export-jobs:
-    for name in `just j list-jobs`; do \
-        echo "Exporting job: {{ YELLOW }}$name{{ NORMAL }}"; \
-        just j get-job $name > jobs/$name.xml; \
-    done
-
-# Deletes all jobs from Jenkins
-[group("Jenkins CLI")]
-delete-jobs:
-    for name in `just j list-jobs`; do \
-        echo "Deleting job: {{ YELLOW }}$name{{ NORMAL }}"; \
-        just j delete-job $name; \
-    done
+view-config:
+    just j export-configuration
 
 # https://plugins.jenkins.io/github/#plugin-content-manual-mode
 # https://stackoverflow.com/a/51545557
 # Tunneling using localtunnel. Only for local development
+[group("Extra")]
 tunnel:
     echo "Port: {{ GREEN }}$JENKINS_PORT{{ NORMAL }}"
     npx localtunnel -p $JENKINS_PORT -s "$TUNNEL_SUBDOMAIN" --print-requests
 
 # Tunnel password
+[group("Extra")]
 tunnel-pw:
     curl https://loca.lt/mytunnelpassword
 
@@ -145,5 +124,17 @@ _job-exists job:
 
 # https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc#creating-the-github-app
 # Convert GitHub keys to a compatible Jenkins format
+[group("Extra")]
 convert-key in out:
     openssl pkcs8 -topk8 -inform PEM -outform PEM -in {{ in }} -out {{ out }} -nocrypt
+
+# Displays useful Jenkins URLs
+[group("Extra")]
+urls:
+    width=30; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "{{ jenkins_url }}/plugin/job-dsl/api-viewer/index.html"; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security"; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"
+
+# TODO sort plugins

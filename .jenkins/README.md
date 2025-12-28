@@ -79,7 +79,7 @@ Once configuration has been set, the Jenkins server can be created:
 just init-jenkins
 ```
 
-This will create the Jenkins server with the necessary plugins installed and minimal configuration. After running this command, there will be additional instructions output to the terminal that should be completed to finish the set up, which will briefly be discussed in this guide. If you want to see those instructions at any point, use `just instructions`.
+This will create the Jenkins server with the necessary plugins installed, custom configurations set, and jobs created. After running this command, there will be additional instructions output to the terminal that should be completed to finish the set up, which will briefly be discussed in this guide. If you want to see those instructions at any point, use `just instructions`.
 
 ### Jenkins API Token and Jenkins CLI
 
@@ -87,24 +87,16 @@ Using the Jenkins CLI allows for remote use, scriptability, and interaction with
 
 To create an API token for a user, go to `<jenkins-url>/user/<username>/security` in your browser where `<jenkins-url>` is the URL to the Jenkins server and `<username>` is the name of the user, e.g. `http://localhost:8080/user/admin/security`. After creating the token, copy the token and set the `JENKINS_API_TOKEN` variable in the `.env` file to the token.
 
-If you haven't downloaded the CLI, use `just get-cli`. Once you have the CLI, you should be able to use the Jenkins CLI through `just jc`.
+If you haven't downloaded the CLI, use `just dl`. Once you have the CLI, you should be able to use the Jenkins CLI through `just j`.
 
 ```sh
-just jc list-jobs
-just jc version
+just j list-jobs
+just j version
 ```
 
 Use `just help` to view available commands, or in your browser, go to `<jenkins-url>/cli`. Substitute `<jenkins-url>` with the URL of your Jenkins server. 
 
-
-### Importing/Exporting Jobs
-
-To share Jenkins jobs across multiple computers or users, we can export and import them using the Jenkins CLI. Existing jobs for our server can found in the `jobs/` directory. These will be imported when running `just instructions` or can be manually ran with `just import-jobs`.
-
-```sh
-just export-jobs # Job configs will be output to the jobs/ directory
-just import-jobs # Import jobs from the jobs/ directory
-```
+At this point, Jenkins and your local environment should be fully set up. To understand how to manage configuration updates, see [Updating Configuration](#updating-configuration).
 
 ## Starting
 
@@ -128,6 +120,42 @@ To destroy all of Jenkins, including its data, run:
 
 ```sh
 just destroy
+```
+
+## Updating Configuration
+
+To manage Jenkins configuration, we use the [JCasC Plugin](https://github.com/jenkinsci/configuration-as-code-plugin) and the file itself is located [here](./jenkins.yml). The full configuration that Jenkins uses is actually a lot larger, but our file only contains our custom configurations that will override the default values.
+
+If you make updates to the configuration, you'll likely first make updates through the UI. If you want to save those changes to the `jenkins.yml` file, you can view the current state of the JCasC file on the Jenkins server by using the following command:
+
+```sh
+just view-config
+just v # Shorthand
+```
+
+Copy the modified parts and update `jenkins.yml` with those changes.
+
+### Sending and Reloading Configuration
+
+You can copy the local configuration file to Jenkin's docker container and reload the configuration.
+
+```sh
+just send-config
+just reload-config
+
+# One liners
+just send-config reload-config
+just s r
+```
+
+### Job Configuration
+
+We use the [Job DSL Plugin](https://github.com/jenkinsci/job-dsl-plugin) to create jobs. When making changes to jobs through the UI, it's important to note that there is no way to obtain the job configuration in Job DSL API syntax. You have to manually write those changes in `jenkins.yml`. Refer to the documentation on the Job DSL API by going to the [general site](https://jenkinsci.github.io/job-dsl-plugin) or for more specific information tailored to your plugins, `<jenkins-url>/plugin/job-dsl/api-viewer/index.html`. Additional information on working with Job DSL and JCasC together can be found [here](https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC).
+
+After updating `jenkins.yml`, ensure you update and reload the configuration on the Jenkins server:
+
+```sh
+just s r
 ```
 
 ## Tunneling
