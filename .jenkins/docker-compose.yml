@@ -12,6 +12,7 @@ services:
       - secrets.properties
       - github_app_team_key
     restart: unless-stopped
+    privileged: true
 
 volumes:
   jenkins-data:
