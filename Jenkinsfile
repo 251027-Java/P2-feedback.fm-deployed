@@ -7,7 +7,7 @@ https://plugins.jenkins.io/checks-api/
 def runPipeline = true
 
 pipeline {
-    agent any
+    agent none
 
     tools {
         jdk 'java25'
@@ -21,12 +21,16 @@ pipeline {
 
     stages {
         stage('Info') {
+            agent any
+
             steps {
                 sh 'printenv | sort'
             }
         }
 
         stage('Check run requirements') {
+            agent any
+
             steps {
                 script {
                     /*
@@ -53,7 +57,38 @@ pipeline {
             }
         }
 
+        stage('Frontend dependencies') {
+            agent {
+                docker { image 'node:lts-alpine' }
+            }
+
+            steps {
+                dir('frontend') {
+                    sh 'npm ci'
+                    stash includes: 'node_modules/**', name: 'frontend-deps'
+                }
+            }
+        }
+
+        stage('Frontend - Lint') {
+            agent {
+                docker { image 'node:lts-alpine' }
+            }
+
+            steps {
+                dir('frontend') {
+                    unstash name: 'frontend-deps'
+
+                    withChecks(name: 'Frontend - Lint') {
+                        sh 'npx biome ci'
+                    }
+                }
+            }
+        }
+
         stage('Test') {
+            agent any
+
             when {
                 expression { runPipeline }
             }
