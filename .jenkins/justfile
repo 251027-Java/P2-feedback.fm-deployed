@@ -86,7 +86,6 @@ jcli *args:
 [group("Jenkins CLI")]
 send-config:
     docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
-# TODO send secrets
 
 # Reloads the JCasC configuration on the Jenkins container
 [group("Jenkins CLI")]
@@ -136,5 +135,10 @@ urls:
     printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/`just _get-secret jenkins_username`/security"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"
+
+# Watch logs
+[group("Extra")]
+logs:
+    docker compose logs -f -t
 
 # TODO sort plugins
