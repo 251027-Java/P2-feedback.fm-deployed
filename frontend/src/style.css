@@ -49,9 +49,10 @@
 
 a {
   font-weight: 500;
-  color: #1DB954;
+  color: #1db954;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #1ed760;
 }
@@ -82,9 +83,11 @@ h1 {
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.vanilla:hover {
   filter: drop-shadow(0 0 2em #3178c6aa);
 }
@@ -97,38 +100,23 @@ h1 {
   color: #888;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1DB954;
-  color: #000;
-  cursor: pointer;
-  transition: all 0.25s;
-}
-button:hover {
-  background-color: #1ed760;
-  transform: scale(1.05);
-}
-button:focus,
-button:focus-visible {
-  outline: 2px solid #1DB954;
-}
-
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
+}
+
+@theme {
+  --color-brand: #1db954;
 }
 
 @theme inline {
@@ -210,6 +198,7 @@ button:focus-visible {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

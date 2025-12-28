@@ -1,7 +1,7 @@
+import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { userAPI, songsAPI, historyAPI } from '../services/api';
-import cycleList from '../../resources/cycleList?raw';
+import { historyAPI, songsAPI, userAPI } from '../services/api';
 import ASCIIText from './ASCIIText';
 
 function Dashboard() {
@@ -18,7 +18,10 @@ function Dashboard() {
     artist?.id || artist?.artistId || artist?.spotifyId || index;
 
   const getArtistName = (artist: any) =>
-    artist?.name || artist?.artistName || artist?.displayName || 'Unknown Artist';
+    artist?.name ||
+    artist?.artistName ||
+    artist?.displayName ||
+    'Unknown Artist';
 
   const getArtistImage = (artist: any) =>
     artist?.image ||
@@ -34,7 +37,10 @@ function Dashboard() {
     song?.name || song?.songName || song?.title || 'Unknown Song';
 
   const getSongArtistName = (song: any) =>
-    song?.artistName || song?.artist?.name || song?.artists?.[0]?.name || 'Unknown Artist';
+    song?.artistName ||
+    song?.artist?.name ||
+    song?.artists?.[0]?.name ||
+    'Unknown Artist';
 
   const getSongImage = (song: any) =>
     song?.image ||
@@ -103,7 +109,10 @@ function Dashboard() {
         console.log('Dashboard data received:', response.data);
         console.log('Profile image URL:', response.data?.profileImage);
         console.log('Stats data:', response.data?.stats);
-        console.log('Total listening time:', response.data?.stats?.totalListeningTime);
+        console.log(
+          'Total listening time:',
+          response.data?.stats?.totalListeningTime,
+        );
         console.log('Songs played:', response.data?.stats?.songsPlayed);
 
         setDashboardData(response.data);
@@ -149,9 +158,38 @@ function Dashboard() {
 
   // Pick a random cycle message and color whenever the track changes
   useEffect(() => {
-    if (!currentTrack || !currentTrack.name) return;
-    const messages = cycleList.split(/\r?\n/).filter(Boolean);
-    const palette = ['#1DB954', '#FF6B6B', '#FFD166', '#06D6A0', '#118AB2', '#C77DFF', '#F06595'];
+    if (!currentTrack?.isPlaying || !currentTrack?.name) {
+      setCycleMessage('');
+      return;
+    }
+
+    const messages = [
+      '😭 you actually like this kinda music 😭',
+      'you are not niche and mysterious bro.',
+      'ok this one is a banger 🔥',
+      'TURN THIS OFF!!!!!!! 😭😭😭',
+      'never give this guy aux 🕳️👨‍🦯',
+      'you should listen to starting over by LSD and the search for god 🙄',
+      'yea that songs ok i guess..',
+      'FAHHHHH',
+      "she don't want you big bro 😭",
+      'rehash performing jan 11th at club dada.',
+      'hey richard',
+      'im down $400 because carti never refunded me for wlr',
+      '🕳️👨‍🦯',
+      '🤡',
+    ];
+
+    const palette = [
+      '#1DB954',
+      '#FF6B6B',
+      '#FFD166',
+      '#06D6A0',
+      '#118AB2',
+      '#C77DFF',
+      '#F06595',
+    ];
+
     const message = messages[Math.floor(Math.random() * messages.length)];
     const fallbackColor = palette[Math.floor(Math.random() * palette.length)];
     setCycleMessage(message);
@@ -175,7 +213,7 @@ function Dashboard() {
       img.onload = null;
       img.onerror = null;
     };
-  }, [currentTrack?.id, currentTrack?.name]);
+  }, [currentTrack?.name, currentTrack?.isPlaying]);
 
   // Push accent color to CSS variable for shared components (e.g., nav/logo)
   useEffect(() => {
@@ -200,60 +238,115 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: '0 20px 20px 20px', color: 'white', backgroundColor: '#000', minHeight: '100%' }}>
-        <div style={{ marginTop: '40px', marginBottom: '40px', height: '60px', width: '300px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '8px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem', marginBottom: '40px' }}>
-          {[1, 2].map(i => (
-            <div key={i} style={{ height: '200px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '16px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      <div
+        style={{
+          padding: '0 20px 20px 20px',
+          color: 'white',
+          backgroundColor: '#000',
+          minHeight: '100%',
+        }}
+      >
+        <div
+          style={{
+            marginTop: '40px',
+            marginBottom: '40px',
+            height: '60px',
+            width: '300px',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '8px',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '2rem',
+            marginBottom: '40px',
+          }}
+        >
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                height: '200px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '16px',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
           ))}
         </div>
-        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
+        <style>
+          {
+            '@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }'
+          }
+        </style>
       </div>
     );
   }
-  
-  if (error) return <div style={{ padding: '20px', color: cycleColor }}>Error: {error}</div>;
+
+  if (error)
+    return (
+      <div style={{ padding: '20px', color: cycleColor }}>Error: {error}</div>
+    );
 
   return (
     <div
-      style={{
-        padding: '0 20px 20px 20px',
-        color: 'white',
-        minHeight: '100%',
-        width: '100%',
-        boxSizing: 'border-box',
-        backgroundColor: '#000'
-      }}
+      style={
+        {
+          padding: '0 20px 20px 20px',
+          color: 'white',
+          minHeight: '100%',
+          width: '100%',
+          boxSizing: 'border-box',
+          backgroundColor: '#000',
+          '--color-cycle': cycleColor,
+        } as React.CSSProperties
+      }
     >
       {/* Header with Time Range Selector */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' }}>
-        <h1 style={{ 
-          margin: 0,
-          color: cycleColor,
-          fontSize: '3rem',
-          fontWeight: '700',
-          letterSpacing: '-0.5px'
-        }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '40px',
+          marginBottom: '40px',
+          flexWrap: 'wrap',
+          gap: '20px',
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            color: cycleColor,
+            fontSize: '3rem',
+            fontWeight: '700',
+            letterSpacing: '-0.5px',
+          }}
+        >
           Dashboard
         </h1>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        </div>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }} />
       </div>
 
       {dashboardData && (
         <div>
           {/* Quip above Profile/Now Playing */}
           <div style={{ marginBottom: '20px', width: '100%', display: 'flex' }}>
-            <div style={{
-              width: '100%',
-              maxWidth: '100%',
-              minHeight: '220px',
-              borderRadius: '0px',
-              border: 'none',
-              backgroundColor: 'transparent',
-              overflow: 'hidden',
-              position: 'relative'
-            }}>
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '100%',
+                minHeight: '220px',
+                borderRadius: '0px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
               <ASCIIText
                 text={cycleMessage || '...'}
                 asciiFontSize={4}
@@ -265,20 +358,22 @@ function Dashboard() {
           </div>
 
           {/* Profile and Now Playing Row */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '2rem',
-            marginBottom: '40px'
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '2rem',
+              marginBottom: '40px',
+            }}
+          >
             {/* Profile Section */}
             <a
               href={`https://open.spotify.com/user/${dashboardData?.userId || ''}`}
               target="_blank"
               rel="noreferrer"
-              style={{ textDecoration: 'none' }}
-            >
-              <div style={{
+              // style={{ textDecoration: 'none' }}
+              style={{
+                textDecoration: 'none',
                 backgroundColor: colorWithAlpha(cycleColor, 0.05),
                 border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
                 borderRadius: '16px',
@@ -296,22 +391,27 @@ function Dashboard() {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
                 e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
-              }}>
-              <h2 style={{ 
-                marginTop: 0,
-                marginBottom: '20px', 
-                color: cycleColor,
-                fontSize: '0.7rem',
-                fontWeight: '700',
-                letterSpacing: '1px',
-                textTransform: 'uppercase'
-              }}>Profile</h2>
+              }}
+            >
+              <h2
+                style={{
+                  marginTop: 0,
+                  marginBottom: '20px',
+                  color: cycleColor,
+                  fontSize: '0.7rem',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Profile
+              </h2>
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'flex-start',
-                  gap: '1.5rem'
+                  gap: '1.5rem',
                 }}
               >
                 <div
@@ -326,60 +426,90 @@ function Dashboard() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                    border: `2px solid ${colorWithAlpha(cycleColor, 0.4)}`
+                    border: `2px solid ${colorWithAlpha(cycleColor, 0.4)}`,
                   }}
                 >
                   {dashboardData.profileImage && !imageError ? (
                     <img
                       src={dashboardData.profileImage}
                       alt={dashboardData.username || 'User'}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
                       onError={() => {
-                        console.error('Failed to load profile image:', dashboardData.profileImage);
+                        console.error(
+                          'Failed to load profile image:',
+                          dashboardData.profileImage,
+                        );
                         setImageError(true);
                       }}
                     />
                   ) : (
-                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke={cycleColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
+                    <svg
+                      width="50"
+                      height="50"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={cycleColor}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <title>Profile picture</title>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
                     </svg>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
                   <div>
-                    <h3 style={{ 
-                      margin: '0 0 4px 0', 
-                      color: 'white', 
-                      fontSize: '1.5rem',
-                      fontWeight: '700',
-                      letterSpacing: '-0.5px'
-                    }}>
+                    <h3
+                      style={{
+                        margin: '0 0 4px 0',
+                        color: 'white',
+                        fontSize: '1.5rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.5px',
+                      }}
+                    >
                       {dashboardData.username || 'N/A'}
                     </h3>
-                    <p style={{ 
-                      margin: 0, 
-                      color: 'rgba(255, 255, 255, 0.6)', 
-                      fontSize: '0.9rem',
-                      fontWeight: '400'
-                    }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        fontSize: '0.9rem',
+                        fontWeight: '400',
+                      }}
+                    >
                       {dashboardData.email || 'N/A'}
                     </p>
                   </div>
                 </div>
               </div>
-              </div>
             </a>
 
             {/* Now Playing Section */}
-            <Link to="/currently-playing" style={{ textDecoration: 'none' }}>
-              <div style={{
+            <Link
+              to="/currently-playing"
+              style={{
+                textDecoration: 'none',
                 backgroundColor: 'rgba(29, 185, 84, 0.05)',
-              border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
+                border: `1px solid ${colorWithAlpha(cycleColor, 0.3)}`,
                 borderRadius: '16px',
                 padding: '24px',
-              boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
+                boxShadow: `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
@@ -392,32 +522,43 @@ function Dashboard() {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = `0 4px 12px ${colorWithAlpha(cycleColor, 0.25)}`;
                 e.currentTarget.style.border = `1px solid ${colorWithAlpha(cycleColor, 0.3)}`;
-              }}>
-                <h2 style={{
+              }}
+            >
+              <h2
+                style={{
                   marginTop: 0,
                   marginBottom: '20px',
                   color: cycleColor,
                   fontSize: '0.7rem',
                   fontWeight: '700',
                   letterSpacing: '1px',
-                  textTransform: 'uppercase'
-                }}>Now Playing</h2>
-                {currentTrack && currentTrack.name && currentTrack.name.trim() !== '' && currentTrack.isPlaying !== false ? (
-                  <div style={{
+                  textTransform: 'uppercase',
+                }}
+              >
+                Now Playing
+              </h2>
+              {currentTrack?.name &&
+              currentTrack.name.trim() !== '' &&
+              currentTrack.isPlaying !== false ? (
+                <div
+                  style={{
                     display: 'flex',
                     gap: '16px',
-                    alignItems: 'flex-start'
-                  }}>
+                    alignItems: 'flex-start',
+                  }}
+                >
                   {/* Album Artwork */}
-                  <div style={{
-                    flexShrink: 0,
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    backgroundColor: colorWithAlpha(cycleColor, 0.2),
-                    border: `1px solid ${colorWithAlpha(cycleColor, 0.4)}`
-                  }}>
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      backgroundColor: colorWithAlpha(cycleColor, 0.2),
+                      border: `1px solid ${colorWithAlpha(cycleColor, 0.4)}`,
+                    }}
+                  >
                     {currentTrack.albumImage || currentTrack.image ? (
                       <img
                         src={currentTrack.albumImage || currentTrack.image}
@@ -425,333 +566,414 @@ function Dashboard() {
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover'
+                          objectFit: 'cover',
                         }}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1DB954;font-size:2rem;">🎵</div>';
+                          e.currentTarget.parentElement!.innerHTML =
+                            '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1DB954;font-size:2rem;">🎵</div>';
                         }}
                       />
                     ) : (
-                      <div style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#1DB954',
-                        fontSize: '2rem'
-                      }}>
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#1DB954',
+                          fontSize: '2rem',
+                        }}
+                      >
                         🎵
                       </div>
                     )}
                   </div>
 
                   {/* Track Info */}
-                  <div style={{
-                    flex: 1,
-                    minWidth: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px'
-                  }}>
-                    <div style={{
-                      fontSize: '1.05rem',
-                      fontWeight: '700',
-                      color: 'white',
-                      lineHeight: '1.3',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.05rem',
+                        fontWeight: '700',
+                        color: 'white',
+                        lineHeight: '1.3',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
                       {currentTrack.name}
                     </div>
-                    <div style={{
-                      fontSize: '0.9rem',
-                      color: colorWithAlpha(cycleColor, 0.7),
-                      fontWeight: '500',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
+                    <div
+                      style={{
+                        fontSize: '0.9rem',
+                        color: colorWithAlpha(cycleColor, 0.7),
+                        fontWeight: '500',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {currentTrack.artist || 'Unknown Artist'}
                     </div>
                     {currentTrack.album && (
-                      <div style={{
-                        fontSize: '0.8rem',
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
+                      <div
+                        style={{
+                          fontSize: '0.8rem',
+                          color: 'rgba(255, 255, 255, 0.5)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {currentTrack.album}
                       </div>
                     )}
                     {currentTrack.isPlaying !== undefined && (
-                      <div style={{
-                        marginTop: '4px',
-                        fontSize: '0.75rem',
-                        color: currentTrack.isPlaying ? '#1DB954' : 'rgba(255, 255, 255, 0.5)',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
+                      <div
+                        style={{
+                          marginTop: '4px',
+                          fontSize: '0.75rem',
+                          color: currentTrack.isPlaying
+                            ? '#1DB954'
+                            : 'rgba(255, 255, 255, 0.5)',
+                          fontWeight: '600',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
                         <span>{currentTrack.isPlaying ? '▶' : '⏸'}</span>
-                        <span>{currentTrack.isPlaying ? 'Playing' : 'Paused'}</span>
+                        <span>
+                          {currentTrack.isPlaying ? 'Playing' : 'Paused'}
+                        </span>
                       </div>
                     )}
                   </div>
-
                 </div>
               ) : (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '20px',
-                  fontSize: '0.9rem',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  fontStyle: 'italic'
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    fontSize: '0.9rem',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    fontStyle: 'italic',
+                  }}
+                >
                   No track playing
                 </div>
               )}
-              </div>
             </Link>
           </div>
 
           {/* Stats Section */}
           <div style={{ marginBottom: '40px' }}>
-            <h2 style={{ 
-              marginBottom: '24px', 
-              color: cycleColor,
-              fontSize: '1.5rem',
-              fontWeight: '700',
-              letterSpacing: '-0.3px'
-            }}>Your Stats</h2>
-            <div style={{ 
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, minmax(180px, 1fr))',
-              gap: '1.5rem',
-              padding: '20px',
-              backgroundColor: colorWithAlpha(cycleColor, 0.1),
-              borderRadius: '12px',
-              border: `1px solid ${colorWithAlpha(cycleColor, 0.2)}`
-            }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    fontSize: '2rem', 
+            <h2
+              style={{
+                marginBottom: '24px',
+                color: cycleColor,
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                letterSpacing: '-0.3px',
+              }}
+            >
+              Your Stats
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(180px, 1fr))',
+                gap: '1.5rem',
+                padding: '20px',
+                backgroundColor: colorWithAlpha(cycleColor, 0.1),
+                borderRadius: '12px',
+                border: `1px solid ${colorWithAlpha(cycleColor, 0.2)}`,
+              }}
+            >
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '2rem',
                     fontWeight: '700',
                     color: cycleColor,
                     marginBottom: '4px',
-                    letterSpacing: '-0.5px'
-                  }}>
-                    {dashboardData?.stats?.totalListeningTime || '0 minutes'}
-                  </div>
-                  <div style={{ 
-                    fontSize: '0.8rem',
-                    color: colorWithAlpha(cycleColor, 0.6),
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    fontWeight: '600'
-                  }}>
-                    Listening Time
-                  </div>
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  {dashboardData?.stats?.totalListeningTime || '0 minutes'}
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    fontSize: '2rem', 
-                    fontWeight: '700',
-                    color: cycleColor,
-                    marginBottom: '4px',
-                    letterSpacing: '-0.5px'
-                  }}>
-                    {dashboardData?.stats?.songsPlayed ?? 0}
-                  </div>
-                  <div style={{ 
+                <div
+                  style={{
                     fontSize: '0.8rem',
                     color: colorWithAlpha(cycleColor, 0.6),
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
-                    fontWeight: '600'
-                  }}>
-                    Songs Played
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    fontSize: '2rem', 
-                    fontWeight: '700',
-                    color: cycleColor,
-                    marginBottom: '4px',
-                    letterSpacing: '-0.5px'
-                  }}>
-                    {dashboardData?.stats?.currentStreak ?? 0}
-                  </div>
-                  <div style={{ 
-                    fontSize: '0.8rem',
-                    color: colorWithAlpha(cycleColor, 0.6),
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    fontWeight: '600'
-                  }}>
-                    Day Streak
-                  </div>
+                    fontWeight: '600',
+                  }}
+                >
+                  Listening Time
                 </div>
               </div>
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    color: cycleColor,
+                    marginBottom: '4px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  {dashboardData?.stats?.songsPlayed ?? 0}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    color: colorWithAlpha(cycleColor, 0.6),
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    fontWeight: '600',
+                  }}
+                >
+                  Songs Played
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    color: cycleColor,
+                    marginBottom: '4px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  {dashboardData?.stats?.currentStreak ?? 0}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    color: colorWithAlpha(cycleColor, 0.6),
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    fontWeight: '600',
+                  }}
+                >
+                  Day Streak
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Recently Played Section */}
           {recentlyPlayed.length > 0 && (
             <div style={{ marginBottom: '48px' }}>
-          <h2 style={{ 
-            marginBottom: '24px',
-            marginTop: '48px',
-            color: cycleColor,
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            letterSpacing: '-0.3px'
-          }}>Recently Played</h2>
-              <div style={{
-                backgroundColor: colorWithAlpha(cycleColor, 0.05),
-                border: `1px solid ${colorWithAlpha(cycleColor, 0.2)}`,
-                borderRadius: '16px',
-                padding: '20px',
-                maxHeight: '400px',
-                overflowY: 'auto'
-              }}>
+              <h2
+                style={{
+                  marginBottom: '24px',
+                  marginTop: '48px',
+                  color: cycleColor,
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                Recently Played
+              </h2>
+              <div
+                style={{
+                  backgroundColor: colorWithAlpha(cycleColor, 0.05),
+                  border: `1px solid ${colorWithAlpha(cycleColor, 0.2)}`,
+                  borderRadius: '16px',
+                  padding: '20px',
+                  maxHeight: '400px',
+                  overflowY: 'auto',
+                }}
+              >
                 {recentlyPlayed.slice(0, 8).map((item: any, index: number) => {
                   const songName = item.songName || item.name || 'Unknown Song';
-                  const artistName = item.artistName || item.artist?.name || 'Unknown Artist';
+                  const artistName =
+                    item.artistName || item.artist?.name || 'Unknown Artist';
                   const image = item.image || null;
                   const href = item.href || item.external_urls?.spotify;
-                  const playedAt = item.playedAt ? (() => {
-                    try {
-                      const date = new Date(item.playedAt);
-                      const now = new Date();
-                      const diffMs = now.getTime() - date.getTime();
-                      const diffMins = Math.floor(diffMs / 60000);
-                      const diffHours = Math.floor(diffMins / 60);
-                      const diffDays = Math.floor(diffHours / 24);
-                      
-                      if (diffMins < 1) return 'Just now';
-                      if (diffMins < 60) return `${diffMins}m ago`;
-                      if (diffHours < 24) return `${diffHours}h ago`;
-                      if (diffDays === 1) return 'Yesterday';
-                      return `${diffDays}d ago`;
-                    } catch {
-                      return '';
-                    }
-                  })() : '';
+                  const playedAt = item.playedAt
+                    ? (() => {
+                        try {
+                          const date = new Date(item.playedAt);
+                          const now = new Date();
+                          const diffMs = now.getTime() - date.getTime();
+                          const diffMins = Math.floor(diffMs / 60000);
+                          const diffHours = Math.floor(diffMins / 60);
+                          const diffDays = Math.floor(diffHours / 24);
+
+                          if (diffMins < 1) return 'Just now';
+                          if (diffMins < 60) return `${diffMins}m ago`;
+                          if (diffHours < 24) return `${diffHours}h ago`;
+                          if (diffDays === 1) return 'Yesterday';
+                          return `${diffDays}d ago`;
+                        } catch {
+                          return '';
+                        }
+                      })()
+                    : '';
 
                   return (
-                    <div
-                      key={item.id || index}
+                    <button
+                      type="button"
+                      className="w-full"
+                      key={item.playedAt}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '16px',
                         padding: '12px',
-                        marginBottom: index < recentlyPlayed.length - 1 ? '8px' : 0,
+                        marginBottom:
+                          index < recentlyPlayed.length - 1 ? '8px' : 0,
                         backgroundColor: colorWithAlpha(cycleColor, 0.03),
                         borderRadius: '8px',
                         cursor: href ? 'pointer' : 'default',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
                       }}
                       onClick={() => href && window.open(href, '_blank')}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = colorWithAlpha(cycleColor, 0.08);
-                        if (href) e.currentTarget.style.transform = 'translateX(4px)';
+                        e.currentTarget.style.backgroundColor = colorWithAlpha(
+                          cycleColor,
+                          0.08,
+                        );
+                        if (href)
+                          e.currentTarget.style.transform = 'translateX(4px)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = colorWithAlpha(cycleColor, 0.03);
+                        e.currentTarget.style.backgroundColor = colorWithAlpha(
+                          cycleColor,
+                          0.03,
+                        );
                         e.currentTarget.style.transform = 'translateX(0)';
                       }}
                     >
                       {/* Album Art */}
-                      <div style={{
-                        width: '56px',
-                        height: '56px',
-                        minWidth: '56px',
-                        borderRadius: '6px',
-                        overflow: 'hidden',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
-                      }}>
+                      <div
+                        style={{
+                          width: '56px',
+                          height: '56px',
+                          minWidth: '56px',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                        }}
+                      >
                         {image ? (
-                          <img src={image} alt={songName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img
+                            src={image}
+                            alt={songName}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
                         ) : (
-                          <div style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '1.5rem' }}>🎵</div>
+                          <div
+                            style={{
+                              color: 'rgba(255, 255, 255, 0.4)',
+                              fontSize: '1.5rem',
+                            }}
+                          >
+                            🎵
+                          </div>
                         )}
                       </div>
                       {/* Song Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{
-                          color: 'white',
-                          fontSize: '0.95rem',
-                          fontWeight: '600',
-                          marginBottom: '4px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
+                      <div className="flex flex-col items-start flex-1">
+                        <div
+                          style={{
+                            color: 'white',
+                            fontSize: '0.95rem',
+                            fontWeight: '600',
+                            marginBottom: '4px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {songName}
                         </div>
-                        <div style={{
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          fontSize: '0.85rem',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
+                        <div
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            fontSize: '0.85rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {artistName}
                         </div>
                       </div>
                       {/* Time Ago */}
                       {playedAt && (
-                        <div style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: '0.8rem',
-                          fontWeight: '500',
-                          whiteSpace: 'nowrap'
-                        }}>
+                        <div
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            fontSize: '0.8rem',
+                            fontWeight: '500',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {playedAt}
                         </div>
                       )}
                       {/* Play Icon */}
                       {href && (
-                      <div style={{
-                        color: cycleColor,
-                        fontSize: '1.1rem',
-                        opacity: 0.7,
-                        transition: 'opacity 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}>
-                        ▶
-                      </div>
+                        <div
+                          className="opacity-70 hover:opacity-100"
+                          style={{
+                            color: cycleColor,
+                            fontSize: '1.1rem',
+                            transition: 'opacity 0.2s',
+                          }}
+                        >
+                          ▶
+                        </div>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
             </div>
           )}
 
-          <h2 style={{ 
-            marginBottom: '24px',
-            marginTop: '48px',
-            color: cycleColor,
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            letterSpacing: '-0.3px'
-          }}>Recent Top Artists</h2>
+          <h2
+            style={{
+              marginBottom: '24px',
+              marginTop: '48px',
+              color: cycleColor,
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              letterSpacing: '-0.3px',
+            }}
+          >
+            Recent Top Artists
+          </h2>
           {dashboardData.topArtists && dashboardData.topArtists.length > 0 ? (
             <div
               className="artists-grid"
@@ -759,90 +981,110 @@ function Dashboard() {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(5, 1fr)',
                 gap: '2rem',
-                padding: '0 0 40px 0'
+                padding: '0 0 40px 0',
               }}
             >
-              {dashboardData.topArtists.slice(0, 10).map((artist: any, index: number) => {
-                const artistImage = getArtistImage(artist);
-                const href = artist.href || artist.external_urls?.spotify;
-                return (
-                  <div
-                    key={getArtistKey(artist, index)}
-                    style={{ 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center', 
-                      textAlign: 'center',
-                      cursor: href ? 'pointer' : 'default',
-                      transition: 'transform 0.2s ease'
-                    }}
-                    onClick={() => href && window.open(href, '_blank')}
-                    onMouseEnter={(e) => {
-                      if (href) e.currentTarget.style.transform = 'translateY(-8px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div
+              {dashboardData.topArtists
+                .slice(0, 10)
+                .map((artist: any, index: number) => {
+                  const artistImage = getArtistImage(artist);
+                  const href = artist.href || artist.external_urls?.spotify;
+                  return (
+                    <button
+                      type="button"
+                      key={getArtistKey(artist, index)}
                       style={{
-                        width: '100%',
-                        aspectRatio: '1',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        marginBottom: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                        border: '2px solid transparent',
-                        transition: 'border-color 0.2s'
+                        textAlign: 'center',
+                        cursor: href ? 'pointer' : 'default',
+                        transition: 'transform 0.2s ease',
                       }}
+                      onClick={() => href && window.open(href, '_blank')}
                       onMouseEnter={(e) => {
-                        if (href) e.currentTarget.style.borderColor = cycleColor;
+                        if (href)
+                          e.currentTarget.style.transform = 'translateY(-8px)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      {artistImage ? (
-                        <img
-                          src={artistImage}
-                          alt={getArtistName(artist)}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '3rem' }}>🎵</div>
-                      )}
-                    </div>
-                    <p
-                      style={{
-                        color: 'white',
-                        fontSize: '0.95rem',
-                        fontWeight: '600',
-                        margin: 0,
-                        wordBreak: 'break-word',
-                        letterSpacing: '-0.2px'
-                      }}
-                    >
-                      {getArtistName(artist)}
-                    </p>
-                  </div>
-                );
-              })}
+                      <div
+                        className={clsx(
+                          'border-2 border-transparent',
+                          href ? 'hover:border-(--color-cycle)' : '',
+                        )}
+                        style={{
+                          width: '100%',
+                          aspectRatio: '1',
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                          marginBottom: '12px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                          transition: 'border-color 0.2s',
+                        }}
+                      >
+                        {artistImage ? (
+                          <img
+                            src={artistImage}
+                            alt={getArtistName(artist)}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              color: 'rgba(255, 255, 255, 0.5)',
+                              fontSize: '3rem',
+                            }}
+                          >
+                            🎵
+                          </div>
+                        )}
+                      </div>
+                      <p
+                        style={{
+                          color: 'white',
+                          fontSize: '0.95rem',
+                          fontWeight: '600',
+                          margin: 0,
+                          wordBreak: 'break-word',
+                          letterSpacing: '-0.2px',
+                        }}
+                      >
+                        {getArtistName(artist)}
+                      </p>
+                    </button>
+                  );
+                })}
             </div>
           ) : (
-            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.95rem' }}>No top artists data available</p>
+            <p
+              style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.95rem' }}
+            >
+              No top artists data available
+            </p>
           )}
-          <h2 style={{ 
-            marginBottom: '24px',
-            marginTop: '48px',
-            color: cycleColor,
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            letterSpacing: '-0.3px'
-          }}>Recent Top Songs</h2>
+          <h2
+            style={{
+              marginBottom: '24px',
+              marginTop: '48px',
+              color: cycleColor,
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              letterSpacing: '-0.3px',
+            }}
+          >
+            Recent Top Songs
+          </h2>
           {dashboardData.topSongs && dashboardData.topSongs.length > 0 ? (
             <div
               className="songs-grid"
@@ -850,92 +1092,108 @@ function Dashboard() {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(5, 1fr)',
                 gap: '2rem',
-                padding: '0 0 40px 0'
+                padding: '0 0 40px 0',
               }}
             >
-              {dashboardData.topSongs.slice(0, 10).map((song: any, index: number) => {
-                const songImage = getSongImage(song);
-                const href = song.href || song.external_urls?.spotify;
-                return (
-                  <div
-                    key={getSongKey(song, index)}
-                    style={{ 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center', 
-                      textAlign: 'center',
-                      cursor: href ? 'pointer' : 'default',
-                      transition: 'transform 0.2s ease'
-                    }}
-                    onClick={() => href && window.open(href, '_blank')}
-                    onMouseEnter={(e) => {
-                      if (href) e.currentTarget.style.transform = 'translateY(-8px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div
+              {dashboardData.topSongs
+                .slice(0, 10)
+                .map((song: any, index: number) => {
+                  const songImage = getSongImage(song);
+                  const href = song.href || song.external_urls?.spotify;
+                  return (
+                    <button
+                      type="button"
+                      key={getSongKey(song, index)}
                       style={{
-                        width: '100%',
-                        aspectRatio: '1',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        marginBottom: '12px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-                        border: '2px solid transparent',
-                        transition: 'border-color 0.2s'
+                        textAlign: 'center',
+                        cursor: href ? 'pointer' : 'default',
+                        transition: 'transform 0.2s ease',
                       }}
+                      onClick={() => href && window.open(href, '_blank')}
                       onMouseEnter={(e) => {
-                        if (href) e.currentTarget.style.borderColor = cycleColor;
+                        if (href)
+                          e.currentTarget.style.transform = 'translateY(-8px)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      {songImage ? (
-                        <img
-                          src={songImage}
-                          alt={getSongName(song)}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '3rem' }}>🎵</div>
-                      )}
-                    </div>
-                    <p
-                      style={{
-                        color: 'white',
-                        fontSize: '0.95rem',
-                        fontWeight: '600',
-                        margin: '0 0 6px 0',
-                        wordBreak: 'break-word',
-                        letterSpacing: '-0.2px'
-                      }}
-                    >
-                      {getSongName(song)}
-                    </p>
-                    <p
-                      style={{
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontSize: '0.85rem',
-                        margin: 0,
-                        wordBreak: 'break-word',
-                        fontWeight: '400'
-                      }}
-                    >
-                      {getSongArtistName(song)}
-                    </p>
-                  </div>
-                );
-              })}
+                      <div
+                        className={clsx(
+                          'border-2 border-transparent',
+                          href ? 'hover:border-(--color-cycle)' : '',
+                        )}
+                        style={{
+                          width: '100%',
+                          aspectRatio: '1',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          marginBottom: '12px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                          transition: 'border-color 0.2s',
+                        }}
+                      >
+                        {songImage ? (
+                          <img
+                            src={songImage}
+                            alt={getSongName(song)}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              color: 'rgba(255, 255, 255, 0.5)',
+                              fontSize: '3rem',
+                            }}
+                          >
+                            🎵
+                          </div>
+                        )}
+                      </div>
+                      <p
+                        style={{
+                          color: 'white',
+                          fontSize: '0.95rem',
+                          fontWeight: '600',
+                          margin: '0 0 6px 0',
+                          wordBreak: 'break-word',
+                          letterSpacing: '-0.2px',
+                        }}
+                      >
+                        {getSongName(song)}
+                      </p>
+                      <p
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: '0.85rem',
+                          margin: 0,
+                          wordBreak: 'break-word',
+                          fontWeight: '400',
+                        }}
+                      >
+                        {getSongArtistName(song)}
+                      </p>
+                    </button>
+                  );
+                })}
             </div>
           ) : (
-            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.95rem' }}>No top songs data available</p>
+            <p
+              style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.95rem' }}
+            >
+              No top songs data available
+            </p>
           )}
         </div>
       )}

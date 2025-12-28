@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,7 +25,7 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export const authAPI = {
@@ -38,7 +38,7 @@ export const userAPI = {
   getDashboard: (id: string) => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get(`/users/${id}/dashboard`, {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
   getStats: (id: string) => api.get(`/users/${id}/stats`),
@@ -48,7 +48,7 @@ export const artistsAPI = {
   getTopArtists: (timeRange: string = 'medium_term') => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get(`/artists/top?time_range=${timeRange}`, {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
 };
@@ -57,13 +57,13 @@ export const songsAPI = {
   getTopSongs: (timeRange: string = 'medium_term') => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get(`/songs/top?time_range=${timeRange}`, {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
   getCurrentlyPlaying: () => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get('/songs/currently-playing', {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
 };
@@ -72,7 +72,7 @@ export const historyAPI = {
   getHistory: (limit: number = 50) => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get(`/history?limit=${limit}`, {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
 };
@@ -81,14 +81,14 @@ export const playlistsAPI = {
   getAll: () => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get('/playlists/spotify', {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
   getById: (id: string) => api.get(`/playlists/${id}`),
   getSongs: (id: string) => {
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     return api.get(`/playlists/spotify/${id}/tracks`, {
-      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {}
+      headers: spotifyToken ? { 'X-Spotify-Token': spotifyToken } : {},
     });
   },
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { artistsAPI } from '../services/api';
 import AnimatedContent from './AnimatedContent';
 
@@ -42,63 +42,93 @@ function TopArtists() {
 
   const filteredArtists = artists
     .filter((artist: any) =>
-      artist.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      artist.name?.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a: any, b: any) => {
       if (sortBy === 'name') {
         return (a.name || '').localeCompare(b.name || '');
-      } else if (sortBy === 'popularity') {
+      }
+      if (sortBy === 'popularity') {
         return (b.popularity || 0) - (a.popularity || 0);
       }
       return 0;
     });
 
-  if (loading) return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
+  if (loading)
+    return <div style={{ padding: '20px', color: '#1DB954' }}>Loading...</div>;
 
-  if (error) return <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>;
+  if (error)
+    return (
+      <div style={{ padding: '20px', color: '#1DB954' }}>Error: {error}</div>
+    );
 
   return (
-    <div style={{ 
-      padding: '0 20px 20px 20px', 
-      color: 'white',
-      minHeight: '100%',
-      width: '100%',
-      boxSizing: 'border-box',
-      position: 'relative',
-      zIndex: 50,
-      backgroundColor: '#000'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '20px' }}>
-        <h1 style={{ 
-          margin: 0,
-          color: '#1DB954',
-          fontSize: '3rem',
-          fontWeight: '700',
-          letterSpacing: '-0.5px'
-        }}>
+    <div
+      style={{
+        padding: '0 20px 20px 20px',
+        color: 'white',
+        minHeight: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        position: 'relative',
+        zIndex: 50,
+        backgroundColor: '#000',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '40px',
+          marginBottom: '20px',
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            color: '#1DB954',
+            fontSize: '3rem',
+            fontWeight: '700',
+            letterSpacing: '-0.5px',
+          }}
+        >
           Top Artists
         </h1>
-        <div style={{ 
-          color: 'rgba(255, 255, 255, 0.7)', 
-          fontSize: '1rem',
-          fontWeight: '500'
-        }}>
-          {filteredArtists.length} {filteredArtists.length === 1 ? 'artist' : 'artists'}
+        <div
+          style={{
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '1rem',
+            fontWeight: '500',
+          }}
+        >
+          {filteredArtists.length}{' '}
+          {filteredArtists.length === 1 ? 'artist' : 'artists'}
         </div>
       </div>
-      <div style={{
-        display: 'flex',
-        gap: '1rem',
-        marginBottom: '2rem',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        position: 'relative',
-        zIndex: 100
-      }}>
-        <label style={{ color: '#1DB954', fontWeight: '500', position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          marginBottom: '2rem',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          position: 'relative',
+          zIndex: 100,
+        }}
+      >
+        <label
+          style={{
+            color: '#1DB954',
+            fontWeight: '500',
+            position: 'relative',
+            zIndex: 100,
+            pointerEvents: 'auto',
+          }}
+        >
           Time Range:
-          <select 
-            value={timeRange} 
+          <select
+            value={timeRange}
             onChange={handleTimeRangeChange}
             onFocus={(e) => e.stopPropagation()}
             onClick={(e) => {
@@ -121,18 +151,41 @@ function TopArtists() {
               pointerEvents: 'auto',
               WebkitAppearance: 'menulist',
               MozAppearance: 'menulist',
-              appearance: 'menulist'
+              appearance: 'menulist',
             }}
           >
-            <option value="short_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 4 Weeks</option>
-            <option value="medium_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>Last 6 Months</option>
-            <option value="long_term" style={{ backgroundColor: '#1DB954', color: '#000' }}>All Time</option>
+            <option
+              value="short_term"
+              style={{ backgroundColor: '#1DB954', color: '#000' }}
+            >
+              Last 4 Weeks
+            </option>
+            <option
+              value="medium_term"
+              style={{ backgroundColor: '#1DB954', color: '#000' }}
+            >
+              Last 6 Months
+            </option>
+            <option
+              value="long_term"
+              style={{ backgroundColor: '#1DB954', color: '#000' }}
+            >
+              All Time
+            </option>
           </select>
         </label>
-        <label style={{ color: '#1DB954', fontWeight: '500', position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
+        <label
+          style={{
+            color: '#1DB954',
+            fontWeight: '500',
+            position: 'relative',
+            zIndex: 100,
+            pointerEvents: 'auto',
+          }}
+        >
           Sort By:
-          <select 
-            value={sortBy} 
+          <select
+            value={sortBy}
             onChange={handleSortChange}
             onFocus={(e) => e.stopPropagation()}
             onClick={(e) => {
@@ -155,11 +208,21 @@ function TopArtists() {
               pointerEvents: 'auto',
               WebkitAppearance: 'menulist',
               MozAppearance: 'menulist',
-              appearance: 'menulist'
+              appearance: 'menulist',
             }}
           >
-            <option value="default" style={{ backgroundColor: '#1DB954', color: '#000' }}>Most Played</option>
-            <option value="name" style={{ backgroundColor: '#1DB954', color: '#000' }}>Name (A-Z)</option>
+            <option
+              value="default"
+              style={{ backgroundColor: '#1DB954', color: '#000' }}
+            >
+              Most Played
+            </option>
+            <option
+              value="name"
+              style={{ backgroundColor: '#1DB954', color: '#000' }}
+            >
+              Name (A-Z)
+            </option>
           </select>
         </label>
         <input
@@ -181,18 +244,18 @@ function TopArtists() {
             cursor: 'text',
             position: 'relative',
             zIndex: 100,
-            pointerEvents: 'auto'
+            pointerEvents: 'auto',
           }}
         />
       </div>
       {filteredArtists.length > 0 ? (
-        <div 
+        <div
           className="artists-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: '2rem',
-            padding: '20px 0'
+            padding: '20px 0',
           }}
         >
           {filteredArtists.map((artist: any, index: number) => (
@@ -209,7 +272,9 @@ function TopArtists() {
               threshold={0.4}
               delay={index * 0.1}
             >
-              <div 
+              <button
+                type="button"
+                className="focus:outline-2 focus:outline-brand rounded-sm"
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -217,11 +282,14 @@ function TopArtists() {
                   textAlign: 'center',
                   cursor: 'pointer',
                   transition: 'transform 0.2s ease',
-                  position: 'relative'
+                  position: 'relative',
                 }}
                 onClick={() => {
                   if (artist.href || artist.external_urls?.spotify) {
-                    window.open(artist.href || artist.external_urls.spotify, '_blank');
+                    window.open(
+                      artist.href || artist.external_urls.spotify,
+                      '_blank',
+                    );
                   }
                 }}
                 onMouseEnter={(e) => {
@@ -232,6 +300,7 @@ function TopArtists() {
                 }}
               >
                 <div
+                  className="border-2 border-transparent hover:border-[#1DB954]"
                   style={{
                     width: '100%',
                     aspectRatio: '1',
@@ -243,14 +312,7 @@ function TopArtists() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    border: '2px solid transparent',
-                    transition: 'border-color 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#1DB954';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
+                    transition: 'border-color 0.2s ease',
                   }}
                 >
                   {artist.image ? (
@@ -260,48 +322,56 @@ function TopArtists() {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover'
+                        objectFit: 'cover',
                       }}
                     />
                   ) : (
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: '3rem'
-                    }}>
+                    <div
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: '3rem',
+                      }}
+                    >
                       🎵
                     </div>
                   )}
                 </div>
-                <p style={{
-                  color: 'white',
-                  fontSize: '0.95rem',
-                  fontWeight: '600',
-                  margin: '0 0 4px 0',
-                  wordBreak: 'break-word'
-                }}>
+                <p
+                  style={{
+                    color: 'white',
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    margin: '0 0 4px 0',
+                    wordBreak: 'break-word',
+                  }}
+                >
                   {artist.name || 'Unknown Artist'}
                 </p>
                 {artist.genres && artist.genres.length > 0 && (
-                  <p style={{
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    fontSize: '0.75rem',
-                    margin: '0 0 4px 0',
-                    wordBreak: 'break-word'
-                  }}>
+                  <p
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      fontSize: '0.75rem',
+                      margin: '0 0 4px 0',
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     {artist.genres[0]}
                   </p>
                 )}
                 {artist.followers?.total && (
-                  <p style={{
-                    color: '#1DB954',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                    margin: 0
-                  }}>
+                  <p
+                    style={{
+                      color: '#1DB954',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      margin: 0,
+                    }}
+                  >
                     {(artist.followers.total / 1000000).toFixed(1)}M followers
                   </p>
                 )}
-              </div>
+              </button>
             </AnimatedContent>
           ))}
         </div>

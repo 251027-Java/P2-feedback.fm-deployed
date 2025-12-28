@@ -1,8 +1,11 @@
-import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { removeAccessToken, userAPI } from '../services/api';
+import type {
+  StaggeredMenuItem,
+  StaggeredMenuSocialItem,
+} from './StaggeredMenu';
 import StaggeredMenu from './StaggeredMenu';
-import type { StaggeredMenuItem, StaggeredMenuSocialItem } from './StaggeredMenu';
 
 function Navbar() {
   const navigate = useNavigate();
@@ -13,18 +16,26 @@ function Navbar() {
     removeAccessToken();
     localStorage.removeItem('spotifyAccessToken');
     localStorage.removeItem('userId');
-    
+
     // Redirect to login page
     navigate('/');
   };
 
   const menuItems: StaggeredMenuItem[] = [
     { label: 'Dashboard', ariaLabel: 'Go to dashboard', link: '/dashboard' },
-    { label: 'Top Artists', ariaLabel: 'View top artists', link: '/top-artists' },
+    {
+      label: 'Top Artists',
+      ariaLabel: 'View top artists',
+      link: '/top-artists',
+    },
     { label: 'Top Songs', ariaLabel: 'View top songs', link: '/top-songs' },
     { label: 'Playlists', ariaLabel: 'View playlists', link: '/playlists' },
     { label: 'History', ariaLabel: 'View listening history', link: '/history' },
-    { label: 'Now Playing', ariaLabel: 'View currently playing', link: '/currently-playing' },
+    {
+      label: 'Now Playing',
+      ariaLabel: 'View currently playing',
+      link: '/currently-playing',
+    },
     { label: 'Logout', ariaLabel: 'Logout', link: '/logout' },
   ];
 
@@ -36,7 +47,7 @@ function Navbar() {
       try {
         const response = await userAPI.getProfile(userId);
         const userData = response.data;
-        
+
         // Get Spotify profile URL - could be in href or construct from userId
         let spotifyUrl = userData?.href;
         if (!spotifyUrl && userId) {
@@ -45,7 +56,10 @@ function Navbar() {
         }
 
         const socials: StaggeredMenuSocialItem[] = [
-          { label: 'GitHub', link: 'https://github.com/251027-Java/P1-feedback.fm' },
+          {
+            label: 'GitHub',
+            link: 'https://github.com/251027-Java/P1-feedback.fm',
+          },
         ];
 
         if (spotifyUrl) {
@@ -56,7 +70,12 @@ function Navbar() {
       } catch (error) {
         console.error('Error fetching user profile for socials:', error);
         // Set GitHub link even if profile fetch fails
-        setSocialItems([{ label: 'GitHub', link: 'https://github.com/251027-Java/P1-feedback.fm' }]);
+        setSocialItems([
+          {
+            label: 'GitHub',
+            link: 'https://github.com/251027-Java/P1-feedback.fm',
+          },
+        ]);
       }
     };
 
