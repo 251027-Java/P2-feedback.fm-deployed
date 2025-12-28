@@ -130,7 +130,13 @@ urls:
     printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"; \
     printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}Main URL{{ NORMAL }}" "{{ jenkins_url }}"
+    printf "%-${width}s %s\n" "{{ YELLOW }}Local URL{{ NORMAL }}" "{{ jenkins_url }}"; \
+    printf "%-${width}s %s\n" "{{ YELLOW }}Public URL{{ NORMAL }}" "${JENKINS_PROTOCOL}://$(just ip):${JENKINS_PORT}"
+
+# Get your current public ip
+[group("Extra")]
+ip:
+    curl -s ifconfig.me
 
 # Watch logs
 [group("Extra")]
