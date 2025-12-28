@@ -4,6 +4,8 @@ set quiet
 
 jenkins_url := '${JENKINS_PROTOCOL}://${JENKINS_HOST}:${JENKINS_PORT}'
 
+sudo := if '$SUDO' == '1' { 'sudo ' } else { '' }
+
 alias j := jcli
 alias dl := download
 alias s := send-config
@@ -33,7 +35,7 @@ instructions:
 # Check if Jenkins is ready
 [group("Init")]
 check:
-    count=`docker compose logs | grep -i -c "Jenkins is fully up and running"`; \
+    count=`{{ sudo }}docker compose logs | grep -i -c "Jenkins is fully up and running"`; \
     if [ $count -gt 0 ]; then \
         echo "Jenkins is ready"; \
     else \
@@ -49,17 +51,17 @@ init-files:
 # Start Jenkins
 [group("Docker")]
 start:
-    docker compose up --wait --build
+    {{ sudo }}docker compose up --wait --build
 
 # Stop Jenkins
 [group("Docker")]
 stop:
-    docker compose down
+    {{ sudo }}docker compose down
 
 # Destroy all of Jenkins, including the volumes
 [group("Docker")]
 destroy:
-    docker compose down -v --rmi all
+    {{ sudo }}docker compose down -v --rmi all
 
 # View commands for the Jenkins server
 [group("Jenkins CLI")]
@@ -85,7 +87,7 @@ jcli *args:
 # Sends the JCasC configuration to the Jenkins container
 [group("Jenkins CLI")]
 send-config:
-    docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
+    {{ sudo }}docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
 
 # Reloads the JCasC configuration on the Jenkins container
 [group("Jenkins CLI")]
@@ -140,7 +142,7 @@ urls:
 # Watch logs
 [group("Extra")]
 logs:
-    docker compose logs -f -t
+    {{ sudo }}docker compose logs -f -t
 
 # Sort plugins.txt
 [group("Extra")]
