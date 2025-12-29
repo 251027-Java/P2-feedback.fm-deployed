@@ -5,13 +5,13 @@ https://plugins.jenkins.io/checks-api/
  */
 
 def runPipeline = true
-def MAX_MSG_SIZE_TO_CHECKS_API = 65535
 
 def limitText(text) {
-    // https://github.com/jenkinsci/junit-plugin/blob/6c6699fb25df1b7bae005581d9af2ed698c47a4c/src/main/java/io/jenkins/plugins/junit/checks/JUnitChecksPublisher.java#L72
-    // stay within limits of check api for summaries
+    def MAX_MSG_SIZE_TO_CHECKS_API = 65535
     return text.take(MAX_MSG_SIZE_TO_CHECKS_API - 1024)
 }
+    // https://github.com/jenkinsci/junit-plugin/blob/6c6699fb25df1b7bae005581d9af2ed698c47a4c/src/main/java/io/jenkins/plugins/junit/checks/JUnitChecksPublisher.java#L72
+    // stay within limits of check api for summaries
 
 pipeline {
     agent any
