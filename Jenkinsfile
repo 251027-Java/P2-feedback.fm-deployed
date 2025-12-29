@@ -15,7 +15,7 @@ def limitText(text, end = true) {
     if (end) {
         return text.substring(Math.max(0, text.length() - limit))
     }
-    
+
     return text.take(limit)
 }
 
@@ -72,30 +72,28 @@ pipeline {
             }
 
             steps {
-                dir('frontend') {
-                    script {
-                        // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
-                        docker.withRegistry('https://ghcr.io/', 'github-app-team') {
-                            docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
-                                withChecks(name: 'lint / frontend') {
-                                    def result = 'SUCCESS'
-                                    def title = 'Success'
+                def res = [name: 'lint / frontend', con: 'SUCCESS', title: 'Success']
 
+                withChecks(name: res.name) {
+                    dir('frontend') {
+                        script {
+                            // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
+                            docker.withRegistry('https://ghcr.io/', 'github-app-team') {
+                                docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
                                     try {
-                                        // --error-on-warnings
                                         sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
                                     } catch (err) {
-                                        result = 'FAILURE'
-                                        title = 'Failed'
+                                        res.con = 'FAILURE'
+                                        res.title = 'Failed'
                                         throw err
                                     } finally {
                                         def output = readFile file: 'frontend-code-quality.txt'
                                         echo output
 
-                                        publishChecks name: 'lint / frontend',
-                                            conclusion: result,
+                                        publishChecks name: res.name,
+                                            conclusion: res.con,
                                             summary: limitText(output),
-                                            title: title
+                                            title: res.title
                                     }
                                 }
                             }
@@ -128,8 +126,8 @@ pipeline {
             }
 
             steps {
-                dir('backend') {
-                    withChecks(name: 'test / backend') {
+                withChecks(name: 'test / backend') {
+                    dir('backend') {
                         sh './mvnw -B test'
                         junit '**/target/surefire-reports/TEST-*.xml'
                     }
