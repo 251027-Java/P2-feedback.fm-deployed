@@ -5,6 +5,10 @@ https://plugins.jenkins.io/checks-api/
  */
 
 def runPipeline = true
+def checkNames = [
+    lintFrontend: 'lint / frontend',
+    testBackend: 'test / backend',
+]
 
 def limitText(text, end = true) {
     // https://github.com/jenkinsci/junit-plugin/blob/6c6699fb25df1b7bae005581d9af2ed698c47a4c/src/main/java/io/jenkins/plugins/junit/checks/JUnitChecksPublisher.java#L72
@@ -72,14 +76,14 @@ pipeline {
             }
 
             steps {
-                def res = [name: 'lint / frontend', con: 'SUCCESS', title: 'Success']
-
-                withChecks(name: res.name) {
+                withChecks(name: checkNames.lintFrontend) {
                     dir('frontend') {
                         script {
                             // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
                             docker.withRegistry('https://ghcr.io/', 'github-app-team') {
                                 docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
+                                    def res = [con: 'SUCCESS', title: 'Success']
+
                                     try {
                                         sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
                                     } catch (err) {
@@ -90,7 +94,7 @@ pipeline {
                                         def output = readFile file: 'frontend-code-quality.txt'
                                         echo output
 
-                                        publishChecks name: res.name,
+                                        publishChecks name: checkNames.lintFrontend,
                                             conclusion: res.con,
                                             summary: limitText(output),
                                             title: res.title
@@ -126,7 +130,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: 'test / backend') {
+                withChecks(name: checkNames.testBackend) {
                     dir('backend') {
                         sh './mvnw -B test'
                         junit '**/target/surefire-reports/TEST-*.xml'
