@@ -53,23 +53,6 @@ pipeline {
             }
         }
 
-        stage('Frontend dependencies') {
-            when {
-                expression { runPipeline }
-            }
-
-            agent {
-                docker { image 'node:lts-alpine' }
-            }
-
-            steps {
-                dir('frontend') {
-                    sh 'npm ci'
-                    stash includes: 'node_modules/**', name: 'frontend-deps'
-                }
-            }
-        }
-
         stage('Frontend - Lint') {
             when {
                 expression { runPipeline }
@@ -80,11 +63,30 @@ pipeline {
             }
 
             steps {
-                dir('frontend') {
-                    unstash name: 'frontend-deps'
+                docker.image('ghcr.io/biomejs/biome:latest').inside {
+                    dir('frontend') {
+                        withChecks(name: 'Frontend - Lint') {
+                            sh 'biome ci'
+                        }
+                    }
+                }
+            }
+        }
 
-                    withChecks(name: 'Frontend - Lint') {
-                        sh 'npx biome ci'
+        stage('Frontend - Dependencies') {
+            when {
+                expression { runPipeline }
+            }
+
+            agent {
+                docker { image 'node:lts-alpine' }
+            }
+
+            steps {
+                docker.image('node:lts-alpine').inside {
+                    dir('frontend') {
+                        sh 'npm ci'
+                        stash includes: 'node_modules/**', name: 'frontend-deps'
                     }
                 }
             }
