@@ -7,11 +7,11 @@ https://plugins.jenkins.io/checks-api/
 def runPipeline = true
 
 def limitText(text) {
-    def MAX_MSG_SIZE_TO_CHECKS_API = 65535
-    return text.take(MAX_MSG_SIZE_TO_CHECKS_API - 1024)
-}
     // https://github.com/jenkinsci/junit-plugin/blob/6c6699fb25df1b7bae005581d9af2ed698c47a4c/src/main/java/io/jenkins/plugins/junit/checks/JUnitChecksPublisher.java#L72
     // stay within limits of check api for summaries
+    def MAX_MSG_SIZE_TO_CHECKS_API = 65535
+    return text.takeRight(MAX_MSG_SIZE_TO_CHECKS_API - 1024)
+}
 
 pipeline {
     agent any
@@ -73,17 +73,23 @@ pipeline {
                             docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
                                 withChecks(name: 'lint / frontend') {
                                     def result = 'SUCCESS'
+                                    def title = 'Success'
+
                                     try {
                                         // --error-on-warnings
-                                        sh 'biome ci --colors=off --reporter=github > frontend-code-quality.txt'
+                                        sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
                                     } catch (err) {
                                         result = 'FAILURE'
+                                        title = 'Failed'
                                         throw err
                                     } finally {
                                         def output = readFile file: 'frontend-code-quality.txt'
+                                        echo output
+
                                         publishChecks name: 'lint / frontend',
                                             conclusion: result,
-                                            summary: limitText(output)
+                                            summary: limitText(output),
+                                            title: title
                                     }
                                 }
                             }
