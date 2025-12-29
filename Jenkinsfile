@@ -5,6 +5,13 @@ https://plugins.jenkins.io/checks-api/
  */
 
 def runPipeline = true
+def MAX_MSG_SIZE_TO_CHECKS_API = 65535
+
+def limitText(text) {
+    // https://github.com/jenkinsci/junit-plugin/blob/6c6699fb25df1b7bae005581d9af2ed698c47a4c/src/main/java/io/jenkins/plugins/junit/checks/JUnitChecksPublisher.java#L72
+    // stay within limits of check api for summaries
+    return text.take(MAX_MSG_SIZE_TO_CHECKS_API - 1024)
+}
 
 pipeline {
     agent any
@@ -64,8 +71,20 @@ pipeline {
                         // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
                         docker.withRegistry('https://ghcr.io/', 'github-app-team') {
                             docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
-                                withChecks(name: 'Frontend - Lint') {
-                                    sh 'biome ci'
+                                withChecks(name: 'lint / frontend') {
+                                    def result = 'SUCCESS'
+                                    try {
+                                        // --error-on-warnings
+                                        sh 'biome ci --colors=off --reporter=github > frontend-code-quality.txt'
+                                    } catch (err) {
+                                        result = 'FAILURE'
+                                        throw err
+                                    } finally {
+                                        def output = readFile file: 'frontend-code-quality.txt'
+                                        publishChecks name: 'lint / frontend',
+                                            conclusion: result,
+                                            summary: limitText(output)
+                                    }
                                 }
                             }
                         }
@@ -78,10 +97,6 @@ pipeline {
             when {
                 expression { runPipeline }
             }
-
-            // agent {
-            //     docker { image 'node:lts-alpine' }
-            // }
 
             steps {
                 dir('frontend') {
@@ -102,7 +117,7 @@ pipeline {
 
             steps {
                 dir('backend') {
-                    withChecks(name: 'Maven Tests', includeStage: true) {
+                    withChecks(name: 'test / backend') {
                         sh './mvnw -B test'
                         junit '**/target/surefire-reports/TEST-*.xml'
                     }
