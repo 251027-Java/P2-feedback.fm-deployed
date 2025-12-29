@@ -37,12 +37,6 @@ pipeline {
     }
 
     stages {
-        stage('Info') {
-            steps {
-                sh 'printenv | sort'
-            }
-        }
-
         stage('Check run requirements') {
             steps {
                 script {
