@@ -59,10 +59,11 @@ pipeline {
             }
 
             steps {
-                script {
-                    docker.withRegistry('https://ghcr.io/', 'github-app-team') {
-                        docker.image('biomejs/biome:latest').inside {
-                            dir('frontend') {
+                dir('frontend') {
+                    script {
+                        // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
+                        docker.withRegistry('https://ghcr.io/', 'github-app-team') {
+                            docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
                                 withChecks(name: 'Frontend - Lint') {
                                     sh 'biome ci'
                                 }
@@ -83,9 +84,9 @@ pipeline {
             // }
 
             steps {
-                script {
-                    docker.image('node:lts-alpine').inside {
-                        dir('frontend') {
+                dir('frontend') {
+                    script {
+                        docker.image('node:lts-alpine').inside {
                             sh 'npm ci'
                             stash includes: 'node_modules/**', name: 'frontend-deps'
                         }
