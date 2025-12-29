@@ -59,10 +59,10 @@ pipeline {
             }
 
             steps {
-                dir('frontend') {
-                    script {
-                        docker.withRegistry('https://ghcr.io/', 'github-app-team') {
-                            docker.image('biomejs/biome:latest').inside {
+                script {
+                    docker.withRegistry('https://ghcr.io/', 'github-app-team') {
+                        docker.image('biomejs/biome:latest').inside {
+                            dir('frontend') {
                                 withChecks(name: 'Frontend - Lint') {
                                     sh 'biome ci'
                                 }
@@ -83,14 +83,13 @@ pipeline {
             // }
 
             steps {
-                dir('frontend') {
-                    script {
-  docker.image('node:lts-alpine').inside {
-                        sh 'npm ci'
-                        stash includes: 'node_modules/**', name: 'frontend-deps'
+                script {
+                    docker.image('node:lts-alpine').inside {
+                        dir('frontend') {
+                            sh 'npm ci'
+                            stash includes: 'node_modules/**', name: 'frontend-deps'
+                        }
                     }
-                    }
-                  
                 }
             }
         }
