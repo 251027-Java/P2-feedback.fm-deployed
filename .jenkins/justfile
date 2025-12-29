@@ -19,18 +19,21 @@ init-jenkins: start instructions
 # Instructions after initializing Jenkins
 [group("Init")]
 instructions:
-    echo -e "1. Go to {{ YELLOW }}{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security{{ NORMAL }} (login if prompted)\n\
-    2. Create your API token\n\
-    3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file\n\
-    4. Run {{ GREEN }}just dl{{ NORMAL }} to download the Jenkins CLI\n\
-    \nJenkins and your local environment should now be fully setup.\n\
-    \nIf you make changes to the configuration via the Jenkins UI and want to save\n\
-    those changes, you can view the current configuration used by Jenkins using\n\
-    {{ GREEN }}just v{{ NORMAL }}, copy the modified parts, and update the {{ YELLOW }}jenkins.yml{{ NORMAL }} file.\n\
-    \n{{ BG_BLUE }} NOTE {{ NORMAL }}\n\
-    Job configurations are not obtainable in Job DSL API syntax and need to\n\
-    be manually written in {{ YELLOW }}jenkins.yml{{ NORMAL }}.\n\
-    \nIf you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"
+    #!/usr/bin/bash
+    s=""; \
+    s+="1. Go to {{ YELLOW }}{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security{{ NORMAL }} (login if prompted)"; \
+    s+="\n2. Create your API token"; \
+    s+="\n3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file"; \
+    s+="\n4. Run {{ GREEN }}just dl{{ NORMAL }} to download the Jenkins CLI"; \
+    s+="\n\nJenkins and your local environment should now be fully setup."; \
+    s+="\n\nIf you make changes to the configuration via the Jenkins UI and want to save"; \
+    s+="\nthose changes, you can view the current configuration used by Jenkins using"; \
+    s+="\n{{ GREEN }}just v{{ NORMAL }}, copy the modified parts, and update the {{ YELLOW }}jenkins.yml{{ NORMAL }} file."; \
+    s+="\n\n{{ BG_BLUE }} NOTE {{ NORMAL }}"; \
+    s+="\nJob configurations are not obtainable in Job DSL API syntax and need to"; \
+    s+="\nbe manually written in {{ YELLOW }}jenkins.yml{{ NORMAL }}."; \
+    s+="\n\nIf you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"; \
+    printf "$s\n"
 
 # Check if Jenkins is ready
 [group("Init")]
@@ -125,13 +128,16 @@ convert-key in out:
 # Displays useful Jenkins URLs
 [group("Extra")]
 urls:
+    #!/usr/bin/bash
     width=30; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "{{ jenkins_url }}/plugin/job-dsl/api-viewer/index.html"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}Local URL{{ NORMAL }}" "{{ jenkins_url }}"; \
-    printf "%-${width}s %s\n" "{{ YELLOW }}Public URL{{ NORMAL }}" "${JENKINS_PROTOCOL}://$(just ip):${JENKINS_PORT}"
+    s=""; \
+    s+=$(printf "%-${width}s %s" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "{{ jenkins_url }}/plugin/job-dsl/api-viewer/index.html"); \
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security"); \
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"); \
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"); \
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Local URL{{ NORMAL }}" "{{ jenkins_url }}"); \
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Public URL{{ NORMAL }}" "${JENKINS_PROTOCOL}://$(just ip):${JENKINS_PORT}"); \
+    printf "$s\n"
 
 # Get your current public ip
 [group("Extra")]
