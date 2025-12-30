@@ -1,27 +1,67 @@
 package com.feedback.song.model;
 
-import lombok.Data;
-
-import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+
 @Entity
-@Table(name = "songs")
 @Data
+@Table(name = "song")
+@NoArgsConstructor
 public class Song {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "song_id", length = 64)
+    private String songId;
 
-    private String title;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String name;
 
+    @Column(columnDefinition = "TEXT")
+    private String href;
+
+    @Column(name = "duration_ms", nullable = false)
     private Integer durationMs;
 
-    private Long albumId;
+    @ManyToMany // defining the junction table to represent many to many
+    @JoinTable(
+        name = "artists_songs",
+        joinColumns = @JoinColumn(name = "song_id"),
+        inverseJoinColumns = @JoinColumn(name = "artist_id")    
+    )
+    private Set<Artist> artists = new HashSet<>();
 
-    @ElementCollection
-    @CollectionTable(name = "song_artists", joinColumns = @JoinColumn(name = "song_id"))
-    @Column(name = "artist_id")
-    private Set<Long> artistIds = new HashSet<>();
+    @ManyToMany(mappedBy = "songs")
+    private Set<Playlist> playlists = new HashSet<>();
+
+    // kenneth added this: many:many for albums and songs
+    @ManyToMany
+    @JoinTable(
+        name = "albums_songs",
+        joinColumns = @JoinColumn(name = "song_id"),
+        inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
+    private Set<Album> albums = new HashSet<>();
+
+    public Song(String songId, String name, Integer durationMs, String href) {
+        this.songId = songId;
+        this.name = name;
+        this.durationMs = durationMs;
+        this.href = href;
+    }
+
+    @Override
+    public String toString() {
+        return "Songs{" +
+                "songId='" + songId + '\'' +
+                ", name='" + name + '\'' +
+                ", durationMs=" + durationMs +
+                '}';
+    }
 }
