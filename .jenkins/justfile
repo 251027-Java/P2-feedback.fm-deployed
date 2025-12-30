@@ -161,3 +161,8 @@ logs:
 [group("Extra")]
 plugins:
     cat plugins.txt | sort > plugins.txt
+
+# Update the files in the current directory with gitsnip (for prod environment)
+[group("Extra")]
+update-files branch="main":
+    gitsnip $GITSNIP_REPO $GITSNIP_FOLDER . -b {{ branch }}
