@@ -25,7 +25,7 @@ services:
   jdocker:
     image: docker:dind
     ports:
-      - '2376:2376'
+      - ${JDOCKER_PORT}:2376
     volumes:
       - jenkins-data:/var/jenkins_home
       - jenkins-docker-certs:/certs/client
