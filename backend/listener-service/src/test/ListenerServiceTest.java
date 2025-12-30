@@ -1,255 +1,167 @@
-package com.feedback.fm.feedbackfm.service;
-
-import com.feedback.fm.feedbackfm.dtos.ListenerDTO;
-import com.feedback.fm.feedbackfm.model.Listener;
-import com.feedback.fm.feedbackfm.repository.ListenerRepository;
-
+import com.feedback.listener.controller.ListenerController;
+import com.feedback.listener.model.Listener;
+import com.feedback.listener.model.ListenerStats;
+import com.feedback.listener.repository.ListenerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import com.feedback.fm.feedbackfm.exception.InvalidRequestException;
-import com.feedback.fm.feedbackfm.exception.ResourceNotFoundException;
+import org.mockito.MockitoAnnotations;
 
-import java.util.List;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
 import java.util.Optional;
 
-@ExtendWith(MockitoExtension.class)
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 public class ListenerServiceTest {
 
     @Mock
     private ListenerRepository repository;
 
-    @InjectMocks
-    private ListenerServiceImpl service;
-
-    private Listener sampleListener;
+    private ListenerController controller;
 
     @BeforeEach
     public void setUp() {
-        sampleListener = new Listener(
-            "L1",
-            "Test Listener",
-            "user@example.com",
-            "USA",
-            "href"
-        );
-    }
-
-    public ListenerDTO makeDTO() {
-        return new ListenerDTO(
-            "L1",
-            "Test Listener",
-            "user@example.com",
-            "USA",
-            "href"
-        );
+        MockitoAnnotations.openMocks(this);
+        controller = new ListenerController(repository);
     }
 
     @Test
-    public void testGetAllListeners() {
-        when(repository.findAll()).thenReturn(List.of(sampleListener));
+    public void getUserReturnsListenerWhenFound() {
+        Listener l = new Listener();
+        l.setListenerId("L1");
+        l.setDisplayName("Alice");
 
-        List<ListenerDTO> result = service.getAllListeners();
+        when(repository.findById("L1")).thenReturn(Optional.of(l));
 
-        assertEquals(1, result.size());
-        assertEquals("L1", result.get(0).listenerId());
+        ResponseEntity<Listener> resp = controller.getUser("L1");
+
+        assertEquals(200, resp.getStatusCodeValue());
+        assertEquals("L1", resp.getBody().getListenerId());
     }
 
     @Test
-    public void testGetByIdSuccess() {
-        when(repository.findById("L1")).thenReturn(Optional.of(sampleListener));
+    public void getUserReturnsNotFoundWhenMissing() {
+        when(repository.findById("MISSING")).thenReturn(Optional.empty());
 
-        Optional<ListenerDTO> result = service.getById("L1");
+        ResponseEntity<Listener> resp = controller.getUser("MISSING");
 
-        assertTrue(result.isPresent());
-        assertEquals("L1", result.get().listenerId());
+        assertEquals(404, resp.getStatusCodeValue());
     }
 
     @Test
-    public void testGetByIdNotFoundReturnsEmptyOptional() {
-        when(repository.findById("UNKNOWN")).thenReturn(Optional.empty());
+    public void registerReturnsBadRequestForInvalidId() {
+        Listener l = new Listener();
+        l.setListenerId("");
 
-        Optional<ListenerDTO> result = service.getById("UNKNOWN");
+        ResponseEntity<Listener> resp = controller.register(l);
 
-        assertTrue(result.isEmpty());
+        assertEquals(400, resp.getStatusCodeValue());
     }
 
     @Test
-    public void testGetByIdInvalidInputThrows() {
-        assertThrows(InvalidRequestException.class, () -> {
-            service.getById("");
-        });
-        assertThrows(InvalidRequestException.class, () -> {
-            service.getById(null);
-        });
+    public void registerReturnsCreatedAndLocation() {
+        Listener l = new Listener();
+        l.setListenerId("L2");
+        l.setDisplayName("Bob");
+
+        when(repository.save(l)).thenReturn(l);
+
+        ResponseEntity<Listener> resp = controller.register(l);
+
+        assertEquals(201, resp.getStatusCodeValue());
+        assertEquals("L2", resp.getBody().getListenerId());
+        assertEquals(java.net.URI.create("/api/users/L2"), resp.getHeaders().getLocation());
     }
 
     @Test
-    public void testFindByDisplayNameSuccess() {
-        when(repository.findByDisplayName("Test Listener")).thenReturn(List.of(sampleListener));
-
-        List<ListenerDTO> result = service.findByDisplayName("Test Listener");
-
-        assertEquals(1, result.size());
-        assertEquals("L1", result.get(0).listenerId());
+    public void loginReturnsBadRequestForMissingEmail() {
+        ResponseEntity<Map<String, Object>> resp = controller.login(Map.of());
+        assertEquals(400, resp.getStatusCodeValue());
     }
 
     @Test
-    public void testFindByDisplayNameBlankReturnsEmpty() {
-        assertTrue(service.findByDisplayName("").isEmpty());
-        assertTrue(service.findByDisplayName(null).isEmpty());
+    public void loginReturnsUnauthorizedWhenNotFound() {
+        when(repository.findByEmail("nope@example.com")).thenReturn(Optional.empty());
+
+        ResponseEntity<Map<String, Object>> resp = controller.login(Map.of("email", "nope@example.com"));
+
+        assertEquals(401, resp.getStatusCodeValue());
+        assertTrue(resp.getBody().containsKey("error"));
     }
 
     @Test
-    public void testSearchByDisplayNameSuccess() {
-        when(repository.findByDisplayNameContainingIgnoreCase("test")).thenReturn(List.of(sampleListener));
+    public void loginReturnsOkWithTokenWhenFound() {
+        Listener l = new Listener();
+        l.setListenerId("L3");
+        l.setEmail("me@example.com");
 
-        List<ListenerDTO> result = service.searchByDisplayName("test");
+        when(repository.findByEmail("me@example.com")).thenReturn(Optional.of(l));
 
-        assertEquals(1, result.size());
+        ResponseEntity<Map<String, Object>> resp = controller.login(Map.of("email", "me@example.com"));
+
+        assertEquals(200, resp.getStatusCodeValue());
+        assertEquals("L3", resp.getBody().get("listenerId"));
+        assertEquals("me@example.com", resp.getBody().get("email"));
+        assertTrue(resp.getBody().containsKey("token"));
     }
 
     @Test
-    public void testSearchByDisplayNameBlankReturnsEmpty() {
-        assertTrue(service.searchByDisplayName("").isEmpty());
-        assertTrue(service.searchByDisplayName(null).isEmpty());
+    public void updateUserUpdatesExistingListener() {
+        Listener existing = new Listener();
+        existing.setListenerId("L4");
+        existing.setDisplayName("Old");
+
+        Listener update = new Listener();
+        update.setDisplayName("New");
+        update.setEmail("new@example.com");
+        update.setCountry("USA");
+        update.setHref("href");
+
+        when(repository.findById("L4")).thenReturn(Optional.of(existing));
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        ResponseEntity<Listener> resp = controller.updateUser("L4", update);
+
+        assertEquals(200, resp.getStatusCodeValue());
+        assertEquals("New", resp.getBody().getDisplayName());
     }
 
     @Test
-    public void testFindByEmailSuccess() {
-        when(repository.findByEmail("user@example.com")).thenReturn(sampleListener);
+    public void updateUserReturnsNotFoundWhenMissing() {
+        Listener update = new Listener();
+        when(repository.findById("X")).thenReturn(Optional.empty());
 
-        Optional<ListenerDTO> result = service.findByEmail("user@example.com");
+        ResponseEntity<Listener> resp = controller.updateUser("X", update);
 
-        assertTrue(result.isPresent());
-        assertEquals("L1", result.get().listenerId());
-
+        assertEquals(404, resp.getStatusCodeValue());
     }
 
     @Test
-    public void testFindByEmailNotFoundReturnsEmpty() {
-        when(repository.findByEmail("missing@example.com")).thenReturn(null);
+    public void getDashboardFallsBackToListenerFieldsWhenNoStats() {
+        Listener l = new Listener();
+        l.setListenerId("L5");
+        l.setDisplayName("Dana");
+        l.setEmail("dana@example.com");
+        l.setTotalListeningTimeMs(12345L);
+        l.setTotalSongsPlayed(7);
 
-        Optional<ListenerDTO> result = service.findByEmail("missing@example.com");
+        when(repository.findById("L5")).thenReturn(Optional.of(l));
 
-        assertTrue(result.isEmpty());
-    }
+        ResponseEntity<Map<String, Object>> resp = controller.getDashboard("L5");
 
-    @Test
-    public void testFindByEmailInvalidInputThrows() {
-        assertThrows(InvalidRequestException.class, () -> service.findByEmail(""));
-        assertThrows(InvalidRequestException.class, () -> service.findByEmail(null));
-    }
-
-    @Test
-    public void testCreateListenerSuccess() {
-        ListenerDTO dto = makeDTO();
-
-        when(repository.existsById("L1")).thenReturn(false);
-        when(repository.findByEmail("user@example.com")).thenReturn(null);
-        when(repository.save(any())).thenReturn(sampleListener);
-
-        ListenerDTO result = service.create(dto);
-
-        assertEquals("L1", result.listenerId());
-        assertEquals("Test Listener", result.displayName());
-    }
-
-    @Test
-    public void testCreateListenerDuplicateIdThrows() {
-        ListenerDTO dto = makeDTO();
-
-        when(repository.existsById("L1")).thenReturn(true);
-
-        assertThrows(InvalidRequestException.class, () -> service.create(dto));
-    }
-
-    @Test
-    public void testCreateListenerDuplicateEmailThrows() {
-        ListenerDTO dto = makeDTO();
-
-        when(repository.existsById("L1")).thenReturn(false);
-        when(repository.findByEmail("user@example.com")).thenReturn(sampleListener);
-
-        assertThrows(InvalidRequestException.class, () -> service.create(dto));
-    }
-
-    @Test
-    public void testCreateListenerInvalidDTOThrows() {
-        ListenerDTO dto = new ListenerDTO("", "", "bademail", "USA", "href");
-
-        assertThrows(InvalidRequestException.class, () -> service.create(dto));
-    }
-
-    @Test
-    public void testUpdateListenerSuccess() {
-        ListenerDTO dto = new ListenerDTO("L1", "Updated Listener", "updated@example.com", "USA", "href");
-
-        when(repository.findById("L1")).thenReturn(Optional.of(sampleListener));
-        when(repository.findByEmail("updated@example.com")).thenReturn(null);
-        when(repository.save(any())).thenReturn(sampleListener);
-
-        ListenerDTO result = service.update("L1", dto);
-
-        assertEquals("L1", result.listenerId());
-        assertEquals("Updated Listener", result.displayName());
-    }
-
-    @Test
-    public void testUpdateListenerNotFoundThrows() {
-        ListenerDTO dto = makeDTO();
-        
-        when(repository.findById("L1")).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> service.update("L1", dto));
-    }
-
-    @Test
-    public void testUpdateListenerDuplicateEmailThrows() {
-        ListenerDTO dto = new ListenerDTO("L1", "Test", "new@example.com", "USA", "href");
-        Listener anotherListener = new Listener("L2", "Other", "new@example.com", "USA", "href");
-        
-        when(repository.findById("L1")).thenReturn(Optional.of(sampleListener));
-        when(repository.findByEmail("new@example.com")).thenReturn(anotherListener);
-
-        assertThrows(InvalidRequestException.class, () -> service.update("L1", dto));
-    }
-
-    @Test
-    public void testUpdateListenerInvalidIdThrows() {
-        ListenerDTO dto = makeDTO();
-
-        assertThrows(InvalidRequestException.class, () -> service.update("", dto));
-        assertThrows(InvalidRequestException.class, () -> service.update(null, dto));
-    }
-
-    @Test
-    public void testDeleteListenerSuccess() {
-        when(repository.existsById("L1")).thenReturn(true);
-        
-        service.delete("L1");
-
-        verify(repository).deleteById("L1");
-    }
-
-    @Test
-    public void testDeleteListenerNotFoundThrows() {
-        when(repository.existsById("UNKNOWN")).thenReturn(false);
-
-        assertThrows(ResourceNotFoundException.class, () -> service.delete("UNKNOWN"));
-    }
-
-    @Test
-    public void testDeleteListenerInvalidInputThrows() {
-        assertThrows(InvalidRequestException.class, () -> service.delete(""));
-        assertThrows(InvalidRequestException.class, () -> service.delete(null));
+        assertEquals(200, resp.getStatusCodeValue());
+        Map<String, Object> body = resp.getBody();
+        assertEquals("L5", body.get("userId"));
+        assertEquals("Dana", body.get("displayName"));
+        assertEquals("dana@example.com", body.get("email"));
+        Object statsObj = body.get("stats");
+        assertTrue(statsObj instanceof ListenerStats);
+        ListenerStats stats = (ListenerStats) statsObj;
+        assertEquals(12345L, stats.getTotalListeningTimeMs());
+        assertEquals(7, stats.getTotalSongsPlayed());
     }
 }
