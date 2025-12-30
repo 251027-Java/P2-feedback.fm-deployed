@@ -1,0 +1,100 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # Route: /album/** -> album-service
+            - id: album-route
+              uri: lb://album-service
+              predicates:
+                - Path=/album/**
+              filters:
+                - StripPrefix=1
+
+            # Route: /artist/** -> artist-service
+            - id: artist-route
+              uri: lb://artist-service
+              predicates:
+                - Path=/artist/**
+              filters:
+                - StripPrefix=1
+
+            # Route: /history/** -> history-service
+            - id: history-route
+              uri: lb://history-service
+              predicates:
+                - Path=/history/**
+              filters:
+                - StripPrefix=1
+
+            # Route: /listener/** -> listener-service
+            - id: listener-route
+              uri: lb://listener-service
+              predicates:
+                - Path=/listener/**
+              filters:
+                - StripPrefix=1
+
+            # Route: /music-metadata/** -> music-metadata-service
+            - id: music-metadata-route
+              uri: lb://music-metadata-service
+              predicates:
+                - Path=/music-metadata/**
+              filters:
+                - StripPrefix=1
+
+            # Route: /playlist/** -> playlist-service
+            - id: playlist-route
+              uri: lb://playlist-service
+              predicates:
+                - Path=/playlist/**
+              filters:
+                - StripPrefix=1
+
+            # Route: /song/** -> song-service
+            - id: song-route
+              uri: lb://song-service       
+              predicates:
+                - Path=/song/**          
+              filters:
+                - StripPrefix=1    
+
+            # Route: /spotify-integration/** -> spotify-integration-service
+            - id: spotify-integration-route
+              uri: lb://spotify-integration-service       
+              predicates:
+                - Path=/spotify-integration/**          
+              filters:
+                - StripPrefix=1    
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+# Logging for debugging routes
+logging:
+  level:
+    org.spring: DEBUG
+
+# Actuator Config
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
