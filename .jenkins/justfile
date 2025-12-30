@@ -135,6 +135,7 @@ urls:
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}User Security{{ NORMAL }}" "{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security"); \
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "{{ jenkins_url }}/blue/pipelines"); \
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}CLI Page{{ NORMAL }}" "{{ jenkins_url }}/cli"); \
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Pipeline Syntax{{ NORMAL }}" "{{ jenkins_url }}/pipeline-syntax"); \
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Local URL{{ NORMAL }}" "{{ jenkins_url }}"); \
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Public URL{{ NORMAL }}" "${JENKINS_PROTOCOL}://$(just ip):${JENKINS_PORT}"); \
     printf "$s\n"
