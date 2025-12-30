@@ -1,3 +1,5 @@
+package com.feedback.history.controller;
+
 import com.feedback.history.controller.HistoryController;
 import com.feedback.history.model.HistoryRecord;
 import com.feedback.history.repository.HistoryRecordRepository;
