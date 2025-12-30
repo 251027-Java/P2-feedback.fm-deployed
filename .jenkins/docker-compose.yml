@@ -1,21 +1,48 @@
 services:
   jenkins:
     build: .
-    volumes:
-      - jenkins-data:/var/jenkins_home
+    restart: always
+    depends_on:
+      - jdocker
     ports:
       - ${JENKINS_PORT}:8080
       - ${JENKINS_AGENT_PORT}:50000
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
     environment:
-      JAVA_OPTS: -Djenkins.install.runSetupWizard=false
+      JAVA_OPTS: '-Djenkins.install.runSetupWizard=false'
+      DOCKER_TLS_VERIFY: 1
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_HOST: tcp://docker:2376
+    networks:
+      - jenkins-nw
+    privileged: true
     secrets:
       - secrets.properties
       - github_app_team_key
-    restart: unless-stopped
+
+  jdocker:
+    image: docker:dind
+    ports:
+      - ${JDOCKER_PORT}:2376
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    networks:
+      jenkins-nw:
+        aliases:
+          - docker
     privileged: true
 
 volumes:
-  jenkins-data:
+  jenkins-data: null
+  jenkins-docker-certs: null
+
+networks:
+  jenkins-nw: null
 
 secrets:
   secrets.properties:
