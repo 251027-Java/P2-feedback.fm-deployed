@@ -49,32 +49,37 @@ pipeline {
             steps {
                 script {
                     // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
-                    echo "change sets: ${currentBuild.changeSets.size()}"
+                    def size = currentBuild.changeSets.size()
 
-                    // should only be git
-                    def changeSet = currentBuild.changeSets.first()
-                    echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
+                    // size is 0 if a PR was just made
+                    if (size > 0) {
+                        echo "change sets: ${size}"
 
-                    // only look at most recent commit
-                    def entry = changeSet.items.last()
-                    def date = new Date(entry.timestamp)
+                        // assuming this is git and we only ever have one scm
+                        def changeSet = currentBuild.changeSets.first()
+                        echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
 
-                    echo """
+                        // only look at most recent commit
+                        def entry = changeSet.items.last()
+                        def date = new Date(entry.timestamp)
+
+                        echo """
 ${entry.commitId}
 ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
 files changed: ${entry.affectedFiles.size()}
 msg: ${entry.msg}
 """
-                    // allow some options for user to either skip or force a run via commit message
-                    // [skip] has higher priority if they for some reason provide both [skip] and [run]
-                    if (entry.msg =~ /(?i)\[skip\]/) {
-                        echo '[skip] identified: skipping tests'
-                        skipRun = true
-                        return
-                    } else if (entry.msg =~ /(?i)\[run\]/) {
-                        echo '[run] identified: running all tests'
-                        forceRun = true
-                        return
+                        // allow some options for user to either skip or force a run via commit message
+                        // [skip] has higher priority if they for some reason provide both [skip] and [run]
+                        if (entry.msg =~ /(?i)\[skip\]/) {
+                            echo '[skip] identified: skipping tests'
+                            skipRun = true
+                            return
+                        } else if (entry.msg =~ /(?i)\[run\]/) {
+                            echo '[run] identified: running all tests'
+                            forceRun = true
+                            return
+                        }
                     }
 
                     /*
