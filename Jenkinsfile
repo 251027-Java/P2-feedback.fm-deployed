@@ -4,7 +4,7 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-def runPipeline = true
+def isRelatedToPrimaryBranch = true
 def chNames = [
     lintFrontend: 'lint / frontend',
     testBackend: 'test / backend',
@@ -44,6 +44,16 @@ pipeline {
         stage('check run requirements') {
             steps {
                 script {
+                    echo currentBuild.changeSets.size()
+
+                    for (changeSet in currentBuild.changeSets) {
+                        echo changeSet.items.size()
+
+                        for (entry in changeSet.items) {
+                            echo entry.affectedFiles.size()
+                        }
+                    }
+
                     /*
                     Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
                     has env.BRANCH_IS_PRIMARY allowing for an easier check.
@@ -62,7 +72,7 @@ pipeline {
                         return
                     }
 
-                    runPipeline = false
+                    isRelatedToPrimaryBranch = false
                     echo "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
             }
@@ -70,7 +80,12 @@ pipeline {
 
         stage('lint frontend') {
             when {
-                expression { runPipeline }
+                anyOf {
+                    allOf {
+                        expression { isRelatedToPrimaryBranch }
+                        changeset '**/frontend/**'
+                    }
+                }
             }
 
             steps {
@@ -107,7 +122,12 @@ pipeline {
 
         stage('test backend') {
             when {
-                expression { runPipeline }
+                anyOf {
+                    allOf {
+                        expression { isRelatedToPrimaryBranch }
+                        changeset '**/backend/**'
+                    }
+                }
             }
 
             steps {
@@ -122,7 +142,12 @@ pipeline {
 
         stage('build frontend') {
             when {
-                expression { runPipeline }
+                anyOf {
+                    allOf {
+                        expression { isRelatedToPrimaryBranch }
+                        changeset '**/frontend/**'
+                    }
+                }
             }
 
             steps {
