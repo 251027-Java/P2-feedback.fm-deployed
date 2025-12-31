@@ -1,7 +1,7 @@
 package com.feedback.spotify.controller;
 
-import com.feedback.spotify.security.JwtUtil;
-import com.feedback.spotify.service.ListenerService; // Need to fix
+// import com.feedback.spotify.security.JwtUtil;
+// import com.feedback.spotify.service.ListenerService; // Need to fix
 import com.feedback.spotify.service.SpotifyApiService;
 import com.feedback.spotify.service.SpotifyAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +21,21 @@ public class SpotifyAuthController {
 
     private final SpotifyAuthService authService;
     private final SpotifyApiService apiService;
-    private final ListenerService listenerService;
-    private final JwtUtil jwtUtil;
+    // private final ListenerService listenerService;
+    // private final JwtUtil jwtUtil;
     
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
     
     @Autowired
-    public SpotifyAuthController(SpotifyAuthService authService, SpotifyApiService apiService, 
-                                 ListenerService listenerService, JwtUtil jwtUtil) {
+    public SpotifyAuthController(SpotifyAuthService authService, SpotifyApiService apiService
+                                 // ListenerService listenerService, 
+                                 // JwtUtil jwtUtil
+                                ) {
         this.authService = authService;
         this.apiService = apiService;
-        this.listenerService = listenerService;
-        this.jwtUtil = jwtUtil;
+        // this.listenerService = listenerService;
+        // this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/login")
@@ -44,73 +46,73 @@ public class SpotifyAuthController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/callback")
-    public RedirectView handleCallback(@RequestParam String code) {
-        try {
-            // Exchange code for access token
-            Map<String, Object> tokenResponse = authService.exchangeCodeForToken(code);
-            String accessToken = (String) tokenResponse.get("access_token");
-            String refreshToken = (String) tokenResponse.get("refresh_token");
+    // @GetMapping("/callback")
+    // public RedirectView handleCallback(@RequestParam String code) {
+    //     try {
+    //         // Exchange code for access token
+    //         Map<String, Object> tokenResponse = authService.exchangeCodeForToken(code);
+    //         String accessToken = (String) tokenResponse.get("access_token");
+    //         String refreshToken = (String) tokenResponse.get("refresh_token");
 
-            if (accessToken == null) {
-                // Redirect to frontend with error
-                String errorUrl = frontendUrl + "?error=" + URLEncoder.encode("Failed to get access token", StandardCharsets.UTF_8);
-                return new RedirectView(errorUrl);
-            }
+    //         if (accessToken == null) {
+    //             // Redirect to frontend with error
+    //             String errorUrl = frontendUrl + "?error=" + URLEncoder.encode("Failed to get access token", StandardCharsets.UTF_8);
+    //             return new RedirectView(errorUrl);
+    //         }
 
-            // Get user profile from Spotify
-            Map<String, Object> userProfile = apiService.getCurrentUser(accessToken);
+    //         // Get user profile from Spotify
+    //         Map<String, Object> userProfile = apiService.getCurrentUser(accessToken);
 
-            // Create or update listener in database
-            String spotifyId = (String) userProfile.get("id");
-            String displayName = (String) userProfile.get("display_name");
-            String email = (String) userProfile.get("email");
-            String country = (String) userProfile.get("country");
-            Map<String, Object> externalUrls = (Map<String, Object>) userProfile.get("external_urls");
-            String href = externalUrls != null ? (String) externalUrls.get("spotify") : null;
+    //         // Create or update listener in database
+    //         String spotifyId = (String) userProfile.get("id");
+    //         String displayName = (String) userProfile.get("display_name");
+    //         String email = (String) userProfile.get("email");
+    //         String country = (String) userProfile.get("country");
+    //         Map<String, Object> externalUrls = (Map<String, Object>) userProfile.get("external_urls");
+    //         String href = externalUrls != null ? (String) externalUrls.get("spotify") : null;
 
-            // Check if listener exists, create or update
-            var existingListener = listenerService.getById(spotifyId);
-            if (existingListener.isEmpty()) {
-                // Create new listener
-                listenerService.create(new com.feedback.fm.feedbackfm.dtos.ListenerDTO(
-                        spotifyId,
-                        displayName,
-                        email,
-                        country,
-                        href));
-            } else {
-                // Update existing listener
-                listenerService.update(spotifyId, new com.feedback.fm.feedbackfm.dtos.ListenerDTO(
-                        spotifyId,
-                        displayName,
-                        email,
-                        country,
-                        href));
-            }
+    //         // Check if listener exists, create or update
+    //         var existingListener = listenerService.getById(spotifyId);
+    //         if (existingListener.isEmpty()) {
+    //             // Create new listener
+    //             listenerService.create(new com.feedback.fm.feedbackfm.dtos.ListenerDTO(
+    //                     spotifyId,
+    //                     displayName,
+    //                     email,
+    //                     country,
+    //                     href));
+    //         } else {
+    //             // Update existing listener
+    //             listenerService.update(spotifyId, new com.feedback.fm.feedbackfm.dtos.ListenerDTO(
+    //                     spotifyId,
+    //                     displayName,
+    //                     email,
+    //                     country,
+    //                     href));
+    //         }
             
-            // Generate JWT token for API authentication
-            String jwtToken = jwtUtil.generateToken(spotifyId);
+    //         // Generate JWT token for API authentication
+    //         String jwtToken = jwtUtil.generateToken(spotifyId);
             
-            // Redirect to frontend with token, code, and Spotify access token in URL
-            // Frontend will extract the code and call the API to get the full response
-            String redirectUrl = frontendUrl + "/?code=" + URLEncoder.encode(code, StandardCharsets.UTF_8) +
-                    "&token=" + URLEncoder.encode(jwtToken, StandardCharsets.UTF_8) +
-                    "&listenerId=" + URLEncoder.encode(spotifyId, StandardCharsets.UTF_8) +
-                    "&spotifyToken=" + URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+    //         // Redirect to frontend with token, code, and Spotify access token in URL
+    //         // Frontend will extract the code and call the API to get the full response
+    //         String redirectUrl = frontendUrl + "/?code=" + URLEncoder.encode(code, StandardCharsets.UTF_8) +
+    //                 "&token=" + URLEncoder.encode(jwtToken, StandardCharsets.UTF_8) +
+    //                 "&listenerId=" + URLEncoder.encode(spotifyId, StandardCharsets.UTF_8) +
+    //                 "&spotifyToken=" + URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
             
-            return new RedirectView(redirectUrl);
-        } catch (Exception e) {
-            // Redirect to frontend with error
-            try {
-                String errorUrl = frontendUrl + "?error=" + URLEncoder.encode("Authentication failed: " + e.getMessage(), StandardCharsets.UTF_8);
-                return new RedirectView(errorUrl);
-            } catch (Exception ex) {
-                // Fallback if encoding fails
-                return new RedirectView(frontendUrl + "?error=Authentication failed");
-            }
-        }
-    }
+    //         return new RedirectView(redirectUrl);
+    //     } catch (Exception e) {
+    //         // Redirect to frontend with error
+    //         try {
+    //             String errorUrl = frontendUrl + "?error=" + URLEncoder.encode("Authentication failed: " + e.getMessage(), StandardCharsets.UTF_8);
+    //             return new RedirectView(errorUrl);
+    //         } catch (Exception ex) {
+    //             // Fallback if encoding fails
+    //             return new RedirectView(frontendUrl + "?error=Authentication failed");
+    //         }
+    //     }
+    // }
 
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshToken(@RequestBody Map<String, String> request) {

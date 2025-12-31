@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 spring:
   application:
@@ -78,7 +78,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
   instance:
@@ -98,3 +98,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+jwt:
+  secret: ${JWT_SECRET:9a2f8c4e6b0d71f3g5h8j2k4m6n8p0q2r4t6v8x0z2a4c6e8g0i2k4m6o8q0s2u4w6y8}
+  expiration: ${JWT_EXPIRATION:86400000}
