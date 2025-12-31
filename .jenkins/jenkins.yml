@@ -22,6 +22,14 @@ jenkins:
 unclassified:
   gitHubPluginConfig:
     hookUrl: "http://localhost:8080/github-webhook/"
+  buildDiscarders:
+    configuredBuildDiscarders:
+      - "jobBuildDiscarder"
+      - defaultBuildDiscarder:
+          discarder:
+            logRotator:
+              daysToKeepStr: "2"
+              numToKeepStr: "1"
 tool:
   jdk:
     installations:
