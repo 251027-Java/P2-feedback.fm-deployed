@@ -4,7 +4,8 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-def isRelatedToPrimaryBranch = false
+def isPrToDefault = false
+def isDefault = false
 def forceRun = false
 def skipRun = false
 
@@ -48,10 +49,18 @@ pipeline {
         stage('check run requirements') {
             steps {
                 script {
+                    /*
+                    Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
+                    has env.BRANCH_IS_PRIMARY allowing for an easier check.
+                    Keep the check for "origin/" in case we ever need to do testing with a regular pipeline.
+                     */
+                    isDefault = env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH || env.BRANCH_IS_PRIMARY == 'true'
+                    isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
+
                     // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
                     def size = currentBuild.changeSets.size()
 
-                    // size is 0 if a PR was just made
+                    // check for changes for this event
                     if (size > 0) {
                         echo "change sets: ${size}"
 
@@ -82,23 +91,26 @@ msg: ${entry.msg}
                         }
                     }
 
-                    /*
-                    Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
-                    has env.BRANCH_IS_PRIMARY allowing for an easier check.
-                    Keep the check for "origin/" in case we ever need to do testing with a regular pipeline.
-                     */
-                    def isDefaultOnPipeline = env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH
-                    def isDefaultOnMultibranchPipeline = env.BRANCH_IS_PRIMARY == 'true'
+                    if (isPrToDefault) {
+                        // size = 0 when a PR is made. force a run
+                        // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/68
+                        if (size == 0) {
+                            echo 'PR made: running all tests'
+                            forceRun = true
+                            return
+                        }
 
-                    if (isDefaultOnPipeline || isDefaultOnMultibranchPipeline) {
-                        isRelatedToPrimaryBranch = true
-                        echo 'default branch: running'
-                        return
+                        // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
+                        if (currentBuild.previousBuild?.result == 'FAILURE') {
+                            echo 'previous run failed: running all tests'
+                            forceRun = true
+                        }
                     }
 
-                    if (env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH) {
-                        isRelatedToPrimaryBranch = true
-                        echo 'PR to default branch: running'
+                    // ensure default branch runs all tests
+                    if (isDefault) {
+                        echo 'default branch: running all tests'
+                        forceRun = true
                         return
                     }
                 }
@@ -112,7 +124,7 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isRelatedToPrimaryBranch }
+                        expression { isPrToDefault }
                         changeset '**/frontend/**'
                     }
                 }
@@ -157,7 +169,7 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isRelatedToPrimaryBranch }
+                        expression { isPrToDefault }
                         changeset '**/backend/**'
                     }
                 }
@@ -180,7 +192,7 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isRelatedToPrimaryBranch }
+                        expression { isPrToDefault }
                         changeset '**/frontend/**'
                     }
                 }
@@ -219,7 +231,7 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isRelatedToPrimaryBranch }
+                        expression { isPrToDefault }
                         changeset '**/backend/**'
                     }
                 }
