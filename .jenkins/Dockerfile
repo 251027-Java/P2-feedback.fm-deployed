@@ -26,7 +26,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 USER jenkins
 
-COPY ./jenkins.yml /var/jenkins_home/jenkins.yaml
+COPY ./configs/ /usr/share/jenkins/ref/casc_configs/
 COPY ./plugins.txt /usr/share/jenkins/ref/plugins.txt
 
 RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt
