@@ -5,9 +5,10 @@ https://plugins.jenkins.io/checks-api/
  */
 
 def runPipeline = true
-def checkNames = [
+def chNames = [
     lintFrontend: 'lint / frontend',
     testBackend: 'test / backend',
+    buildFrontend: 'build / frontend',
 ]
 
 def limitText(text, end = true) {
@@ -34,10 +35,13 @@ pipeline {
         GITHUB_OWNER = '251027-Java'
         GITHUB_REPO = 'P2-feedback.fm-deployed'
         GITHUB_DEFAULT_BRANCH = 'main'
+
+        // disable colored output with vite
+        NO_COLOR = 'true'
     }
 
     stages {
-        stage('Check run requirements') {
+        stage('check run requirements') {
             steps {
                 script {
                     /*
@@ -64,13 +68,13 @@ pipeline {
             }
         }
 
-        stage('Frontend - Lint') {
+        stage('lint frontend') {
             when {
                 expression { runPipeline }
             }
 
             steps {
-                withChecks(name: checkNames.lintFrontend) {
+                withChecks(name: chNames.lintFrontend) {
                     dir('frontend') {
                         script {
                             // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
@@ -88,7 +92,7 @@ pipeline {
                                         def output = readFile file: 'frontend-code-quality.txt'
                                         echo output
 
-                                        publishChecks name: checkNames.lintFrontend,
+                                        publishChecks name: chNames.lintFrontend,
                                             conclusion: res.con,
                                             summary: limitText(output),
                                             title: res.title
@@ -101,33 +105,47 @@ pipeline {
             }
         }
 
-        stage('Frontend - Dependencies') {
+        stage('test backend') {
             when {
                 expression { runPipeline }
             }
 
             steps {
-                dir('frontend') {
-                    script {
-                        docker.image('node:lts-alpine').inside {
-                            sh 'npm ci'
-                            stash includes: 'node_modules/**', name: 'frontend-deps'
-                        }
+                withChecks(name: chNames.testBackend) {
+                    dir('backend') {
+                        sh './mvnw -B test'
+                        junit '**/target/surefire-reports/TEST-*.xml'
                     }
                 }
             }
         }
 
-        stage('Test') {
+        stage('build frontend') {
             when {
                 expression { runPipeline }
             }
 
             steps {
-                withChecks(name: checkNames.testBackend) {
-                    dir('backend') {
-                        sh './mvnw -B test'
-                        junit '**/target/surefire-reports/TEST-*.xml'
+                withChecks(name: chNames.buildFrontend) {
+                    dir('frontend') {
+                        script {
+                            docker.image('node:lts-alpine').inside {
+                                def res = [con: 'SUCCESS', title: 'Success']
+
+                                try {
+                                    sh 'npm ci'
+                                    sh 'npm run build'
+                                } catch (err) {
+                                    res.con = 'FAILURE'
+                                    res.title = 'Failed'
+                                    throw err
+                                } finally {
+                                    publishChecks name: chNames.buildFrontend,
+                                        conclusion: res.con,
+                                        title: res.title
+                                }
+                            }
+                        }
                     }
                 }
             }
