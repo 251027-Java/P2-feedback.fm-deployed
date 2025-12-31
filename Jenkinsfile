@@ -50,12 +50,12 @@ pipeline {
                         echo "- ${changeSet.kind}: commits: ${changeSet.items.size()}"
 
                         for (entry in changeSet.items) {
-                            echo '''
+                            echo """
                             -- ${entry.timestamp} ${entry.commitId}
                                files changed: ${entry.affectedFiles.size()}
                                msg:
                                ${entry.msg}
-                            '''
+                            """
                         }
                     }
 
