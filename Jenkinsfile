@@ -4,7 +4,7 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-def runPipeline = trueclear
+def runPipeline = true
 def chNames = [
     lintFrontend: 'lint / frontend',
     testBackend: 'test / backend',
