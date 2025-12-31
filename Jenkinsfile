@@ -44,13 +44,18 @@ pipeline {
         stage('check run requirements') {
             steps {
                 script {
-                    echo "${currentBuild.changeSets.size()}"
+                    echo "change sets: ${currentBuild.changeSets.size()}"
 
                     for (changeSet in currentBuild.changeSets) {
-                        echo "${changeSet.items.size()}"
+                        echo "- ${changeSet.kind}: commits: ${changeSet.items.size()}"
 
                         for (entry in changeSet.items) {
-                            echo "${entry.affectedFiles.size()}"
+                            echo '''
+                            -- ${entry.timestamp} ${entry.commitId}
+                               files changed: ${entry.affectedFiles.size()}
+                               msg:
+                               ${entry.msg}
+                            '''
                         }
                     }
 
