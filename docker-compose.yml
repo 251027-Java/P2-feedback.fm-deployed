@@ -16,7 +16,7 @@ services:
       - ./database/db/init:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,17 +34,26 @@ services:
     depends_on:
       - db
 
-  # Backend Service
-  backend:
-    image: maven:3.9-eclipse-temurin-25
-    container_name: spotify_backend
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-      - ~/.m2:/root/.m2
+  # Service Discovery
+  eureka-server:
+    build: ./backend/eureka-server
+    container_name: spotify_eureka
+    restart: always
+    ports:
+      - "8761:8761"
+    environment:
+      - SERVER_PORT=8761
+
+  # API Gateway
+  gateway:
+    build: ./backend/gateway
+    container_name: spotify_gateway
+    restart: always
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     environment:
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
@@ -55,10 +64,143 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - SPOTIFY_REDIRECT_URI=http://127.0.0.1:${BACKEND_PORT:-8080}/api/auth/callback
-    command: mvn spring-boot:run
     depends_on:
-      db:
-        condition: service_healthy
+      - eureka-server
+      - db
+
+  # Microservices
+  album-service:
+    build: ./backend/album-service
+    container_name: spotify_album_service
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVER_PORT=8083
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - eureka-server
+      - db
+
+  artist-service:
+    build: ./backend/artist-service
+    container_name: spotify_artist_service
+    restart: always
+    ports:
+      - "8084:8084"
+    environment:
+      - SERVER_PORT=8084
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - eureka-server
+      - db
+
+  history-service:
+    build: ./backend/history-service
+    container_name: spotify_history_service
+    restart: always
+    ports:
+      - "8085:8085"
+    environment:
+      - SERVER_PORT=8085
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - eureka-server
+      - db
+
+  listener-service:
+    build: ./backend/listener-service
+    container_name: spotify_listener_service
+    restart: always
+    ports:
+      - "8086:8086"
+    environment:
+      - SERVER_PORT=8086
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+    depends_on:
+      - eureka-server
+      - db
+
+  # music-metadata-service:
+  #   build: ./backend/music-metadata-service
+  #   container_name: spotify_music_metadata_service
+  #   restart: always
+  #   ports:
+  #     - "8095:8085"
+  #   environment:
+  #     - SERVER_PORT=8085
+  #     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+  #     - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+  #     - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+  #   depends_on:
+  #     - eureka-server
+  #     - db
+
+  playlist-service:
+    build: ./backend/playlist-service
+    container_name: spotify_playlist_service
+    restart: always
+    ports:
+      - "8087:8087"
+    environment:
+      - SERVER_PORT=8087
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - eureka-server
+      - db
+
+  song-service:
+    build: ./backend/song-service
+    container_name: spotify_song_service
+    restart: always
+    ports:
+      - "8088:8088"
+    environment:
+      - SERVER_PORT=8088
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - eureka-server
+      - db
+
+  spotify-integration-service:
+    build: ./backend/spotify-integration-service
+    container_name: spotify_integration_service
+    restart: always
+    ports:
+      - "8089:8089"
+    environment:
+      - SERVER_PORT=8089
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REDIRECT_URI=http://127.0.0.1:${BACKEND_PORT:-8080}/api/auth/callback
+    depends_on:
+      - eureka-server
+      - db
 
   # Frontend Service
   frontend:
@@ -75,7 +217,7 @@ services:
       - VITE_PORT=${FRONTEND_PORT:-3000}
     command: sh -c "npm install && npm run dev -- --host"
     depends_on:
-      - backend
+      - gateway
 
 volumes:
   postgres_data:
