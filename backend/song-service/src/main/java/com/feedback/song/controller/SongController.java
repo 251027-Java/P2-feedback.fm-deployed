@@ -255,4 +255,9 @@ public class SongController {
 			return ResponseEntity.status(500).body(errorResponse);
 		}
 	}
+
+	@GetMapping("find-by-id/{id}")
+	public SongDTO findById(@PathVariable String id) {
+		return songService.getById(id).orElse(null);
+	}
 }

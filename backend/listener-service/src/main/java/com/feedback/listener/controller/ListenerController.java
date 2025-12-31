@@ -25,29 +25,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.feedback.listener.dtos.ListenerDTO;
-import com.feedback.listener.service.ArtistService; // Need to make sure these are feign clients
 import com.feedback.listener.service.ListenerService;
-import com.feedback.listener.service.SongService;
-import com.feedback.listener.service.spotify.SpotifyApiService;
+import com.feedback.listener.service.SpotifyApiService;
 
 @RestController
 @RequestMapping("/api/users")
 public class ListenerController {
 
     private final ListenerService listenerService;
-    private final ArtistService artistService;
-    private final SongService songService;
     private final SpotifyApiService spotifyApiService;
-    private final com.feedback.fm.feedbackfm.service.SpotifySyncService spotifySyncService;
 
-    public ListenerController(ListenerService listenerService, ArtistService artistService, 
-                             SongService songService, SpotifyApiService spotifyApiService,
-                             com.feedback.fm.feedbackfm.service.SpotifySyncService spotifySyncService) {
+    public ListenerController(ListenerService listenerService, SpotifyApiService spotifyApiService) {
         this.listenerService = listenerService;
-        this.artistService = artistService;
-        this.songService = songService;
         this.spotifyApiService = spotifyApiService;
-        this.spotifySyncService = spotifySyncService;
     }
 
     // Get user profile by ID
@@ -153,12 +143,12 @@ public class ListenerController {
                         // This ensures stats are kept up-to-date when dashboard is accessed
                         System.out.println("[" + LocalDateTime.now() + "] About to call syncRecentlyPlayed for listener: " + id);
                         try {
-                            spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
+                            spotifyApiService.syncRecentlyPlayed(spotifyToken, id);
                             System.out.println("[" + LocalDateTime.now() + "] syncRecentlyPlayed completed successfully");
                             
                             // Recalculate stats from all history records to ensure accuracy
                             // This handles cases where stats might be out of sync
-                            spotifySyncService.recalculateStatsFromHistory(id);
+                            spotifyApiService.recalculateStatsFromHistory(id);
                             
                             // Re-fetch listener to get updated stats
                             // Note: Since syncRecentlyPlayed is @Transactional, changes should be committed
@@ -191,7 +181,7 @@ public class ListenerController {
                             
                             // Even if sync fails, try to recalculate from existing history
                             try {
-                                spotifySyncService.recalculateStatsFromHistory(id);
+                                spotifyApiService.recalculateStatsFromHistory(id);
                                 listenerOpt = listenerService.getById(id);
                                 if (listenerOpt.isPresent()) {
                                     listener = listenerOpt.get();
@@ -217,8 +207,8 @@ public class ListenerController {
                         // Even if no items, try to sync (might have new data)
                         try {
                             System.out.println("[" + LocalDateTime.now() + "] Calling sync even though items list is empty");
-                            spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
-                            spotifySyncService.recalculateStatsFromHistory(id);
+                            spotifyApiService.syncRecentlyPlayed(spotifyToken, id);
+                            spotifyApiService.recalculateStatsFromHistory(id);
                         } catch (Exception syncException) {
                             System.err.println("[" + LocalDateTime.now() + "] Error syncing with empty items: " + syncException.getMessage());
                         }
@@ -228,8 +218,8 @@ public class ListenerController {
                     // Try to sync anyway - might have data
                     try {
                         System.out.println("[" + LocalDateTime.now() + "] Calling sync even though response is missing items");
-                        spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
-                        spotifySyncService.recalculateStatsFromHistory(id);
+                        spotifyApiService.syncRecentlyPlayed(spotifyToken, id);
+                        spotifyApiService.recalculateStatsFromHistory(id);
                     } catch (Exception syncException) {
                         System.err.println("[" + LocalDateTime.now() + "] Error syncing with missing items: " + syncException.getMessage());
                     }
@@ -241,8 +231,8 @@ public class ListenerController {
                 // Still try to sync even if there's an error
                 try {
                     System.out.println("[" + LocalDateTime.now() + "] Attempting sync after error");
-                    spotifySyncService.syncRecentlyPlayed(spotifyToken, id);
-                    spotifySyncService.recalculateStatsFromHistory(id);
+                    spotifyApiService.syncRecentlyPlayed(spotifyToken, id);
+                    spotifyApiService.recalculateStatsFromHistory(id);
                 } catch (Exception syncException) {
                     System.err.println("[" + LocalDateTime.now() + "] Error syncing after exception: " + syncException.getMessage());
                 }
@@ -251,7 +241,7 @@ public class ListenerController {
             System.out.println("[" + LocalDateTime.now() + "] No Spotify token provided for dashboard stats");
             // Even without token, recalculate stats from existing history to ensure accuracy
             try {
-                spotifySyncService.recalculateStatsFromHistory(id);
+                spotifyApiService.recalculateStatsFromHistory(id);
                 listenerOpt = listenerService.getById(id);
                 if (listenerOpt.isPresent()) {
                     listener = listenerOpt.get();
@@ -480,5 +470,16 @@ public class ListenerController {
     public ResponseEntity<ListenerDTO> register(@RequestBody ListenerDTO listenerDTO) {
         ListenerDTO created = listenerService.create(listenerDTO);
         return ResponseEntity.status(201).body(created);
+    }
+
+    @GetMapping("/find-by-id/{id}")
+    public ListenerDTO findById(@PathVariable String id) {
+        return listenerService.getById(id).orElse(null);
+    }   
+
+    @GetMapping("/exists/{id}")
+    public boolean existsById(@PathVariable String id) {
+        boolean exists = listenerService.existsById(id);
+        return exists;
     }
 }

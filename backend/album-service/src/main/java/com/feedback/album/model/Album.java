@@ -10,11 +10,15 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 // kenneth wrote this out to match up with the M:M relationship between albums and songs and for Juan's album repo
 
 @Entity
+@Data
 @Table(name = "album")
+@NoArgsConstructor
 public class Album {
 
     @Id
@@ -37,63 +41,11 @@ public class Album {
     @ManyToMany(mappedBy = "albums")
     private Set<Song> songs = new HashSet<>();
 
-    // Default constructor required by JPA/Hibernate
-    public Album() {
-    }
-
     public Album(String albumId, String title, Integer releaseYear, String href) {
         this.albumId = albumId;
         this.title = title;
         this.releaseYear = releaseYear;
         this.href = href;
-    }
-
-    public String getAlbumId() {
-        return albumId;
-    }
-
-    public void setAlbumId(String albumId) {
-        this.albumId = albumId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Integer getReleaseYear() {
-        return releaseYear;
-    }
-
-    public void setReleaseYear(Integer releaseYear) {
-        this.releaseYear = releaseYear;
-    }
-
-    public String getHref() {
-        return href;
-    }
-
-    public void setHref(String href) {
-        this.href = href;
-    }
-
-    public Artist getArtist() {
-        return artist;
-    }
-
-    public void setArtist(Artist artist) {
-        this.artist = artist;
-    }
-
-    public Set<Song> getSongs() {
-        return songs;
-    }
-
-    public void setSongs(Set<Song> songs) {
-        this.songs = songs;
     }
 
     @Override
