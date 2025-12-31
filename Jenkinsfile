@@ -68,7 +68,7 @@ pipeline {
             }
         }
 
-        stage(check.lintFrontend) {
+        stage('lint frontend') {
             when {
                 expression { runPipeline }
             }
@@ -105,7 +105,7 @@ pipeline {
             }
         }
 
-        stage(check.testBackend) {
+        stage('test backend') {
             when {
                 expression { runPipeline }
             }
@@ -120,7 +120,7 @@ pipeline {
             }
         }
 
-        stage(check.buildFrontend) {
+        stage('build frontend') {
             when {
                 expression { runPipeline }
             }
