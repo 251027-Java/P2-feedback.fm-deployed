@@ -4,7 +4,10 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-def isRelatedToPrimaryBranch = true
+def isRelatedToPrimaryBranch = false
+def forceRun = false
+def skipRun = false
+
 def chNames = [
     lintFrontend: 'lint / frontend',
     testBackend: 'test / backend',
@@ -46,20 +49,31 @@ pipeline {
                 script {
                     echo "change sets: ${currentBuild.changeSets.size()}"
 
-                    for (changeSet in currentBuild.changeSets) {
-                        echo "- ${changeSet.kind}: commits: ${changeSet.items.size()}"
+                    // should only be git
+                    def changeSet = currentBuild.changeSets.first()
+                    echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
 
-                        for (entry in changeSet.items) {
-                            def date = new Date(entry.timestamp)
+                    // only look at most recent commit
+                    def entry = changeSet.items.last()
+                    def date = new Date(entry.timestamp)
 
-                            echo """
-                            -- ${entry.commitId}
-                               ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp} 
-                               files changed: ${entry.affectedFiles.size()}
-                               msg:
-                               ${entry.msg}
-                            """
-                        }
+                    echo """
+${entry.commitId}
+   ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
+   files changed: ${entry.affectedFiles.size()}
+   msg:
+   ${entry.msg}
+"""
+                    // allow some options for user to either skip or force a run via commit message
+                    // [skip] has higher priority if they for some reason provide both [skip] and [run]
+                    if (entry.msg =~ /\[skip\]/i) {
+                        echo "[skip] identified: skipping tests"
+                        skipRun = true
+                        return
+                    } else if (entry.msg =~ /\[run\]/i) {
+                        echo "[run] identified: running all tests"
+                        forceRun = true
+                        return
                     }
 
                     /*
@@ -71,16 +85,17 @@ pipeline {
                     def isDefaultOnMultibranchPipeline = env.BRANCH_IS_PRIMARY == 'true'
 
                     if (isDefaultOnPipeline || isDefaultOnMultibranchPipeline) {
-                        echo 'This is the default branch. Running.'
+                        isRelatedToPrimaryBranch = true
+                        echo 'default branch: running'
                         return
                     }
 
                     if (env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH) {
-                        echo 'This is a PR to the default branch. Running'
+                        isRelatedToPrimaryBranch = true
+                        echo 'PR to default branch: running'
                         return
                     }
 
-                    isRelatedToPrimaryBranch = false
                     echo "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
             }
@@ -88,7 +103,9 @@ pipeline {
 
         stage('lint frontend') {
             when {
+                not { expression { skipRun } }
                 anyOf {
+                    expression { forceRun }
                     allOf {
                         expression { isRelatedToPrimaryBranch }
                         changeset '**/frontend/**'
@@ -130,7 +147,9 @@ pipeline {
 
         stage('test backend') {
             when {
+                not { expression { skipRun } }
                 anyOf {
+                    expression { forceRun }
                     allOf {
                         expression { isRelatedToPrimaryBranch }
                         changeset '**/backend/**'
@@ -150,7 +169,9 @@ pipeline {
 
         stage('build frontend') {
             when {
+                not { expression { skipRun } }
                 anyOf {
+                    expression { forceRun }
                     allOf {
                         expression { isRelatedToPrimaryBranch }
                         changeset '**/frontend/**'
