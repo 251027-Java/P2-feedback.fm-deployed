@@ -247,5 +247,12 @@ msg: ${entry.msg}
                 }
             }
         }
+
+        post {
+            always {
+                // delete the workspace after to prevent large disk usage
+                cleanWs()
+            }
+        }
     }
 }
