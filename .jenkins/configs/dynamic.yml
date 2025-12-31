@@ -22,8 +22,10 @@ unclassified:
       - defaultBuildDiscarder:
           discarder:
             logRotator:
-              daysToKeepStr: "2"
-              numToKeepStr: "1"
+              artifactDaysToKeepStr: "30"
+              artifactNumToKeepStr: "1"
+              daysToKeepStr: "50"
+              numToKeepStr: "10"
 tool:
   jdk:
     installations:
