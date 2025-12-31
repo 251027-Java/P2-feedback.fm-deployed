@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.feedback.playlist.dtos.PlaylistDTO;
 import com.feedback.playlist.service.PlaylistService;
-import com.feedback.playlist.service.spotify.SpotifyApiService; // NEED TO FIX
+import com.feedback.playlist.service.SpotifyApiService;
 
 @RestController
 @RequestMapping("/api/playlists")

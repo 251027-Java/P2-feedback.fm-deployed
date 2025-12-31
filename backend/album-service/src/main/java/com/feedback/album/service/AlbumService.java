@@ -1,14 +1,15 @@
 package com.feedback.album.service;
 
-import com.feedback.albums.dtos.AlbumDTO;
-import com.feedback.albums.exception.InvalidRequestException;
-import com.feedback.albums.exception.ResourceNotFoundException;
-import com.feedback.albums.model.Album;
-import com.feedback.albums.model.Artist; // NOOOOOO
-import com.feedback.albums.repository.AlbumRepository;
-import com.feedback.albums.repository.ArtistRepository; // NOOOOOO
+import com.feedback.album.dtos.AlbumDTO;
+import com.feedback.album.exception.InvalidRequestException;
+import com.feedback.album.exception.ResourceNotFoundException;
+import com.feedback.album.model.Album;
+import com.feedback.album.model.Artist;
+import com.feedback.album.repository.AlbumRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.feedback.album.service.ArtistService;
+import com.feedback.album.dtos.ArtistDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,11 +20,19 @@ import java.util.stream.Collectors;
 public class AlbumService {
 
     private final AlbumRepository repository;
-    private final ArtistRepository artistRepository;
+    private final ArtistService artistService;
 
-    public AlbumService(AlbumRepository repository, ArtistRepository artistRepository) {
+    public AlbumService(AlbumRepository repository, ArtistService artistService) {
         this.repository = repository;
-        this.artistRepository = artistRepository;
+        this.artistService = artistService;
+    }
+
+    private Artist DTOToArtist(ArtistDTO dto) {
+        return new Artist(
+                dto.artistId(),
+                dto.name(),
+                dto.href()
+        );
     }
 
     
@@ -72,7 +81,7 @@ public class AlbumService {
             return List.of();
         }
         // Verify artist exists
-        if (!artistRepository.existsById(artistId)) {
+        if (!artistService.existsById(artistId)) {
             throw new ResourceNotFoundException("Artist", artistId);
         }
         return repository.findAll().stream()
@@ -101,9 +110,12 @@ public class AlbumService {
 
         // validate and set artist if provided
         if (dto.artistId() != null && !dto.artistId().isBlank()) {
-            Artist artist = artistRepository.findById(dto.artistId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Artist", dto.artistId()));
-            album.setArtist(artist);
+            ArtistDTO artist = artistService.findById(dto.artistId());
+            if (artist == null) {
+                throw new ResourceNotFoundException("Artist", dto.artistId());
+            }
+
+            album.setArtist(DTOToArtist(artist));
         }
 
         return albumToDto(repository.save(album));
@@ -127,9 +139,11 @@ public class AlbumService {
 
         // validate and set artist if provided
         if (dto.artistId() != null && !dto.artistId().isBlank()) {
-            Artist artist = artistRepository.findById(dto.artistId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Artist", dto.artistId()));
-            album.setArtist(artist);
+            ArtistDTO artist = artistService.findById(dto.artistId());
+            if (artist == null) {
+                throw new ResourceNotFoundException("Artist", dto.artistId());
+            }
+            album.setArtist(DTOToArtist(artist));
         } else {
             // Allow clearing the artist by setting it to null
             album.setArtist(null);

@@ -37,6 +37,12 @@ public class ListenerService {
                 .map(this::listenerToDto);
     }
 
+    public boolean existsById(String id) {
+        if (id == null || id.isBlank()) {
+            throw new InvalidRequestException("Listener ID cannot be null or blank");
+        }
+        return repository.existsById(id);
+    }
     
     public List<ListenerDTO> findByDisplayName(String displayName) {
         if (displayName == null || displayName.isBlank()) {

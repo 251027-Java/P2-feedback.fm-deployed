@@ -1,6 +1,6 @@
 package com.feedback.album.repository;
 
-import com.feedback.fm.feedbackfm.model.Album;
+import com.feedback.album.model.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

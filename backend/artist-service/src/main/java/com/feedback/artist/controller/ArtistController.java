@@ -2,7 +2,7 @@ package com.feedback.artist.controller;
 
 import com.feedback.artist.dtos.ArtistDTO;
 import com.feedback.artist.service.ArtistService;
-import com.feedback.artist.service.spotify.SpotifyApiService; // NEED TO FIX
+import com.feedback.artist.service.SpotifyApiService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -129,5 +129,16 @@ public class ArtistController {
 			return ResponseEntity.status(500).body(List.of());
 		}
 	}
+
+	@GetMapping("/find-by-id/{id}")
+    public ArtistDTO findById(@PathVariable String id) {
+        return artistService.getById(id).orElse(null);
+    }   
+
+    @GetMapping("/exists/{id}")
+    public boolean existsById(@PathVariable String id) {
+        boolean exists = artistService.existsById(id);
+        return exists;
+    }
 
 }
