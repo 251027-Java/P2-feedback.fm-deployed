@@ -248,4 +248,12 @@ msg: ${entry.msg}
             }
         }
     }
+
+    post {
+        // TODO archive on success and on main?
+        always {
+            // delete the workspace after to prevent large disk usage
+            cleanWs()
+        }
+    }
 }

@@ -1,7 +1,9 @@
 adoptopenjdk
 blueocean
+build-discarder
 build-timeout
 configuration-as-code
+copyartifact
 dark-theme
 docker-workflow
 email-ext

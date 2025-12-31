@@ -124,35 +124,59 @@ just destroy
 
 ## Updating Configuration
 
-To manage Jenkins configuration, we use the [JCasC Plugin](https://github.com/jenkinsci/configuration-as-code-plugin) and the file itself is located [here](./jenkins.yml). The full configuration that Jenkins uses is actually a lot larger, but our file only contains our custom configurations that will override the default values.
+To manage Jenkins configuration, we use the [JCasC Plugin](https://github.com/jenkinsci/configuration-as-code-plugin) and the files are located [here](./configs/). The full configuration that Jenkins uses is actually a lot larger, but ours only contains our custom configurations that will override the default values.
 
-If you make updates to the configuration, you'll likely first make updates through the UI. If you want to save those changes to the `jenkins.yml` file, you can view the current state of the JCasC file on the Jenkins server by using the following command:
+If you make updates to the configuration, you'll likely first make updates through the UI. If you want to save those changes to the config files, you can view the current state of the JCasC file on the Jenkins server by using the following command:
 
 ```sh
 just view-config
 just v # Shorthand
 ```
 
-Copy the modified parts and update `jenkins.yml` with those changes.
+Copy the modified parts and update `configs/dynamic.yml` with those changes.
+
+### Static and Dynamic Configuration
+
+We have two configuration files `static.yml` and `dynamic.yml`. 
+- `static.yml` contains properties that **CANNOT** be remotely applied to the server via [remote application](#remote-application). 
+- `dynamic` contains properties that **CAN** be remotely applied to the server via [remote application](#remote-application).
+
+How we identify which properties belong to which file is simply trial and error. By default, you should make your updates to `dynamic.yml`. If you can remotely apply it to the server, then it should stay there. Otherwise, move it to `static.yml`.
 
 ### Sending and Reloading Configuration
 
-You can copy the local configuration file to Jenkin's docker container and reload the configuration.
+There's two ways to update the Jenkins' configuration through the terminal. If we're on the same machine as the running Jenkins instance, we can copy the files locally to the docker container. Otherwise, we can send the config to the server remotely.
+
+#### Local application
+
+You can copy the local configuration files to Jenkin's docker container and reload the configuration.
 
 ```sh
-just send-config
+just send-local-config
 just reload-config
 
 # One liners
-just send-config reload-config
+just send-local-config reload-config
 just s r
 ```
 
+#### Remote application
+
+We can send the server a configuration to update its configuration and reload it.
+
+```sh
+just apply-config
+just a # Shorthand
+```
+
+> [!NOTE]
+> This will only send and apply the `configs/dynamic.yml` file. If you find yourself running into errors involving conflicting values, it is likely a property that should belong to `configs/static.yml` and should be handled through [local application](#local-application). See [Static and Dynamic Configuration](#static-and-dynamic-configuration) for more information.
+
 ### Job Configuration
 
-We use the [Job DSL Plugin](https://github.com/jenkinsci/job-dsl-plugin) to create jobs. When making changes to jobs through the UI, it's important to note that there is no way to obtain the job configuration in Job DSL API syntax. You have to manually write those changes in `jenkins.yml`. Refer to the documentation on the Job DSL API by going to the [general site](https://jenkinsci.github.io/job-dsl-plugin) or for more specific information tailored to your plugins, `<jenkins-url>/plugin/job-dsl/api-viewer/index.html`. Additional information on working with Job DSL and JCasC together can be found [here](https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC).
+We use the [Job DSL Plugin](https://github.com/jenkinsci/job-dsl-plugin) to create jobs. When making changes to jobs through the UI, it's important to note that there is no way to obtain the job configuration in Job DSL API syntax. You have to manually write those changes in `configs/dynamic.yml`. Refer to the documentation on the Job DSL API by going to the [general site](https://jenkinsci.github.io/job-dsl-plugin) or for more specific information tailored to your plugins, `<jenkins-url>/plugin/job-dsl/api-viewer/index.html`. Additional information on working with Job DSL and JCasC together can be found [here](https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC).
 
-After updating `jenkins.yml`, ensure you update and reload the configuration on the Jenkins server:
+After updating `configs/dynamic.yml`, ensure you update and reload the configuration on the Jenkins server:
 
 ```sh
 just s r

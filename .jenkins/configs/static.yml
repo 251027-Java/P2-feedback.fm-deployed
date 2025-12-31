@@ -1,0 +1,16 @@
+# When we use the Jenkins CLI and use the `apply-configuration` command, we'll
+# run into issues with some configuration settings. This file is meant to contain
+# those settings and keep it separate from the settings that can be applied,
+# which are stored in dynamic.yml.
+
+jenkins:
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+unclassified:
+  gitHubPluginConfig:
+    hookUrl: "http://localhost:8080/github-webhook/"
