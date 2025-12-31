@@ -74,7 +74,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: chName.lintFrontend) {
+                withChecks(name: chNames.lintFrontend) {
                     dir('frontend') {
                         script {
                             // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
@@ -92,7 +92,7 @@ pipeline {
                                         def output = readFile file: 'frontend-code-quality.txt'
                                         echo output
 
-                                        publishChecks name: chName.lintFrontend,
+                                        publishChecks name: chNames.lintFrontend,
                                             conclusion: res.con,
                                             summary: limitText(output),
                                             title: res.title
@@ -111,7 +111,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: chName.testBackend) {
+                withChecks(name: chNames.testBackend) {
                     dir('backend') {
                         sh './mvnw -B test'
                         junit '**/target/surefire-reports/TEST-*.xml'
@@ -126,7 +126,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: chName.buildFrontend) {
+                withChecks(name: chNames.buildFrontend) {
                     dir('frontend') {
                         script {
                             docker.image('node:lts-alpine').inside {
@@ -140,7 +140,7 @@ pipeline {
                                     res.title = 'Failed'
                                     throw err
                                 } finally {
-                                    publishChecks name: chName.buildFrontend,
+                                    publishChecks name: chNames.buildFrontend,
                                         conclusion: res.con,
                                         title: res.title
                                 }
