@@ -8,9 +8,10 @@ sudo := if env('SUDO') == '1' { 'sudo ' } else { '' }
 
 alias j := jcli
 alias dl := download
-alias s := send-config
+alias s := send-local-config
 alias r := reload-config
 alias v := view-config
+alias a := apply-config
 
 # Initialize Jenkins
 [group("Init")]
@@ -21,17 +22,17 @@ init-jenkins: start instructions
 instructions:
     #!/usr/bin/bash
     s=""
-    s+="1. Go to {{ YELLOW }}{{ jenkins_url }}/user/$(just _get-secret jenkins_username)/security{{ NORMAL }} (login if prompted)"
+    s+="1. Go to {{ YELLOW }}{{ jenkins_url }}/user/$(just secret jenkins_username)/security{{ NORMAL }} (login if prompted)"
     s+="\n2. Create your API token"
     s+="\n3. Copy the token and set {{ RED + BOLD }}JENKINS_API_TOKEN{{ NORMAL }} in your {{ YELLOW }}.env{{ NORMAL }} file"
     s+="\n4. Run {{ GREEN }}just dl{{ NORMAL }} to download the Jenkins CLI"
     s+="\n\nJenkins and your local environment should now be fully setup."
     s+="\n\nIf you make changes to the configuration via the Jenkins UI and want to save"
     s+="\nthose changes, you can view the current configuration used by Jenkins using"
-    s+="\n{{ GREEN }}just v{{ NORMAL }}, copy the modified parts, and update the {{ YELLOW }}jenkins.yml{{ NORMAL }} file."
+    s+="\n{{ GREEN }}just v{{ NORMAL }}, copy the modified parts, and update the {{ YELLOW }}configs/*.yml{{ NORMAL }} files."
     s+="\n\n{{ BG_BLUE }} NOTE {{ NORMAL }}"
     s+="\nJob configurations are not obtainable in Job DSL API syntax and need to"
-    s+="\nbe manually written in {{ YELLOW }}jenkins.yml{{ NORMAL }}."
+    s+="\nbe manually written in {{ YELLOW }}configs/dynamic.yml{{ NORMAL }}."
     s+="\n\nIf you want to see this text again use {{ GREEN }}just instructions{{ NORMAL }}"
     printf "$s\n"
 
@@ -85,12 +86,12 @@ download:
 # Shorthand to use the Jenkins CLI
 [group("Jenkins CLI")]
 jcli *args:
-    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth $(just _get-secret jenkins_username):$JENKINS_API_TOKEN {{ args }}
+    java -jar $JENKINS_CLI -s {{ jenkins_url }} -auth $(just secret jenkins_username):$JENKINS_API_TOKEN {{ args }}
 
-# Sends the JCasC configuration to the Jenkins container
+# Copies the JCasC configurations to the Jenkins container
 [group("Jenkins CLI")]
-send-config:
-    {{ sudo }}docker cp jenkins.yml $JENKINS_CONTAINER:/var/jenkins_home/jenkins.yaml
+send-local-config:
+    {{ sudo }}docker cp configs/. $JENKINS_CONTAINER:/var/jenkins_home/casc_configs/
 
 # Reloads the JCasC configuration on the Jenkins container
 [group("Jenkins CLI")]
@@ -102,6 +103,11 @@ reload-config:
 [group("Jenkins CLI")]
 view-config:
     just j export-configuration
+
+# Sends the dynamic config file to the Jenkins server and reloads the configuration
+[group("Jenkins CLI")]
+apply-config:
+    just j apply-configuration < ./configs/dynamic.yml
 
 # https://plugins.jenkins.io/github/#plugin-content-manual-mode
 # https://stackoverflow.com/a/51545557
@@ -116,12 +122,14 @@ tunnel:
 tunnel-pw:
     curl https://loca.lt/mytunnelpassword
 
-_get-secret prop:
+# Obtain the value for a given secret property
+[group("Util")]
+secret prop:
     grep "^{{ prop }}=" ./secrets/secrets.properties | cut -d "=" -f 2-
 
 # https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc#creating-the-github-app
 # Convert GitHub keys to a compatible Jenkins format
-[group("Extra")]
+[group("Util")]
 convert-key in out:
     openssl pkcs8 -topk8 -inform PEM -outform PEM -in {{ in }} -out {{ out }} -nocrypt
 
@@ -139,7 +147,7 @@ urls ip="0":
     width=30
     s=""
     s+=$(printf "%-${width}s %s" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "${url}/plugin/job-dsl/api-viewer/index.html")
-    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}User Security{{ NORMAL }}" "${url}/user/$(just _get-secret jenkins_username)/security")
+    s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}User Security{{ NORMAL }}" "${url}/user/$(just secret jenkins_username)/security")
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Blue Ocean{{ NORMAL }}" "${url}/blue/pipelines")
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}CLI Page{{ NORMAL }}" "${url}/cli")
     s+=$(printf "\n%-${width}s %s" "{{ YELLOW }}Pipeline Syntax{{ NORMAL }}" "${url}/pipeline-syntax")
@@ -158,12 +166,12 @@ logs:
     {{ sudo }}docker compose logs -f -t
 
 # Sort plugins.txt
-[group("Extra")]
+[group("Util")]
 plugins:
     content=$(cat plugins.txt | sort); \
     echo "$content" > plugins.txt
 
 # Update the files in the current directory with gitsnip (for prod environment)
-[group("Extra")]
+[group("Util")]
 update-files branch="main":
     gitsnip $GITSNIP_REPO $GITSNIP_FOLDER . -b {{ branch }}
