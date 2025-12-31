@@ -5,7 +5,7 @@ https://plugins.jenkins.io/checks-api/
  */
 
 def runPipeline = trueclear
-def check = [
+def chNames = [
     lintFrontend: 'lint / frontend',
     testBackend: 'test / backend',
     buildFrontend: 'build / frontend',
@@ -74,7 +74,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: check.lintFrontend) {
+                withChecks(name: chName.lintFrontend) {
                     dir('frontend') {
                         script {
                             // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
@@ -92,7 +92,7 @@ pipeline {
                                         def output = readFile file: 'frontend-code-quality.txt'
                                         echo output
 
-                                        publishChecks name: check.lintFrontend,
+                                        publishChecks name: chName.lintFrontend,
                                             conclusion: res.con,
                                             summary: limitText(output),
                                             title: res.title
@@ -111,7 +111,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: check.testBackend) {
+                withChecks(name: chName.testBackend) {
                     dir('backend') {
                         sh './mvnw -B test'
                         junit '**/target/surefire-reports/TEST-*.xml'
@@ -126,7 +126,7 @@ pipeline {
             }
 
             steps {
-                withChecks(name: check.buildFrontend) {
+                withChecks(name: chName.buildFrontend) {
                     dir('frontend') {
                         script {
                             docker.image('node:lts-alpine').inside {
@@ -140,7 +140,7 @@ pipeline {
                                     res.title = 'Failed'
                                     throw err
                                 } finally {
-                                    publishChecks name: check.buildFrontend,
+                                    publishChecks name: chName.buildFrontend,
                                         conclusion: res.con,
                                         title: res.title
                                 }
