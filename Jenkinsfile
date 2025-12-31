@@ -223,18 +223,20 @@ msg: ${entry.msg}
             steps {
                 withChecks(name: chNames.buildBackend) {
                     dir('backend') {
-                        def res = [con: 'SUCCESS', title: 'Success']
+                        script {
+                            def res = [con: 'SUCCESS', title: 'Success']
 
-                        try {
-                            sh './mvnw -B package -DskipTests'
-                        } catch (err) {
-                            res.con = 'FAILURE'
-                            res.title = 'Failed'
-                            throw err
-                        } finally {
-                            publishChecks name: chNames.buildBackend,
-                                conclusion: res.con,
-                                title: res.title
+                            try {
+                                sh './mvnw -B package -DskipTests'
+                            } catch (err) {
+                                res.con = 'FAILURE'
+                                res.title = 'Failed'
+                                throw err
+                            } finally {
+                                publishChecks name: chNames.buildBackend,
+                                    conclusion: res.con,
+                                    title: res.title
+                            }
                         }
                     }
                 }
