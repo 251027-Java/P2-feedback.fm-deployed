@@ -94,8 +94,6 @@ msg: ${entry.msg}
                         echo 'PR to default branch: running'
                         return
                     }
-
-                    echo "Does not meet the requirements to run: ${env.GIT_COMMIT}"
                 }
             }
         }
