@@ -208,6 +208,12 @@ msg: ${entry.msg}
                                 try {
                                     sh 'npm ci'
                                     sh 'npm run build'
+
+                                    if (isDefault) {
+                                        archiveArtifacts artifacts: 'dist/**',
+                                            fingerprint: true,
+                                            allowEmptyArchive: true
+                                    }
                                 } catch (err) {
                                     res.con = 'FAILURE'
                                     res.title = 'Failed'
@@ -245,6 +251,12 @@ msg: ${entry.msg}
 
                             try {
                                 sh './mvnw -B package -DskipTests'
+
+                                if (isDefault) {
+                                    archiveArtifacts artifacts: 'target/*.jar',
+                                        fingerprint: true,
+                                        allowEmptyArchive: true
+                                }
                             } catch (err) {
                                 res.con = 'FAILURE'
                                 res.title = 'Failed'
@@ -262,7 +274,6 @@ msg: ${entry.msg}
     }
 
     post {
-        // TODO archive on success and on main?
         always {
             // delete the workspace after to prevent large disk usage
             cleanWs()
