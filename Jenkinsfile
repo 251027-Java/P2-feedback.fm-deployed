@@ -59,10 +59,9 @@ pipeline {
 
                     echo """
 ${entry.commitId}
-   ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
-   files changed: ${entry.affectedFiles.size()}
-   msg:
-   ${entry.msg}
+${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
+files changed: ${entry.affectedFiles.size()}
+msg: ${entry.msg}
 """
                     // allow some options for user to either skip or force a run via commit message
                     // [skip] has higher priority if they for some reason provide both [skip] and [run]
@@ -106,6 +105,7 @@ ${entry.commitId}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
+                    changeset 'Jenkinsfile'
                     allOf {
                         expression { isRelatedToPrimaryBranch }
                         changeset '**/frontend/**'
@@ -150,6 +150,7 @@ ${entry.commitId}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
+                    changeset 'Jenkinsfile'
                     allOf {
                         expression { isRelatedToPrimaryBranch }
                         changeset '**/backend/**'
@@ -172,6 +173,7 @@ ${entry.commitId}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
+                    changeset 'Jenkinsfile'
                     allOf {
                         expression { isRelatedToPrimaryBranch }
                         changeset '**/frontend/**'
