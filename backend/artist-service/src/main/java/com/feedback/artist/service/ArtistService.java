@@ -38,6 +38,13 @@ public class ArtistService {
                 .map(this::artistToDto);
     }
 
+    public boolean existsById(String id) {
+        if (id == null || id.isBlank()) {
+            throw new InvalidRequestException("Artist ID cannot be null or blank");
+        }
+        return repository.existsById(id);
+    }
+
     
     public List<ArtistDTO> findByName(String name) {
         if (name == null || name.isBlank()) {

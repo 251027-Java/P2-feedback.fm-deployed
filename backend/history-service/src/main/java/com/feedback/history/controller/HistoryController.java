@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.feedback.history.dtos.HistoryDTO;
 import com.feedback.history.service.HistoryService;
-import com.feedback.history.service.spotify.SpotifyApiService;
+import com.feedback.history.service.SpotifyApiService;
 
 @RestController
 @RequestMapping("/api/history")

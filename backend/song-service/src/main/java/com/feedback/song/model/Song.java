@@ -10,6 +10,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data

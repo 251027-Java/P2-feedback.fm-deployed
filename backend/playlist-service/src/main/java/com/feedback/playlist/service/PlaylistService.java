@@ -1,11 +1,11 @@
 package com.feedback.playlist.service;
 
 import com.feedback.playlist.dtos.PlaylistDTO;
+import com.feedback.playlist.dtos.ListenerDTO;
 import com.feedback.playlist.exception.InvalidRequestException;
 import com.feedback.playlist.exception.ResourceNotFoundException;
-import com.feedback.playlist.model.Listener; // NOOO need to use dto
+import com.feedback.playlist.model.Listener;
 import com.feedback.playlist.model.Playlist;
-import com.feedback.playlist.repository.ListenerRepository; // NOOOO
 import com.feedback.playlist.repository.PlaylistRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +19,20 @@ import java.util.stream.Collectors;
 public class PlaylistService {
 
     private final PlaylistRepository repository;
-    private final ListenerRepository listenerRepository;
+    private final ListenerService listenerService;
 
-    public PlaylistService(PlaylistRepository repository, ListenerRepository listenerRepository) {
+    public PlaylistService(PlaylistRepository repository, ListenerService listenerService) {
         this.repository = repository;
-        this.listenerRepository = listenerRepository;
+        this.listenerService = listenerService;
     }
 
+    private Listener DTOToListener(ListenerDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        Listener listener = new Listener(dto.listenerId(), dto.displayName(), dto.email(), dto.country(), dto.href());
+        return listener;
+    }
     
     public List<PlaylistDTO> getAllPlaylists() {
         return repository.findAll().stream()
@@ -68,7 +75,7 @@ public class PlaylistService {
             return List.of();
         }
         // Verify owner exists
-        if (!listenerRepository.existsById(ownerId)) {
+        if (!listenerService.existsById(ownerId)) {
             throw new ResourceNotFoundException("Owner", ownerId);
         }
         return repository.findAll().stream()
@@ -115,9 +122,9 @@ public class PlaylistService {
 
         // validate and set owner if provided
         if (dto.ownerId() != null && !dto.ownerId().isBlank()) {
-            Listener owner = listenerRepository.findById(dto.ownerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Owner", dto.ownerId()));
-            playlist.setOwner(owner);
+            ListenerDTO owner = listenerService.findById(dto.ownerId());
+            Listener listener = DTOToListener(owner);
+            playlist.setOwner(listener);
         }
 
         return playlistToDto(repository.save(playlist));
@@ -144,9 +151,9 @@ public class PlaylistService {
 
         // validate and set owner if provided
         if (dto.ownerId() != null && !dto.ownerId().isBlank()) {
-            Listener owner = listenerRepository.findById(dto.ownerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Owner", dto.ownerId()));
-            playlist.setOwner(owner);
+            ListenerDTO owner = listenerService.findById(dto.ownerId());
+            Listener listener = DTOToListener(owner);
+            playlist.setOwner(listener);
         } else {
             // Allow clearing the owner by setting it to null
             playlist.setOwner(null);

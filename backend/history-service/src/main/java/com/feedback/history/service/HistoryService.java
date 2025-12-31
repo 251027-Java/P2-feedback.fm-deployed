@@ -4,11 +4,13 @@ import com.feedback.history.dtos.HistoryDTO;
 import com.feedback.history.exception.InvalidRequestException;
 import com.feedback.history.exception.ResourceNotFoundException;
 import com.feedback.history.model.History;
-import com.feedback.history.model.Listener; // need to make DTO
-import com.feedback.history.model.Song; // need to make DTO
+import com.feedback.history.model.Listener; 
+import com.feedback.history.model.Song; 
 import com.feedback.history.repository.HistoryRepository; 
-import com.feedback.history.repository.ListenerRepository; // NOOOOO
-import com.feedback.history.repository.SongRepository; // NOOOOO
+import com.feedback.history.service.ListenerService;
+import com.feedback.history.service.SongService;
+import com.feedback.history.dtos.ListenerDTO;
+import com.feedback.history.dtos.SongDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +23,30 @@ import java.util.Optional;
 public class HistoryService {
 
     private final HistoryRepository repository;
-    private final ListenerRepository listenerRepository;
-    private final SongRepository songRepository;
+    private final ListenerService listenerService;
+    private final SongService songService;
 
-    public HistoryService(HistoryRepository repository, ListenerRepository listenerRepository, SongRepository songRepository) {
+    public HistoryService(HistoryRepository repository, ListenerService listenerService, SongService songService) {
         this.repository = repository;
-        this.listenerRepository = listenerRepository;
-        this.songRepository = songRepository;
+        this.listenerService = listenerService;
+        this.songService = songService;
     }
 
+    private Listener DTOToListener(ListenerDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        Listener listener = new Listener(dto.listenerId(), dto.displayName(), dto.email(), dto.country(), dto.href());
+        return listener;
+    }
+
+    private Song DTOToSong(SongDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        Song song = new Song(dto.songId(), dto.name(), dto.durationMs(), dto.href());
+        return song;
+    }
     
     public List<HistoryDTO> getAllHistory() {
         return repository.findAll().stream()
@@ -142,17 +159,22 @@ public class HistoryService {
         if (dto.listenerId() == null || dto.listenerId().isBlank()) {
             throw new InvalidRequestException("Listener ID is required");
         }
-        Listener listener = listenerRepository.findById(dto.listenerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Listener", dto.listenerId()));
-        history.setListener(listener);
+        ListenerDTO listener = listenerService.findById(dto.listenerId());
+        if (listener == null) {
+            throw new ResourceNotFoundException("Listener", dto.listenerId());
+        }    
+
+        history.setListener(DTOToListener(listener));
 
         // Validate and set song (required)
         if (dto.songId() == null || dto.songId().isBlank()) {
             throw new InvalidRequestException("Song ID is required");
         }
-        Song song = songRepository.findById(dto.songId())
-                .orElseThrow(() -> new ResourceNotFoundException("Song", dto.songId()));
-        history.setSong(song);
+        SongDTO song = songService.findById(dto.songId());
+        if (song == null) {
+            throw new ResourceNotFoundException("Song", dto.songId());
+        }
+        history.setSong(DTOToSong(song));
 
         return historyToDto(repository.save(history));
     }
@@ -179,16 +201,21 @@ public class HistoryService {
 
         // Update listener if provided
         if (dto.listenerId() != null && !dto.listenerId().isBlank()) {
-            Listener listener = listenerRepository.findById(dto.listenerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Listener", dto.listenerId()));
-            history.setListener(listener);
+            ListenerDTO listener = listenerService.findById(dto.listenerId());
+            if (listener == null) {
+                throw new ResourceNotFoundException("Listener", dto.listenerId());
+            }    
+
+            history.setListener(DTOToListener(listener));
         }
 
         // Update song if provided (required field, so must be valid)
         if (dto.songId() != null && !dto.songId().isBlank()) {
-            Song song = songRepository.findById(dto.songId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Song", dto.songId()));
-            history.setSong(song);
+            SongDTO song = songService.findById(dto.songId());
+            if (song == null) {
+                throw new ResourceNotFoundException("Song", dto.songId());
+            }
+            history.setSong(DTOToSong(song));
         }
 
         return historyToDto(repository.save(history));
