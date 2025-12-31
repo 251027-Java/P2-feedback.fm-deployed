@@ -66,12 +66,12 @@ ${entry.commitId}
 """
                     // allow some options for user to either skip or force a run via commit message
                     // [skip] has higher priority if they for some reason provide both [skip] and [run]
-                    if (entry.msg =~ /\[skip\]/i) {
-                        echo "[skip] identified: skipping tests"
+                    if (entry.msg =~ /(?i)\[skip\]/) {
+                        echo '[skip] identified: skipping tests'
                         skipRun = true
                         return
-                    } else if (entry.msg =~ /\[run\]/i) {
-                        echo "[run] identified: running all tests"
+                    } else if (entry.msg =~ /(?i)\[run\]/) {
+                        echo '[run] identified: running all tests'
                         forceRun = true
                         return
                     }
