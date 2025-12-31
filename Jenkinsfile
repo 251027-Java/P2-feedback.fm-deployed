@@ -44,13 +44,13 @@ pipeline {
         stage('check run requirements') {
             steps {
                 script {
-                    echo currentBuild.changeSets.size()
+                    echo "${currentBuild.changeSets.size()}"
 
                     for (changeSet in currentBuild.changeSets) {
-                        echo changeSet.items.size()
+                        echo "${changeSet.items.size()}"
 
                         for (entry in changeSet.items) {
-                            echo entry.affectedFiles.size()
+                            echo "${entry.affectedFiles.size()}"
                         }
                     }
 
