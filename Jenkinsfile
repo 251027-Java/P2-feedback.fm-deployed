@@ -12,6 +12,7 @@ def chNames = [
     lintFrontend: 'lint / frontend',
     testBackend: 'test / backend',
     buildFrontend: 'build / frontend',
+    buildBackend: 'build / backend',
 ]
 
 def limitText(text, end = true) {
@@ -47,6 +48,7 @@ pipeline {
         stage('check run requirements') {
             steps {
                 script {
+                    // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
                     echo "change sets: ${currentBuild.changeSets.size()}"
 
                     // should only be git
@@ -199,6 +201,40 @@ msg: ${entry.msg}
                                         title: res.title
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('build backend') {
+            when {
+                not { expression { skipRun } }
+                anyOf {
+                    expression { forceRun }
+                    changeset 'Jenkinsfile'
+                    allOf {
+                        expression { isRelatedToPrimaryBranch }
+                        changeset '**/backend/**'
+                    }
+                }
+            }
+
+            steps {
+                withChecks(name: chNames.buildBackend) {
+                    dir('backend') {
+                        def res = [con: 'SUCCESS', title: 'Success']
+
+                        try {
+                            sh './mvnw -B package -DskipTests'
+                        } catch (err) {
+                            res.con = 'FAILURE'
+                            res.title = 'Failed'
+                            throw err
+                        } finally {
+                            publishChecks name: chNames.buildBackend,
+                                conclusion: res.con,
+                                title: res.title
                         }
                     }
                 }
