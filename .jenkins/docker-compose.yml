@@ -14,7 +14,7 @@ services:
       JAVA_OPTS: '-Djenkins.install.runSetupWizard=false'
       DOCKER_TLS_VERIFY: 1
       DOCKER_CERT_PATH: /certs/client
-      DOCKER_HOST: tcp://jdocker:2376
+      DOCKER_HOST: tcp://docker:2376
       CASC_JENKINS_CONFIG: /var/jenkins_home/casc_configs
     networks:
       - jenkins-nw
@@ -33,7 +33,9 @@ services:
     environment:
       DOCKER_TLS_CERTDIR: /certs
     networks:
-      - jenkins-nw
+      jenkins-nw:
+        aliases:
+          - docker
     privileged: true
 
 volumes:
