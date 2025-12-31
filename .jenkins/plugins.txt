@@ -9,6 +9,7 @@ github-branch-source
 github-checks
 http_request
 job-dsl
+last-changes
 ldap
 matrix-auth
 maven-plugin

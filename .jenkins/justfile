@@ -160,7 +160,8 @@ logs:
 # Sort plugins.txt
 [group("Extra")]
 plugins:
-    cat plugins.txt | sort > plugins.txt
+    content=$(cat plugins.txt | sort); \
+    echo "$content" > plugins.txt
 
 # Update the files in the current directory with gitsnip (for prod environment)
 [group("Extra")]
