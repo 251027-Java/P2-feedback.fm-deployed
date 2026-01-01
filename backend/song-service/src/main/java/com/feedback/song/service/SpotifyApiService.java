@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient("spotify-integration-service")
 public interface SpotifyApiService {
     
-    @GetMapping("/api/user/currently-playing")
+    @GetMapping("/api/api/currently-playing")
     public Map<String, Object> getCurrentlyPlaying(@RequestBody String accessToken);
 
-    @GetMapping("/api/user/top-tracks")
+    @GetMapping("/api/api/top-tracks")
     public Map<String, Object> getTopTracks(@RequestBody String accessToken, @RequestParam String timeRange);
 
 }

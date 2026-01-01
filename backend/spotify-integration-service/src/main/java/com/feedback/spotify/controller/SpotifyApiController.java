@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/api")
 public class SpotifyApiController {
 
     private final SpotifyApiService apiService;
@@ -33,6 +33,7 @@ public class SpotifyApiController {
 
     @GetMapping("/currently-playing")
     public Map<String, Object> getCurrentlyPlaying(@RequestBody String accessToken) {
+        System.out.println("Inside currently playing - api controller");
         return apiService.getCurrentlyPlaying(accessToken);
     }
 

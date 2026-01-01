@@ -7,6 +7,23 @@ spring:
 
   cloud:
     gateway:
+      globalcors:
+          # Ensures preflight requests are handled even if they don't match a route
+          add-to-simple-url-handler-mapping: true 
+          cors-configurations:
+            '[/**]':
+              allowedOrigins: "https://your-frontend-domain.com"
+              allowedMethods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - OPTIONS
+              allowedHeaders: "*"
+              allowCredentials: true
+      default-filters:
+          # Prevents duplicate headers if a microservice accidentally sends one
+          - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       server:
         webflux:
           routes:
@@ -14,65 +31,43 @@ spring:
             - id: album-route
               uri: lb://album-service
               predicates:
-                - Path=/album/**
-              filters:
-                - StripPrefix=1
+                - Path=/api/albums/**
 
             # Route: /artist/** -> artist-service
             - id: artist-route
               uri: lb://artist-service
               predicates:
-                - Path=/artist/**
-              filters:
-                - StripPrefix=1
+                - Path=/api/artists/**
 
             # Route: /history/** -> history-service
             - id: history-route
               uri: lb://history-service
               predicates:
-                - Path=/history/**
-              filters:
-                - StripPrefix=1
+                - Path=/api/history/**
 
             # Route: /listener/** -> listener-service
             - id: listener-route
               uri: lb://listener-service
               predicates:
-                - Path=/listener/**
-              filters:
-                - StripPrefix=1
-
-            # Route: /music-metadata/** -> music-metadata-service
-            - id: music-metadata-route
-              uri: lb://music-metadata-service
-              predicates:
-                - Path=/music-metadata/**
-              filters:
-                - StripPrefix=1
+                - Path=/api/users/**
 
             # Route: /playlist/** -> playlist-service
             - id: playlist-route
               uri: lb://playlist-service
               predicates:
-                - Path=/playlist/**
-              filters:
-                - StripPrefix=1
+                - Path=/api/playlists/**
 
             # Route: /song/** -> song-service
             - id: song-route
               uri: lb://song-service       
               predicates:
-                - Path=/song/**          
-              filters:
-                - StripPrefix=1    
+                - Path=/api/songs/**
 
             # Route: /spotify-integration/** -> spotify-integration-service
             - id: spotify-integration-route
               uri: lb://spotify-integration-service       
               predicates:
-                - Path=/spotify-integration/**          
-              filters:
-                - StripPrefix=1    
+                - Path=/api/auth/** 
 
 # Eureka Client Configuration
 eureka:

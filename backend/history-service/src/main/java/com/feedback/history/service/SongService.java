@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient("song-service")
 public interface SongService {
     
-    @GetMapping("/find-by-id/{id}")
+    @GetMapping("/api/song/find-by-id/{id}")
     public SongDTO findById(@PathVariable String id);    
 
 }

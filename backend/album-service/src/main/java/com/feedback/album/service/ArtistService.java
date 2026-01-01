@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient("artist-service")
 public interface ArtistService {
     
-    @GetMapping("/api/artist/find-by-id/{id}")
+    @GetMapping("/api/artists/find-by-id/{id}")
     public ArtistDTO findById(@PathVariable String id);   
 
-    @GetMapping("/api/artist/exists/{id}")
+    @GetMapping("/api/artists/exists/{id}")
     public boolean existsById(@PathVariable String id);
 }
 
