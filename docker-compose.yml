@@ -54,9 +54,9 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_RETENTION_HOURS: 168
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -91,18 +91,14 @@ services:
 
   # Frontend Service
   frontend:
-    image: node:20
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
     container_name: spotify_frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-5176}:80"
     environment:
-      - VITE_API_URL=${VITE_API_URL}
-      - VITE_PORT=${FRONTEND_PORT:-3000}
-    command: sh -c "npm install && npm run dev -- --host"
+      - FBFM_API_URL=${VITE_API_URL}
     depends_on:
       - backend
 
