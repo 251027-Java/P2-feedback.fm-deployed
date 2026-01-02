@@ -338,14 +338,14 @@ msg: ${entry.msg}
 
                 dir('frontend') {
                     script {
-                        def image = docker.build('minidomo/feedbackfm/frontend')
+                        def image = docker.build('minidomo/feedbackfm')
 
                         docker.withRegistry('https://index.docker.io/v2/', 'docker-hub-cred') {
                             image.push()
 
                             def sha = env.GIT_COMMIT.take(7)
                             def buildTag = env.BUILD_TAG.substring('jenkins-'.length())
-                            image.push("${buildTag}-${sha}")
+                            image.push("frontend-${buildTag}-${sha}")
                         }
                     }
                 }
