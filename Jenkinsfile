@@ -318,7 +318,7 @@ msg: ${entry.msg}
                 echo 'do something here frontend'
             }
         }
-        
+
         stage('docker backend') {
             when {
                 expression { buildSuccess.backend }
@@ -333,7 +333,7 @@ msg: ${entry.msg}
     post {
         always {
             // delete the workspace after to prevent large disk usage
-            cleanWs()
+            cleanWs deleteDirs: true
         }
     }
 }
