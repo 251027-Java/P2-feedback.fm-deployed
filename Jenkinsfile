@@ -9,11 +9,26 @@ def isDefault = false
 def forceRun = false
 def skipRun = false
 
-def chNames = [
-    lintFrontend: 'lint / frontend',
-    testBackend: 'test / backend',
-    buildFrontend: 'build / frontend',
-    buildBackend: 'build / backend',
+def fmChecks = [
+    lint: [
+        frontend: 'lint / frontend',
+    ],
+    test: [
+        backend: 'test / backend',
+    ],
+    build: [
+        frontend: 'build / frontend',
+        backend: 'build / backend',
+    ],
+    docker: [
+        frontend: 'docker / frontend',
+        backend: 'docker / backend',
+    ]
+]
+
+def buildSuccess = [
+    frontend: false,
+    backend: false,
 ]
 
 def limitText(text, end = true) {
@@ -106,13 +121,6 @@ msg: ${entry.msg}
                             forceRun = true
                         }
                     }
-
-                    // ensure default branch runs all tests
-                    if (isDefault) {
-                        echo 'default branch: running all tests'
-                        forceRun = true
-                        return
-                    }
                 }
             }
         }
@@ -124,37 +132,46 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isPrToDefault }
+                        anyOf {
+                            expression { isPrToDefault }
+                            expression { isDefault }
+                        }
                         changeset '**/frontend/**'
                     }
+                }
+                beforeAgent true
+            }
+
+            agent {
+                // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
+                docker {
+                    args '--entrypoint=""'
+                    image 'biomejs/biome:latest'
+                    registryCredentialsId 'github-app-team'
+                    registryUrl 'https://ghcr.io/'
                 }
             }
 
             steps {
-                withChecks(name: chNames.lintFrontend) {
+                withChecks(name: fmChecks.lint.frontend) {
                     dir('frontend') {
                         script {
-                            // https://biomejs.dev/recipes/continuous-integration/#gitlab-ci
-                            docker.withRegistry('https://ghcr.io/', 'github-app-team') {
-                                docker.image('biomejs/biome:latest').inside('--entrypoint=""') {
-                                    def res = [con: 'SUCCESS', title: 'Success']
+                            def res = [con: 'SUCCESS', title: 'Success']
 
-                                    try {
-                                        sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
-                                    } catch (err) {
-                                        res.con = 'FAILURE'
-                                        res.title = 'Failed'
-                                        throw err
-                                    } finally {
-                                        def output = readFile file: 'frontend-code-quality.txt'
-                                        echo output
+                            try {
+                                sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
+                            } catch (err) {
+                                res.con = 'FAILURE'
+                                res.title = 'Failed'
+                                throw err
+                            } finally {
+                                def output = readFile file: 'frontend-code-quality.txt'
+                                echo output
 
-                                        publishChecks name: chNames.lintFrontend,
-                                            conclusion: res.con,
-                                            summary: limitText(output),
-                                            title: res.title
-                                    }
-                                }
+                                publishChecks name: fmChecks.lint.frontend,
+                                    conclusion: res.con,
+                                    summary: limitText(output),
+                                    title: res.title
                             }
                         }
                     }
@@ -169,14 +186,17 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isPrToDefault }
+                        anyOf {
+                            expression { isPrToDefault }
+                            expression { isDefault }
+                        }
                         changeset '**/backend/**'
                     }
                 }
             }
 
             steps {
-                withChecks(name: chNames.testBackend) {
+                withChecks(name: fmChecks.test.backend) {
                     dir('backend') {
                         sh './mvnw -B test'
                         junit '**/target/surefire-reports/TEST-*.xml'
@@ -192,37 +212,42 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isPrToDefault }
+                        anyOf {
+                            expression { isPrToDefault }
+                            expression { isDefault }
+                        }
                         changeset '**/frontend/**'
                     }
+                }
+                beforeAgent true
+            }
+
+            agent {
+                docker {
+                    image 'node:lts-alpine'
                 }
             }
 
             steps {
-                withChecks(name: chNames.buildFrontend) {
+                withChecks(name: fmChecks.build.frontend) {
                     dir('frontend') {
                         script {
-                            docker.image('node:lts-alpine').inside {
-                                def res = [con: 'SUCCESS', title: 'Success']
+                            def res = [con: 'SUCCESS', title: 'Success']
 
-                                try {
-                                    sh 'npm ci'
-                                    sh 'npm run build'
+                            try {
+                                sh 'npm ci'
+                                sh 'npm run build'
 
-                                    if (isDefault) {
-                                        archiveArtifacts artifacts: 'dist/**',
-                                            fingerprint: true,
-                                            allowEmptyArchive: true
-                                    }
-                                } catch (err) {
-                                    res.con = 'FAILURE'
-                                    res.title = 'Failed'
-                                    throw err
-                                } finally {
-                                    publishChecks name: chNames.buildFrontend,
-                                        conclusion: res.con,
-                                        title: res.title
-                                }
+                                // build image and push to docker hub if on default branch
+                                buildSuccess.frontend = isDefault
+                            } catch (err) {
+                                res.con = 'FAILURE'
+                                res.title = 'Failed'
+                                throw err
+                            } finally {
+                                publishChecks name: fmChecks.build.frontend,
+                                    conclusion: res.con,
+                                    title: res.title
                             }
                         }
                     }
@@ -237,14 +262,17 @@ msg: ${entry.msg}
                     expression { forceRun }
                     changeset 'Jenkinsfile'
                     allOf {
-                        expression { isPrToDefault }
+                        anyOf {
+                            expression { isPrToDefault }
+                            expression { isDefault }
+                        }
                         changeset '**/backend/**'
                     }
                 }
             }
 
             steps {
-                withChecks(name: chNames.buildBackend) {
+                withChecks(name: fmChecks.build.backend) {
                     dir('backend') {
                         script {
                             def res = [con: 'SUCCESS', title: 'Success']
@@ -252,23 +280,30 @@ msg: ${entry.msg}
                             try {
                                 sh './mvnw -B package -DskipTests'
 
-                                if (isDefault) {
-                                    archiveArtifacts artifacts: 'target/*.jar',
-                                        fingerprint: true,
-                                        allowEmptyArchive: true
-                                }
+                                // build image and push to docker hub if on default branch
+                                buildSuccess.backend = isDefault
                             } catch (err) {
                                 res.con = 'FAILURE'
                                 res.title = 'Failed'
                                 throw err
                             } finally {
-                                publishChecks name: chNames.buildBackend,
+                                publishChecks name: fmChecks.build.backend,
                                     conclusion: res.con,
                                     title: res.title
                             }
                         }
                     }
                 }
+            }
+        }
+
+        stage('docker frontend') {
+            when {
+                expression { buildSuccess.frontend }
+            }
+
+            steps {
+                echo 'do something here'
             }
         }
     }
