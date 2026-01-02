@@ -107,6 +107,7 @@ msg: ${entry.msg}
 
                         if (matcher.find()) {
                             def attributes = (matcher.group(1).split(',').collect { it.trim() }) as Set
+                            echo "${attributes}"
 
                             if (attributes.contains('skip')) {
                                 echo '[skip]: skipping tests'
@@ -127,6 +128,7 @@ msg: ${entry.msg}
                             // build images based on "docker-*"
                             buildSuccess.each { k, v ->
                                 def target = "docker-${k}"
+                                echo "looking for ${target}"
 
                                 if (attributes.contains(target)) {
                                     echo "[${target}]: will build the ${k} docker image"
