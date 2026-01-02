@@ -177,27 +177,21 @@ msg: ${entry.msg}
 
                 dir('frontend') {
                     script {
-                        sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
-                    }
-                }
-            }
+                        def res = null
 
-            post {
-                success {
-                    script {
-                        def output = readFile file: 'frontend-code-quality.txt'
-                        echo output
-                        publishChecks name: fmChecks.lint.frontend, conclusion: 'SUCCESS', title: 'Success',
-                            summary: limitText(output)
-                    }
-                }
+                        try {
+                            sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
+                            res = [con: 'SUCCESS', title: 'Success']
+                        } catch (err) {
+                            res = [con: 'FAILURE', title: 'Failed']
+                            throw err
+                        } finally {
+                            def output = readFile file: 'frontend-code-quality.txt'
+                            echo output
 
-                failure {
-                    script {
-                        def output = readFile file: 'frontend-code-quality.txt'
-                        echo output
-                        publishChecks name: fmChecks.lint.frontend, conclusion: 'FAILURE', title: 'Failed',
-                            summary: limitText(output)
+                            publishChecks name: fmChecks.lint.frontend, conclusion: res.con, title: res.title,
+                                summary: limitText(output)
+                        }
                     }
                 }
             }
