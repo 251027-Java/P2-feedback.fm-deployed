@@ -107,3 +107,21 @@ jobs:
           }
         }
       }
+  - script: >
+      pipelineJob('image') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  credentials('github-app-team')
+                  url('https://github.com/251027-Java/P2-feedback.fm-deployed')
+                }
+                branch('dockerhub')
+              }
+            }
+            scriptPath('.jenkins/pipelines/Jenkinsfile.docker')
+            lightweight(true)
+          }
+        }
+      }

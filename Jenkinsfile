@@ -378,7 +378,7 @@ msg: ${entry.msg}
         always {
             // delete the workspace after to prevent large disk usage
             cleanWs()
-        // clean up docker images
+            // clean up docker images
         }
     }
 }
