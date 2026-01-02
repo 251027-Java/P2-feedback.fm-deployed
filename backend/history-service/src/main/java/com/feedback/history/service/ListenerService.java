@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient("listener-service")
 public interface ListenerService {
     
-    @GetMapping("/find-by-id/{id}")
+    @GetMapping("/api/users/find-by-id/{id}")
     public ListenerDTO findById(@PathVariable String id);   
 
 }

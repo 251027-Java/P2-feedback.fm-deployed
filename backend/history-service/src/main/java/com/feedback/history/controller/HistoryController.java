@@ -207,4 +207,22 @@ public class HistoryController {
 		);
 		return ResponseEntity.ok(stats);
 	}
+
+	@PostMapping("/create")
+	public ResponseEntity<HistoryDTO> create(@RequestBody HistoryDTO historyDTO) {
+		HistoryDTO created = historyService.create(historyDTO);
+		return ResponseEntity.status(201).body(created);
+	}
+
+	@GetMapping("/find-by-listener/{listenerId}")
+	public ResponseEntity<List<HistoryDTO>> findByListenerId(@PathVariable String listenerId) {
+		List<HistoryDTO> history = historyService.findByListenerId(listenerId);
+		return ResponseEntity.ok(history);
+	}
+
+	@GetMapping("/find-by-listener-and-song/{listenerId}/{songId}")
+	public ResponseEntity<List<HistoryDTO>> findByListenerIdAndSongId(@PathVariable String listenerId, @PathVariable String songId) {
+		List<HistoryDTO> history = historyService.findByListenerIdAndSongId(listenerId, songId);
+		return ResponseEntity.ok(history);
+	}
 }
