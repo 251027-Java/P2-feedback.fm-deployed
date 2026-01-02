@@ -35,7 +35,7 @@ pipeline {
                     sh 'git rev-parse HEAD'
                     sh 'git log -1 --pretty=%B'
 
-                    currentBuild.displayName = "${currentBuild.displayName} ${params.BRANCH} ${shortSha()}"
+                    currentBuild.displayName = "${currentBuild.displayName} ${params.BRANCH} ${params.COMMIT.take(7)}"
                 }
             }
         }
