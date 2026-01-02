@@ -44,6 +44,10 @@ def limitText(text, end = true) {
     return text.take(limit)
 }
 
+def shortSha() {
+    return env.GIT_COMMIT.take(7)
+}
+
 pipeline {
     agent any
 
@@ -65,6 +69,8 @@ pipeline {
             steps {
                 script {
                     sh 'printenv | sort'
+
+                    currentBuild.displayName = "${currentBuild.displayName} ${shortSha()}"
 
                     /*
                     Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
@@ -118,9 +124,14 @@ msg: ${entry.msg}
                                 isPrToDefault = true
                             }
 
-                            if (attributes.contains('docker-frontend')) {
-                                echo '[docker-frontend]: will build the frontend docker image'
-                                buildSuccess.frontend = true
+                            // build images based on "docker-*"
+                            buildSuccess.each { k, v ->
+                                def target = "docker-${k}"
+
+                                if (attributes.contains(target)) {
+                                    echo "[${target}]: will build the ${k} docker image"
+                                    buildSuccess[k] = true
+                                }
                             }
                         }
                     }
@@ -330,10 +341,7 @@ msg: ${entry.msg}
                         def image = docker.build('minidomo/feedbackfm')
 
                         docker.withRegistry('', 'docker-hub-cred') {
-                            def sha = env.GIT_COMMIT.take(7)
-                            def buildTag = env.BUILD_TAG.substring('jenkins-'.length())
-
-                            image.push("frontend-${buildTag}-${sha}")
+                            image.push("frontend-${env.GIT_BRANCH}-${shortSha()}")
                             image.push('frontend-latest')
                         }
                     }
@@ -367,6 +375,7 @@ msg: ${entry.msg}
         always {
             // delete the workspace after to prevent large disk usage
             cleanWs()
+        // clean up docker images
         }
     }
 }
