@@ -173,28 +173,28 @@ msg: ${entry.msg}
             }
 
             steps {
-                withChecks(name: fmChecks.lint.frontend) {
-                    dir('frontend') {
-                        script {
-                            def res = [con: 'SUCCESS', title: 'Success']
+                publishChecks name: fmChecks.lint.frontend, title: 'Pending', status: 'IN_PROGRESS'
 
-                            try {
-                                sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
-                            } catch (err) {
-                                res.con = 'FAILURE'
-                                res.title = 'Failed'
-                                throw err
-                            } finally {
-                                def output = readFile file: 'frontend-code-quality.txt'
-                                echo output
-
-                                publishChecks name: fmChecks.lint.frontend,
-                                    conclusion: res.con,
-                                    summary: limitText(output),
-                                    title: res.title
-                            }
-                        }
+                dir('frontend') {
+                    script {
+                        sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
                     }
+                }
+            }
+
+            post {
+                success {
+                    def output = readFile file: 'frontend-code-quality.txt'
+                    echo output
+                    publishChecks name: fmChecks.lint.frontend, conclusion: 'SUCCESS', title: 'Success',
+                        summary: limitText(output)
+                }
+
+                failure {
+                    def output = readFile file: 'frontend-code-quality.txt'
+                    echo output
+                    publishChecks name: fmChecks.lint.frontend, conclusion: 'FAILURE', title: 'Failed',
+                        summary: limitText(output)
                 }
             }
         }
@@ -253,28 +253,26 @@ msg: ${entry.msg}
             }
 
             steps {
-                withChecks(name: fmChecks.build.frontend) {
-                    dir('frontend') {
-                        script {
-                            def res = [con: 'SUCCESS', title: 'Success']
+                publishChecks name: fmChecks.build.frontend, title: 'Pending', status: 'IN_PROGRESS'
 
-                            try {
-                                sh 'npm ci'
-                                sh 'npm run build'
+                dir('frontend') {
+                    script {
+                        sh 'npm ci'
+                        sh 'npm run build'
 
-                                // build image and push to docker hub if on default branch
-                                buildSuccess.frontend = isDefault
-                            } catch (err) {
-                                res.con = 'FAILURE'
-                                res.title = 'Failed'
-                                throw err
-                            } finally {
-                                publishChecks name: fmChecks.build.frontend,
-                                    conclusion: res.con,
-                                    title: res.title
-                            }
-                        }
+                        // build image and push to docker hub if on default branch
+                        buildSuccess.frontend = isDefault
                     }
+                }
+            }
+
+            post {
+                success {
+                    publishChecks name: fmChecks.build.frontend, conclusion: 'SUCCESS', title: 'Success'
+                }
+
+                failure {
+                    publishChecks name: fmChecks.build.frontend, conclusion: 'FAILURE', title: 'Failed'
                 }
             }
         }
@@ -298,27 +296,25 @@ msg: ${entry.msg}
             }
 
             steps {
-                withChecks(name: fmChecks.build.backend) {
-                    dir('backend') {
-                        script {
-                            def res = [con: 'SUCCESS', title: 'Success']
+                publishChecks name: fmChecks.build.backend, title: 'Pending', status: 'IN_PROGRESS'
 
-                            try {
-                                sh './mvnw -B package -DskipTests'
+                dir('backend') {
+                    script {
+                        sh './mvnw -B package -DskipTests'
 
-                                // build image and push to docker hub if on default branch
-                                buildSuccess.backend = isDefault
-                            } catch (err) {
-                                res.con = 'FAILURE'
-                                res.title = 'Failed'
-                                throw err
-                            } finally {
-                                publishChecks name: fmChecks.build.backend,
-                                    conclusion: res.con,
-                                    title: res.title
-                            }
-                        }
+                        // build image and push to docker hub if on default branch
+                        buildSuccess.backend = isDefault
                     }
+                }
+            }
+
+            post {
+                success {
+                    publishChecks name: fmChecks.build.backend, conclusion: 'SUCCESS', title: 'Success'
+                }
+
+                failure {
+                    publishChecks name: fmChecks.build.backend, conclusion: 'FAILURE', title: 'Failed'
                 }
             }
         }
@@ -329,9 +325,7 @@ msg: ${entry.msg}
             }
 
             steps {
-                publishChecks name: fmChecks.docker.frontend,
-                    title: 'Pending',
-                    status: 'IN_PROGRESS'
+                publishChecks name: fmChecks.docker.frontend, title: 'Pending', status: 'IN_PROGRESS'
 
                 dir('frontend') {
                     script {
@@ -341,8 +335,8 @@ msg: ${entry.msg}
                             def sha = env.GIT_COMMIT.take(7)
                             def buildTag = env.BUILD_TAG.substring('jenkins-'.length())
 
-                            image.push('frontend-latest')
                             image.push("frontend-${buildTag}-${sha}")
+                            image.push('frontend-latest')
                         }
                     }
                 }
