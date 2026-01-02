@@ -127,7 +127,7 @@ msg: ${entry.msg}
 
                             // build images based on "docker-*"
                             buildSuccess.each { k, v ->
-                                def target = "docker-${k}"
+                                def target = "docker-${k}".toString()
                                 echo "looking for ${target}"
 
                                 if (attributes.contains(target)) {
