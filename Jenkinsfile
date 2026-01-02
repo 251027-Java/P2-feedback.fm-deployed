@@ -93,16 +93,28 @@ ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
 files changed: ${entry.affectedFiles.size()}
 msg: ${entry.msg}
 """
-                        // allow some options for user to either skip or force a run via commit message
-                        // [skip] has higher priority if they for some reason provide both [skip] and [run]
-                        if (entry.msg =~ /(?i)\[skip\]/) {
-                            echo '[skip] identified: skipping tests'
-                            skipRun = true
-                            return
-                        } else if (entry.msg =~ /(?i)\[run\]/) {
-                            echo '[run] identified: running all tests'
-                            forceRun = true
-                            return
+                        // allow user to specify attributes for this run by checking the end of the
+                        // commit message for [<attribute1>,<attribute2>,...]
+                        def matcher = entry.msg =~ /\[([^\[]+)\]$/
+
+                        if (matcher.find()) {
+                            def attributes = (matcher.group(1).split(',').collect { it.trim() }) as Set
+
+                            if (attributes.contains('skip')) {
+                                echo '[skip] identified: skipping tests'
+                                skipRun = true
+                            } else if (attributes.contains('run')) {
+                                echo '[run] identified: running all tests'
+                                forceRun = true
+                            }
+
+                            if (attributes.contains('default')) {
+                                echo '[default] identified: interpretting as default branch'
+                                isDefault = true
+                            } else if (attributes.contains('pr-default')) {
+                                echo '[pr-default] identified: interpretting as a PR to default branch'
+                                isPrToDefault = true
+                            }
                         }
                     }
 
@@ -303,7 +315,17 @@ msg: ${entry.msg}
             }
 
             steps {
-                echo 'do something here'
+                echo 'do something here frontend'
+            }
+        }
+        
+        stage('docker backend') {
+            when {
+                expression { buildSuccess.backend }
+            }
+
+            steps {
+                echo 'do something here backend'
             }
         }
     }
