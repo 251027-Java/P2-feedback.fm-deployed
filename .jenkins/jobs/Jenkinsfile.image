@@ -1,0 +1,123 @@
+def res = [
+    commit: '',
+    branch: '',
+]
+
+def createCheckName = { text ->
+    return "docker / ${text}".toString()
+}
+
+def cleanBranchName = { name ->
+    return name.substring('origin/'.length()).replaceAll('/', '-')
+}
+
+def createTagName = { ->
+    return "${params.IMG_TAG_SERIES}-${res.branch}-${res.commit.take(7)}"
+}
+
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout true
+    }
+
+    parameters {
+        booleanParam name: 'IMG_PUSH_LATEST', defaultValue: false, description: 'Create a latest tag from this'
+        string name: 'IMG_COMMIT', trim: true, description: 'Commit SHA to use'
+        string name: 'IMG_BRANCH', trim: true, description: 'Branch to use'
+        string name: 'IMG_TAG_SERIES', trim: true, description: 'Series name to use'
+        string name: 'IMG_DIRECTORY', trim: true, description: 'Location of Dockerfile and context'
+    }
+
+    environment {
+        GITHUB_OWNER = '251027-Java'
+        GITHUB_REPO = 'P2-feedback.fm-deployed'
+        DOCKER_REPO = 'minidomo/feedbackfm'
+    }
+
+    stages {
+        stage('init') {
+            steps {
+                script {
+                    sh 'printenv | sort'
+
+                    if (params.IMG_BRANCH == '' && params.IMG_COMMIT == '') {
+                        error 'IMG_BRANCH and IMG_COMMIT cannot both be empty'
+                    }
+
+                    def resName = params.IMG_COMMIT == '' ? params.IMG_BRANCH : params.IMG_COMMIT
+
+                    def scmVars = checkout scmGit(branches: [[name: resName]],
+                        extensions: [[$class: 'GitSCMStatusChecksExtension', skip: true]],
+                        userRemoteConfigs: [[
+                            credentialsId: 'github-app-team',
+                            url: "https://github.com/${env.GITHUB_OWNER}/${env.GITHUB_REPO}"
+                        ]],
+                    )
+
+                    echo "${scmVars}"
+
+                    sh 'git log -1 --pretty=%B'
+                    res.commit = scmVars.GIT_COMMIT
+
+                    // scmVars.GIT_BRANCH could be detatched due to the commit not being the HEAD
+                    res.branch = sh(returnStdout: true,
+                        script: """
+                        git branch --no-color -r --contains ${res.commit} | awk '/->/ {print \$3; exit} {print \$1; exit}'
+                        """).trim()
+
+                    res.branch = cleanBranchName(res.branch)
+
+                    currentBuild.displayName = "${currentBuild.displayName} ${res.branch} ${res.commit.take(7)}"
+
+                    if (params.IMG_TAG_SERIES == '') {
+                        error 'IMG_TAG_SERIES cannot be empty'
+                    }
+                }
+            }
+        }
+
+        stage('docker') {
+            steps {
+                publishChecks name: createCheckName(params.IMG_TAG_SERIES), title: 'Pending', status: 'IN_PROGRESS'
+
+                dir(params.IMG_DIRECTORY) {
+                    script {
+                        def image = docker.build(env.DOCKER_REPO)
+
+                        docker.withRegistry('', 'docker-hub-cred') {
+                            image.push(createTagName())
+
+                            if (params.IMG_PUSH_LATEST) {
+                                image.push("${params.IMG_TAG_SERIES}-latest")
+                            }
+                        }
+                    }
+                }
+            }
+
+            post {
+                success {
+                    publishChecks name: createCheckName(params.IMG_TAG_SERIES), conclusion: 'SUCCESS', title: 'Success'
+                }
+
+                failure {
+                    publishChecks name: createCheckName(params.IMG_TAG_SERIES), conclusion: 'FAILURE', title: 'Failed'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // delete the workspace after to prevent large disk usage
+            cleanWs()
+
+            catchError(buildResult: null) {
+                // clean up docker images
+                sh "docker rmi -f ${env.DOCKER_REPO}:${createTagName()}"
+            }
+        }
+    }
+}
