@@ -184,17 +184,21 @@ msg: ${entry.msg}
 
             post {
                 success {
-                    def output = readFile file: 'frontend-code-quality.txt'
-                    echo output
-                    publishChecks name: fmChecks.lint.frontend, conclusion: 'SUCCESS', title: 'Success',
-                        summary: limitText(output)
+                    script {
+                        def output = readFile file: 'frontend-code-quality.txt'
+                        echo output
+                        publishChecks name: fmChecks.lint.frontend, conclusion: 'SUCCESS', title: 'Success',
+                            summary: limitText(output)
+                    }
                 }
 
                 failure {
-                    def output = readFile file: 'frontend-code-quality.txt'
-                    echo output
-                    publishChecks name: fmChecks.lint.frontend, conclusion: 'FAILURE', title: 'Failed',
-                        summary: limitText(output)
+                    script {
+                        def output = readFile file: 'frontend-code-quality.txt'
+                        echo output
+                        publishChecks name: fmChecks.lint.frontend, conclusion: 'FAILURE', title: 'Failed',
+                            summary: limitText(output)
+                    }
                 }
             }
         }
@@ -359,6 +363,7 @@ msg: ${entry.msg}
             }
 
             steps {
+                // TODO: implement later
                 echo 'do something here backend'
             }
         }
