@@ -148,13 +148,15 @@ msg: ${entry.msg}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
-                    changeset 'Jenkinsfile'
                     allOf {
                         anyOf {
                             expression { isPrToDefault }
                             expression { isDefault }
                         }
-                        changeset '**/frontend/**'
+                        anyOf {
+                            changeset 'Jenkinsfile'
+                            changeset '**/frontend/**'
+                        }
                     }
                 }
                 beforeAgent true
@@ -202,13 +204,15 @@ msg: ${entry.msg}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
-                    changeset 'Jenkinsfile'
                     allOf {
                         anyOf {
                             expression { isPrToDefault }
                             expression { isDefault }
                         }
-                        changeset '**/backend/**'
+                        anyOf {
+                            changeset 'Jenkinsfile'
+                            changeset '**/backend/**'
+                        }
                     }
                 }
             }
@@ -228,13 +232,15 @@ msg: ${entry.msg}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
-                    changeset 'Jenkinsfile'
                     allOf {
                         anyOf {
                             expression { isPrToDefault }
                             expression { isDefault }
                         }
-                        changeset '**/frontend/**'
+                        anyOf {
+                            changeset 'Jenkinsfile'
+                            changeset '**/frontend/**'
+                        }
                     }
                 }
                 beforeAgent true
@@ -278,13 +284,16 @@ msg: ${entry.msg}
                 not { expression { skipRun } }
                 anyOf {
                     expression { forceRun }
-                    changeset 'Jenkinsfile'
                     allOf {
                         anyOf {
                             expression { isPrToDefault }
                             expression { isDefault }
                         }
-                        changeset '**/backend/**'
+                        anyOf {
+                            changeset 'Jenkinsfile'
+                            changeset '**/backend/**'
+                        }
+                        
                     }
                 }
             }
@@ -333,7 +342,7 @@ msg: ${entry.msg}
 
                         docker.withRegistry('https://index.docker.io/v2/', 'docker-hub-cred') {
                             image.push()
-                            
+
                             def sha = env.GIT_COMMIT.take(7)
                             def buildTag = env.BUILD_TAG.substring('jenkins-'.length())
                             image.push("${buildTag}-${sha}")
