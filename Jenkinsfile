@@ -64,6 +64,8 @@ pipeline {
         stage('check run requirements') {
             steps {
                 script {
+                    sh 'printenv | sort'
+
                     /*
                     Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
                     has env.BRANCH_IS_PRIMARY allowing for an easier check.
@@ -101,19 +103,24 @@ msg: ${entry.msg}
                             def attributes = (matcher.group(1).split(',').collect { it.trim() }) as Set
 
                             if (attributes.contains('skip')) {
-                                echo '[skip] identified: skipping tests'
+                                echo '[skip]: skipping tests'
                                 skipRun = true
                             } else if (attributes.contains('run')) {
-                                echo '[run] identified: running all tests'
+                                echo '[run]: running all tests'
                                 forceRun = true
                             }
 
                             if (attributes.contains('default')) {
-                                echo '[default] identified: interpretting as default branch'
+                                echo '[default]: interpretting as default branch'
                                 isDefault = true
                             } else if (attributes.contains('pr-default')) {
-                                echo '[pr-default] identified: interpretting as a PR to default branch'
+                                echo '[pr-default]: interpretting as a PR to default branch'
                                 isPrToDefault = true
+                            }
+
+                            if (attributes.contains('docker-frontend')) {
+                                echo '[docker-frontend]: will build the frontend docker image'
+                                buildSuccess.frontend = true
                             }
                         }
                     }
@@ -124,7 +131,6 @@ msg: ${entry.msg}
                         if (size == 0) {
                             echo 'PR made: running all tests'
                             forceRun = true
-                            return
                         }
 
                         // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
@@ -316,6 +322,34 @@ msg: ${entry.msg}
 
             steps {
                 echo 'do something here frontend'
+
+                publishChecks name: fmChecks.docker.frontend,
+                    title: 'Pending',
+                    status: 'IN_PROGRESS'
+
+                dir('frontend') {
+                    script {
+                        def image = docker.build('minidomo/fbfm-frontend')
+
+                        docker.withRegistry('https://index.docker.io/v2/', 'docker-hub-cred') {
+                            image.push()
+                        }
+                    }
+                }
+            }
+
+            post {
+                success {
+                    publishChecks name: fmChecks.docker.frontend,
+                        conclusion: 'SUCCESS',
+                        title: 'Success'
+                }
+
+                failure {
+                    publishChecks name: fmChecks.docker.frontend,
+                        conclusion: 'FAILURE',
+                        title: 'Failed'
+                }
             }
         }
 
@@ -333,7 +367,7 @@ msg: ${entry.msg}
     post {
         always {
             // delete the workspace after to prevent large disk usage
-            cleanWs deleteDirs: true
+            cleanWs()
         }
     }
 }
