@@ -293,7 +293,6 @@ msg: ${entry.msg}
                             changeset 'Jenkinsfile'
                             changeset '**/backend/**'
                         }
-                        
                     }
                 }
             }
@@ -330,8 +329,6 @@ msg: ${entry.msg}
             }
 
             steps {
-                echo 'do something here frontend'
-
                 publishChecks name: fmChecks.docker.frontend,
                     title: 'Pending',
                     status: 'IN_PROGRESS'
@@ -340,12 +337,13 @@ msg: ${entry.msg}
                     script {
                         def image = docker.build('minidomo/feedbackfm')
 
-                        docker.withRegistry('https://index.docker.io/v2/', 'docker-hub-cred') {
-                            image.push()
-
+                        docker.withRegistry('', 'docker-hub-cred') {
                             def sha = env.GIT_COMMIT.take(7)
                             def buildTag = env.BUILD_TAG.substring('jenkins-'.length())
-                            image.push("frontend-${buildTag}-${sha}")
+                            def tag = "frontend-${buildTag}-${sha}"
+
+                            image.tag(tag)
+                            image.push(tag)
                         }
                     }
                 }
