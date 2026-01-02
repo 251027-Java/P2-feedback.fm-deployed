@@ -107,7 +107,7 @@ msg: ${entry.msg}
 
                         if (matcher.find()) {
                             def attributes = (matcher.group(1).split(',').collect { it.trim() }) as Set
-                            echo "${attributes}"
+                            echo "attributes: ${attributes}"
 
                             if (attributes.contains('skip')) {
                                 echo '[skip]: skipping tests'
@@ -127,8 +127,9 @@ msg: ${entry.msg}
 
                             // build images based on "docker-*"
                             buildSuccess.each { k, v ->
+                                // these template strings are type GString, so convert to string
+                                // to work with Set<String>.contains()
                                 def target = "docker-${k}".toString()
-                                echo "looking for ${target}"
 
                                 if (attributes.contains(target)) {
                                     echo "[${target}]: will build the ${k} docker image"
@@ -343,8 +344,8 @@ msg: ${entry.msg}
                         def image = docker.build('minidomo/feedbackfm')
 
                         docker.withRegistry('', 'docker-hub-cred') {
-                            image.push("frontend-${env.GIT_BRANCH}-${shortSha()}")
-                            image.push('frontend-latest')
+                            image.push("fe-${env.GIT_BRANCH}-${shortSha()}")
+                            image.push('fe-latest')
                         }
                     }
                 }
