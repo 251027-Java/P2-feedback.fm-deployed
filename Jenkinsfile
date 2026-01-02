@@ -340,10 +340,9 @@ msg: ${entry.msg}
                         docker.withRegistry('', 'docker-hub-cred') {
                             def sha = env.GIT_COMMIT.take(7)
                             def buildTag = env.BUILD_TAG.substring('jenkins-'.length())
-                            def tag = "frontend-${buildTag}-${sha}"
 
-                            image.tag(tag)
-                            image.push(tag)
+                            image.push('frontend-latest')
+                            image.push("frontend-${buildTag}-${sha}")
                         }
                     }
                 }
