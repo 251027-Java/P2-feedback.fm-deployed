@@ -108,7 +108,7 @@ jobs:
         }
       }
   - script: >
-      pipelineJob('test') {
+      pipelineJob('image') {
         definition {
           cpsScm {
             scm {
@@ -117,7 +117,7 @@ jobs:
                   credentials('github-app-team')
                   url('https://github.com/251027-Java/P2-feedback.fm-deployed')
                 }
-                branch('main|dockerhub')
+                branches('main', 'dockerhub')
               }
             }
             scriptPath('.jenkins/jobs/Jenkinsfile.image')

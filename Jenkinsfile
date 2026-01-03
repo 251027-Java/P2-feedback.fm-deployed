@@ -20,10 +20,6 @@ def fmChecks = [
         frontend: 'build / frontend',
         backend: 'build / backend',
     ],
-    docker: [
-        frontend: 'docker / frontend',
-        backend: 'docker / backend',
-    ]
 ]
 
 def buildSuccess = [
@@ -31,7 +27,7 @@ def buildSuccess = [
     backend: false,
 ]
 
-def limitText(text, end = true) {
+def limitText = { text, end = true ->
     // https://github.com/jenkinsci/junit-plugin/blob/6c6699fb25df1b7bae005581d9af2ed698c47a4c/src/main/java/io/jenkins/plugins/junit/checks/JUnitChecksPublisher.java#L72
     // stay within limits of check api for summaries
     def MAX_MSG_SIZE_TO_CHECKS_API = 65535
@@ -44,7 +40,7 @@ def limitText(text, end = true) {
     return text.take(limit)
 }
 
-def shortSha() {
+def shortSha = { ->
     return env.GIT_COMMIT.take(7)
 }
 
@@ -96,11 +92,11 @@ pipeline {
                         def date = new Date(entry.timestamp)
 
                         echo """
-${entry.commitId}
-${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
-files changed: ${entry.affectedFiles.size()}
-msg: ${entry.msg}
-"""
+                        ${entry.commitId}
+                        ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
+                        files changed: ${entry.affectedFiles.size()}
+                        msg: ${entry.msg}
+                        """
                         // allow user to specify attributes for this run by checking the end of the
                         // commit message for [<attribute1>,<attribute2>,...]
                         def matcher = entry.msg =~ /\[([^\[]+)\]$/
@@ -271,9 +267,6 @@ msg: ${entry.msg}
                     script {
                         sh 'npm ci'
                         sh 'npm run build'
-
-                        // build image and push to docker hub if on default branch
-                        buildSuccess.frontend = isDefault
                     }
                 }
             }
@@ -281,6 +274,7 @@ msg: ${entry.msg}
             post {
                 success {
                     publishChecks name: fmChecks.build.frontend, conclusion: 'SUCCESS', title: 'Success'
+                    buildSuccess.frontend = isDefault
                 }
 
                 failure {
@@ -313,9 +307,6 @@ msg: ${entry.msg}
                 dir('backend') {
                     script {
                         sh './mvnw -B package -DskipTests'
-
-                        // build image and push to docker hub if on default branch
-                        buildSuccess.backend = isDefault
                     }
                 }
             }
@@ -323,6 +314,7 @@ msg: ${entry.msg}
             post {
                 success {
                     publishChecks name: fmChecks.build.backend, conclusion: 'SUCCESS', title: 'Success'
+                    buildSuccess.backend = isDefault
                 }
 
                 failure {
@@ -337,28 +329,12 @@ msg: ${entry.msg}
             }
 
             steps {
-                publishChecks name: fmChecks.docker.frontend, title: 'Pending', status: 'IN_PROGRESS'
-
-                dir('frontend') {
-                    script {
-                        def image = docker.build('minidomo/feedbackfm')
-
-                        docker.withRegistry('', 'docker-hub-cred') {
-                            image.push("fe-${env.GIT_BRANCH}-${shortSha()}")
-                            image.push('fe-latest')
-                        }
-                    }
-                }
-            }
-
-            post {
-                success {
-                    publishChecks name: fmChecks.docker.frontend, conclusion: 'SUCCESS', title: 'Success'
-                }
-
-                failure {
-                    publishChecks name: fmChecks.docker.frontend, conclusion: 'FAILURE', title: 'Failed'
-                }
+                build job: 'image', parameters: [
+                    booleanParam(name: 'IMG_PUSH_LATEST', value: true),
+                    string(name: 'IMG_COMMIT', value: 'asd'),
+                    string(name: 'IMG_TAG_SERIES', value: 'fe'),
+                    string(name: 'IMG_DIRECTORY', value: 'frontend'),
+                ]
             }
         }
 
@@ -378,7 +354,6 @@ msg: ${entry.msg}
         always {
             // delete the workspace after to prevent large disk usage
             cleanWs()
-            // clean up docker images
         }
     }
 }
