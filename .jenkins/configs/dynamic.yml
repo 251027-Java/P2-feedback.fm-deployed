@@ -35,6 +35,14 @@ tool:
               installers:
                 - adoptOpenJdkInstaller:
                     id: "jdk-25.0.1+8"
+  maven:
+    installations:
+      - name: "maven3"
+        properties:
+          - installSource:
+              installers:
+                - maven:
+                    id: "3.9.12"
 credentials:
   system:
     domainCredentials:
@@ -52,6 +60,11 @@ credentials:
               password: ${docker_hub_token}
               username: ${docker_hub_username}
               usernameSecret: true
+          - file:
+              description: "Primary kubeconfig"
+              fileName: "kubeconfig"
+              id: "kubeconfig"
+              secretBytes: ${kubeconfig}
         domain: {}
 
 # https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC

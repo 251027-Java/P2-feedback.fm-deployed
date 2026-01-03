@@ -51,6 +51,7 @@ check:
 init-files:
     file="./secrets/secrets.properties"; if [ ! -f "$file" ]; then cp ${file}.example $file; echo "Created $file"; fi
     file="./secrets/github_app_team_key.pem"; if [ ! -f "$file" ]; then touch $file; echo "Created $file"; fi
+    file="./secrets/kubeconfig.yml"; if [ ! -f "$file" ]; then touch $file; echo "Created $file"; fi
 
 # Start Jenkins
 [group("Docker")]
@@ -168,8 +169,7 @@ logs:
 # Sort plugins.txt
 [group("Util")]
 plugins:
-    content=$(cat plugins.txt | sort); \
-    echo "$content" > plugins.txt
+    cat plugins.txt | sort | tee plugins.txt
 
 # Update the files in the current directory with gitsnip (for prod environment)
 [group("Util")]

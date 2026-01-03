@@ -11,6 +11,7 @@ github-branch-source
 github-checks
 http_request
 job-dsl
+kubernetes-cli
 last-changes
 ldap
 matrix-auth
