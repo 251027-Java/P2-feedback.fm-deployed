@@ -4,7 +4,6 @@ FROM jenkins/jenkins:latest
 
 USER root
 
-# install docker cli
 # https://docs.docker.com/engine/install/debian/#install-using-the-repository
 RUN apt-get update
 RUN apt-get install -y ca-certificates curl
@@ -22,6 +21,23 @@ EOF
 RUN apt-get update
 
 RUN apt-get install -y docker-ce-cli
+
+# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
+RUN apt-get install -y apt-transport-https ca-certificates curl gnupg
+RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+RUN chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+RUN echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+RUN chmod 644 /etc/apt/sources.list.d/kubernetes.list
+RUN apt-get update
+RUN apt-get install -y kubectl
+
+# https://helm.sh/docs/intro/install/#from-apt-debianubuntu
+RUN apt-get install -y curl gpg apt-transport-https
+RUN curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+RUN apt-get update
+RUN apt-get install helm
+
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 USER jenkins
