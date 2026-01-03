@@ -264,17 +264,18 @@ pipeline {
                 publishChecks name: fmChecks.build.frontend, title: 'Pending', status: 'IN_PROGRESS'
 
                 dir('frontend') {
-                    script {
-                        sh 'npm ci'
-                        sh 'npm run build'
-                    }
+                    sh 'npm ci'
+                    sh 'npm run build'
                 }
             }
 
             post {
                 success {
                     publishChecks name: fmChecks.build.frontend, conclusion: 'SUCCESS', title: 'Success'
-                    buildSuccess.frontend = isDefault
+
+                    script {
+                        buildSuccess.frontend = isDefault
+                    }
                 }
 
                 failure {
@@ -305,16 +306,17 @@ pipeline {
                 publishChecks name: fmChecks.build.backend, title: 'Pending', status: 'IN_PROGRESS'
 
                 dir('backend') {
-                    script {
-                        sh './mvnw -B package -DskipTests'
-                    }
+                    sh './mvnw -B package -DskipTests'
                 }
             }
 
             post {
                 success {
                     publishChecks name: fmChecks.build.backend, conclusion: 'SUCCESS', title: 'Success'
-                    buildSuccess.backend = isDefault
+
+                    script {
+                        buildSuccess.backend = isDefault
+                    }
                 }
 
                 failure {
