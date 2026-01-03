@@ -46,11 +46,18 @@ credentials:
               privateKey: ${github_app_team_key}
               repositoryAccessStrategy:
                 specificRepositories: {}
+          - usernamePassword:
+              description: "Docker Hub credentials"
+              id: "docker-hub-cred"
+              password: ${docker_hub_token}
+              username: ${docker_hub_username}
+              usernameSecret: true
         domain: {}
 
 # https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC
 # Job DSL API (general) - https://jenkinsci.github.io/job-dsl-plugin/
 # More specific Job DSL API catered to your installed plugins: <jenkins-url>/plugin/job-dsl/api-viewer/index.html
+# TODO maybe send repository details through environment variables and substitute?
 jobs:
   - script: >
       multibranchPipelineJob('primary') {
@@ -96,6 +103,24 @@ jobs:
               }
             }
             scriptPath('Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+  - script: >
+      pipelineJob('image') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  credentials('github-app-team')
+                  url('https://github.com/251027-Java/P2-feedback.fm-deployed')
+                }
+                branches('main', 'dockerhub')
+              }
+            }
+            scriptPath('.jenkins/jobs/Jenkinsfile.image')
             lightweight(true)
           }
         }
