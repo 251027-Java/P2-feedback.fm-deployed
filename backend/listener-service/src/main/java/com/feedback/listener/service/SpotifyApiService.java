@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface SpotifyApiService {
 
     @GetMapping("/api/api/top-tracks")
-    public Map<String, Object> getTopTracks(@RequestBody String accessToken, @RequestParam String timeRange);
+    public Map<String, Object> getTopTracks(@RequestParam String accessToken, @RequestParam String timeRange);
 
     @GetMapping("/api/api/top-artists") 
-    public Map<String, Object> getTopArtists(@RequestBody String accessToken, @RequestParam String timeRange);
+    public Map<String, Object> getTopArtists(@RequestParam String accessToken, @RequestParam String timeRange);
 
     @GetMapping("/api/api/recently-played")
-    public Map<String, Object> getRecentlyPlayed(@RequestBody String accessToken, @RequestParam int limit);
+    public Map<String, Object> getRecentlyPlayed(@RequestParam String accessToken, @RequestParam int limit);
 
     @GetMapping("/api/api/current-user")
-    public Map<String, Object> getCurrentUser(@RequestBody String accessToken);
+    public Map<String, Object> getCurrentUser(@RequestParam String accessToken);
 
     @PostMapping("/api/sync/recalculate-stats/{listenerId}")
     public void recalculateStatsFromHistory(@PathVariable String listenerId);

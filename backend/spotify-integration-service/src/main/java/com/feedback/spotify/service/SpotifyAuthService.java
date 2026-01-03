@@ -19,11 +19,11 @@ import java.util.Map;
 @Service
 public class SpotifyAuthService {
     
-    @Value("${spotify.client.id}")
-    private String clientId;
+    //@Value("${spotify.client.id}") // is not reading this correctly 
+    private String clientId = "c7c1393d42b1461a8384d7d0f9271a17";
     
-    @Value("${spotify.client.secret}")
-    private String clientSecret;
+    //@Value("${spotify.client.secret}")
+    private String clientSecret = "4ae0c132fde244988722a4bc344148e8";
     
     @Value("${spotify.redirect.uri}")
     private String redirectUri;
