@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface SpotifyApiService {
     
     @GetMapping("/api/api/currently-playing")
-    public Map<String, Object> getCurrentlyPlaying(@RequestBody String accessToken);
+    public Map<String, Object> getCurrentlyPlaying(@RequestParam String accessToken);
 
     @GetMapping("/api/api/top-tracks")
-    public Map<String, Object> getTopTracks(@RequestBody String accessToken, @RequestParam String timeRange);
+    public Map<String, Object> getTopTracks(@RequestParam String accessToken, @RequestParam String timeRange);
 
 }
 

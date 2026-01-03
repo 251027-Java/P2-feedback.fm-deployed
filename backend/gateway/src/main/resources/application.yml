@@ -7,23 +7,6 @@ spring:
 
   cloud:
     gateway:
-      globalcors:
-          # Ensures preflight requests are handled even if they don't match a route
-          add-to-simple-url-handler-mapping: true 
-          cors-configurations:
-            '[/**]':
-              allowedOrigins: "https://your-frontend-domain.com"
-              allowedMethods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              allowedHeaders: "*"
-              allowCredentials: true
-      default-filters:
-          # Prevents duplicate headers if a microservice accidentally sends one
-          - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       server:
         webflux:
           routes:
@@ -93,3 +76,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+jwt:
+  secret: ${JWT_SECRET:averylongsecretkeythatissecureenoughforhmacsha256algorithm}
+  expiration: ${JWT_EXPIRATION:86400000}

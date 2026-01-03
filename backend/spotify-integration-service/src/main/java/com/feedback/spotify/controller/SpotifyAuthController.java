@@ -39,6 +39,7 @@ public class SpotifyAuthController {
 
     @GetMapping("/login")
     public ResponseEntity<Map<String, String>> getAuthUrl() {
+        System.out.println("Received request for Spotify authorization URL");
         String authUrl = authService.getAuthorizationUrl();
         Map<String, String> response = new HashMap<>();
         response.put("authUrl", authUrl);
