@@ -1,9 +1,10 @@
 package com.feedback.spotify.controller;
 
 import com.feedback.spotify.security.JwtUtil;
-import com.feedback.spotify.service.ListenerService; // Need to fix
+import com.feedback.spotify.service.ListenerService;
 import com.feedback.spotify.service.SpotifyApiService;
 import com.feedback.spotify.service.SpotifyAuthService;
+import com.feedback.spotify.dtos.ListenerDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -70,10 +71,10 @@ public class SpotifyAuthController {
             String href = externalUrls != null ? (String) externalUrls.get("spotify") : null;
 
             // Check if listener exists, create or update
-            var existingListener = listenerService.getById(spotifyId);
-            if (existingListener.isEmpty()) {
+            var existingListener = listenerService.findById(spotifyId);
+            if (existingListener == null) {
                 // Create new listener
-                listenerService.create(new com.feedback.fm.feedbackfm.dtos.ListenerDTO(
+                listenerService.register(new ListenerDTO(
                         spotifyId,
                         displayName,
                         email,
@@ -81,7 +82,7 @@ public class SpotifyAuthController {
                         href));
             } else {
                 // Update existing listener
-                listenerService.update(spotifyId, new com.feedback.fm.feedbackfm.dtos.ListenerDTO(
+                listenerService.updateUser(spotifyId, new ListenerDTO(
                         spotifyId,
                         displayName,
                         email,

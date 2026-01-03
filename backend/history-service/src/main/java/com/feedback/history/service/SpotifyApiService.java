@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 @FeignClient("spotify-integration-service")
 public interface SpotifyApiService {
 
-    @GetMapping("/api/user/recently-played")
+    @GetMapping("/api/api/recently-played")
     public Map<String, Object> getRecentlyPlayed(@RequestBody String accessToken, @RequestParam int limit);
 }
 
