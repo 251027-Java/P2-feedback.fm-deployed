@@ -168,6 +168,9 @@ def fbfmBuildImage = { args ->
             }
             echo "${err}"
             publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
+        } finally {
+            // clean up docker image
+            sh "docker images --format '{{.Repository}}:{{.Tag}}:{{.ID}}' | grep '${tagName}' | cut -f 3 -d ':' | xargs docker rmi -f"
         }
     }
 }
@@ -285,7 +288,7 @@ pipeline {
                             expression { fbfm.isDefault }
                         }
                         anyOf {
-                            expression { fbfm.changes.frontend }
+                            expression { fbfm.changes['frontend'] }
                             expression { fbfm.changes.jenkinsfile }
                         }
                     }
