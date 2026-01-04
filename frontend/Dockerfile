@@ -16,7 +16,7 @@ COPY *.ts .
 COPY *.html .
 COPY .env.production .
 
-RUN --mount=type=cache,source=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 RUN npm run build
 
 FROM nginx:alpine AS final

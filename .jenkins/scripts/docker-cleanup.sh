@@ -8,4 +8,5 @@ fi
 
 # https://docs.docker.com/reference/cli/docker/buildx/prune/
 # keep caches
-docker builder prune -af --filter "type!=exec.cachemount" --filter "until=24h"
+docker builder prune -af --filter "type!=exec.cachemount"
+docker builder prune -af --filter "until=24h"
