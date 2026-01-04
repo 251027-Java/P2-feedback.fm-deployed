@@ -110,6 +110,7 @@ def handleCommitAttributes = { ->
             attributes.findAll { it.startsWith('image-') }.each { attr ->
                 def key = attr.substring('image-'.length())
                 // indicate successful build to trick system
+                echo "[${key}]: will build"
                 fbfm.build[key] = true
             }
         }
@@ -347,9 +348,9 @@ pipeline {
             }
         }
 
-        stage('docker frontend') {
+        stage('image frontend') {
             when {
-                expression { fbfm.build.frontend }
+                expression { fbfm.build.frontend && fbfm.isDefault }
             }
 
             steps {
