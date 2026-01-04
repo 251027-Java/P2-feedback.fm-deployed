@@ -367,7 +367,7 @@ pipeline {
                 script {
                     def services = [
                         [name: 'album-service'],
-                        // [name: 'artist-service'],
+                        [name: 'artist-service'],
                         // [name: 'eureka-server'],
                         // [name: 'gateway'],
                         // [name: 'history-service'],
