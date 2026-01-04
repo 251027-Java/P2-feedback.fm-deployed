@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 FROM node:lts-alpine AS build
 
 WORKDIR /app
@@ -14,7 +16,7 @@ COPY *.ts .
 COPY *.html .
 COPY .env.production .
 
-RUN npm ci
+RUN --mount=type=cache,source=/root/.npm npm ci
 RUN npm run build
 
 FROM nginx:alpine AS final
