@@ -106,13 +106,13 @@ def handleCommitAttributes = { ->
             }
 
             // build images based on "image-*"
-            attributes.findAll { it.startsWith('image-') }.each { attr -> 
+            attributes.findAll { it.startsWith('image-') }.each { attr ->
                 def key = attr.substring('image-'.length())
                 // indicate successful build to trick system
                 fbfm.build[key] = true
-            }
         }
     }
+}
 }
 
 def markStageFailure = { ->
@@ -157,11 +157,11 @@ def fbfmBuildImage = { args ->
             }
             echo "${err}"
             publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
-        } finally {
-            // docker clean up
-            sh ".jenkins/scripts/commit-message.sh ${tagName}"
         }
     }
+
+    // docker clean up
+    sh ".jenkins/scripts/docker-cleanup.sh ${tagName}"
 }
 
 def fbfmBuildMicroservice = { args ->

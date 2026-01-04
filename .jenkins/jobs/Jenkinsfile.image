@@ -116,7 +116,7 @@ pipeline {
 
             catchError(buildResult: null) {
                 // clean up docker images
-                sh "docker images --format '{{.Repository}}:{{.Tag}}:{{.ID}}' | grep '${createTagName()}' | cut -f 3 -d ':' | xargs docker rmi -f"
+                sh ".jenkins/scripts/docker-cleanup.sh ${createTagName()}"
             }
         }
     }
