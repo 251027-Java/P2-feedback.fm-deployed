@@ -145,9 +145,9 @@ def fbfmBuildImage = { args ->
 
     def branchName = sh(returnStdout: true, script: 'git branch --show-current').trim()
     def tagName = "${tagSeries}-${branchName}-${shortSha()}"
-    def checkName = "docker hub / ${tagSeries}"
+    def chName = "docker hub / ${tagSeries}"
 
-    publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
+    publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
     dir(directory) {
         try {
@@ -161,13 +161,13 @@ def fbfmBuildImage = { args ->
                 }
             }
 
-            publishChecks name: checkName, conclusion: 'SUCCESS', title: 'Success'
+            publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
         } catch (err) {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                 sh 'exit 1'
             }
             echo "${err}"
-            publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
+            publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
         }
     }
 }
@@ -184,21 +184,21 @@ def fbfmBuildMicroservice = { args ->
         return
     }
 
-    def checkName = "build / ${name}".toString()
+    def chName = "build / ${name}".toString()
 
-    publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
+    publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
     dir(directory) {
         try {
             sh 'mvn -B package -DskipTests'
-            publishChecks name: checkName, conclusion: 'SUCCESS', title: 'Success'
+            publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
             fbfm.build[name] = true
         } catch (err) {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                 sh 'exit 1'
             }
             echo "${err}"
-            publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
+            publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
         }
     }
 }
@@ -215,9 +215,9 @@ def fbfmTestMicroservice = { args ->
         return
     }
 
-    def checkName = "test / ${name}".toString()
+    def chName = "test / ${name}".toString()
 
-    withChecks(name: checkName) {
+    withChecks(name: chName) {
         dir(directory) {
             try {
                 sh 'mvn -B test'
@@ -228,7 +228,7 @@ def fbfmTestMicroservice = { args ->
                     sh 'exit 1'
                 }
                 echo "${err}"
-                publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
+                publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
             }
         }
     }
@@ -306,10 +306,10 @@ pipeline {
             steps {
                 dir('frontend') {
                     script {
-                        def checkName = 'lint / frontend'
+                        def chName = 'lint / frontend'
                         def res = null
 
-                        publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
+                        publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
                         try {
                             sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
@@ -323,7 +323,7 @@ pipeline {
                         def output = readFile file: 'frontend-code-quality.txt'
                         echo output
 
-                        publishChecks name: checkName, conclusion: res.con, title: res.title,
+                        publishChecks name: chName, conclusion: res.con, title: res.title,
                             summary: limitText(output)
                     }
                 }
@@ -356,19 +356,19 @@ pipeline {
             }
 
             steps {
-                def checkName = 'build / frontend'
-                publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
+                def chName = 'build / frontend'
+                publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
                 dir('frontend') {
                     script {
                         try {
                             sh 'npm ci && npm run build'
-                            publishChecks name: checkName, conclusion: 'SUCCESS', title: 'Success'
+                            publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
                             fbfm.build.frontend = true
                         } catch (err) {
                             markStageFailure()
                             echo "${err}"
-                            publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
+                            publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
                         }
                     }
                 }
