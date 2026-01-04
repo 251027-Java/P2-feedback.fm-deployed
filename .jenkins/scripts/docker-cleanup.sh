@@ -6,4 +6,6 @@ if [ -n "${tagName}" ]; then
     docker images --format '{{.Repository}}:{{.Tag}}:{{.ID}}' | grep "${tagName}" | cut -f 3 -d ':' | xargs docker rmi -f
 fi
 
-# docker builder prune -af
+# https://docs.docker.com/reference/cli/docker/buildx/prune/
+# keep caches
+docker builder prune -af --filter "type!=exec.cachemount" --filter "until=24h"
