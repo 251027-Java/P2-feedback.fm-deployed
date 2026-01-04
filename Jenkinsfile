@@ -131,7 +131,7 @@ def handleCommitAttributes = { ->
 
 def markStageFailure = { ->
     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-        sh 'this will fail'
+        sh 'exit 1'
     }
 }
 
@@ -220,7 +220,7 @@ pipeline {
                         def res = null
 
                         try {
-                            sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
+                            sh 'biome ci --error-on-warnings --colors=off --reporter=summary > frontend-code-quality.txt'
                             res = [con: 'SUCCESS', title: 'Success']
                         } catch (err) {
                             markStageFailure()
