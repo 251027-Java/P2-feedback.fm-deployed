@@ -373,69 +373,69 @@ pipeline {
                         values 'album-service', 'artist-service', 'eureka-server'
                     }
                 }
-            }
 
-            stages {
-                stage('test') {
-                    when {
-                        not { expression { fbfm.run.skip } }
-                        anyOf {
-                            expression { fbfm.run.force }
-                            allOf {
-                                anyOf {
-                                    expression { fbfm.isPrToDefault }
-                                    expression { fbfm.isDefault }
+                stages {
+                    stage('test') {
+                        when {
+                            not { expression { fbfm.run.skip } }
+                            anyOf {
+                                expression { fbfm.run.force }
+                                allOf {
+                                    anyOf {
+                                        expression { fbfm.isPrToDefault }
+                                        expression { fbfm.isDefault }
+                                    }
+                                    anyOf {
+                                        expression { fbfm.changes["${SERVICE}"] }
+                                        expression { fbfm.changes.jenkinsfile }
+                                    }
                                 }
-                                anyOf {
-                                    expression { fbfm.changes["${SERVICE}"] }
-                                    expression { fbfm.changes.jenkinsfile }
-                                }
+                            }
+                        }
+
+                        steps {
+                            script {
+                                fbfmTestMicroservice(name: "${SERVICE}", directory: "backend/${SERVICE}")
                             }
                         }
                     }
 
-                    steps {
-                        script {
-                            fbfmTestMicroservice(name: "${SERVICE}", directory: "backend/${SERVICE}")
+                    stage('build') {
+                        when {
+                            not { expression { fbfm.run.skip } }
+                            anyOf {
+                                expression { fbfm.run.force }
+                                allOf {
+                                    anyOf {
+                                        expression { fbfm.isPrToDefault }
+                                        expression { fbfm.isDefault }
+                                    }
+                                    anyOf {
+                                        expression { fbfm.changes["${SERVICE}"] }
+                                        expression { fbfm.changes.jenkinsfile }
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
 
-                stage('build') {
-                    when {
-                        not { expression { fbfm.run.skip } }
-                        anyOf {
-                            expression { fbfm.run.force }
-                            allOf {
-                                anyOf {
-                                    expression { fbfm.isPrToDefault }
-                                    expression { fbfm.isDefault }
-                                }
-                                anyOf {
-                                    expression { fbfm.changes["${SERVICE}"] }
-                                    expression { fbfm.changes.jenkinsfile }
-                                }
+                        steps {
+                            script {
+                                fbfmBuildMicroservice(name: "${SERVICE}", directory: "backend/${SERVICE}")
                             }
                         }
                     }
 
-                    steps {
-                        script {
-                            fbfmBuildMicroservice(name: "${SERVICE}", directory: "backend/${SERVICE}")
+                    stage('image') {
+                        when {
+                            expression { fbfm.build["${SERVICE}"] && fbfm.isDefault }
                         }
-                    }
-                }
 
-                stage('image') {
-                    when {
-                        expression { fbfm.build["${SERVICE}"] && fbfm.isDefault }
-                    }
-
-                    steps {
-                        script {
-                            fbfmBuildImage(directory: "backend/${SERVICE}", tagSeries: "be-${SERVICE}",
-                                dockerRepo: 'minidomo/feedbackfm', pushLatest: true
-                            )
+                        steps {
+                            script {
+                                fbfmBuildImage(directory: "backend/${SERVICE}", tagSeries: "be-${SERVICE}",
+                                    dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                                )
+                            }
                         }
                     }
                 }
