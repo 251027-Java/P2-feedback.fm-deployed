@@ -225,7 +225,7 @@ pipeline {
                         } catch (err) {
                             markStageFailure()
                             res = [con: 'FAILURE', title: 'Failed']
-                            echo err
+                            echo "${err}"
                         } finally {
                             def output = readFile file: 'frontend-code-quality.txt'
                             echo output
@@ -265,7 +265,7 @@ pipeline {
                                 junit '**/target/surefire-reports/TEST-*.xml'
                             } catch (err) {
                                 markStageFailure()
-                                echo err
+                                echo "${err}"
                             }
                         }
                     }
@@ -307,7 +307,7 @@ pipeline {
                             sh 'npm ci && npm run build'
                         } catch (err) {
                             markStageFailure()
-                            echo err
+                            echo "${err}"
                         }
                     }
                 }
