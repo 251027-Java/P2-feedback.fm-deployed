@@ -367,8 +367,15 @@ pipeline {
                 script {
                     def services = [
                         [name: 'album-service'],
-                        [name: 'artist-service'],
-                        [name: 'eureka-server'],
+                        // [name: 'artist-service'],
+                        // [name: 'eureka-server'],
+                        // [name: 'gateway'],
+                        // [name: 'history-service'],
+                        // [name: 'listener-service'],
+                        // [name: 'music-metadata-service'],
+                        // [name: 'playlist-service'],
+                        // [name: 'song-service'],
+                        // [name: 'spotify-integration-service'],
                     ]
 
                     for (service in services) {
