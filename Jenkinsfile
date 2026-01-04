@@ -53,7 +53,7 @@ def shortSha = { ->
     return env.GIT_COMMIT.take(7)
 }
 
-def checkForChanges = { ref ->
+def checkForChanges(ref) {
     def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
     fbfm.changes.frontend = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
     fbfm.changes.backend = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
