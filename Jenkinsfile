@@ -135,36 +135,37 @@ def markStageFailure = { ->
     }
 }
 
-def fbfmBuildImage = { tagSeries, directory, dockerRepo, pushLatest ->
-    echo "${tagSeries}"
-    echo "${directory}"
-    echo "${dockerRepo}"
-    echo "${pushLatest}"
-    // def branchName = sh(returnStdout: true, script: 'git branch --show-current').trim()
-    // def tagName = "${tagSeries}-${branchName}-${shortSha()}"
-    // def checkName = "docker hub / ${tagSeries}"
-    
-    // publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
+def fbfmBuildImage = { args ->
+    def tagSeries = args.tagSeries
+    def directory = args.directory
+    def dockerRepo = args.dockerRepo
+    def pushLatest = args.pushLatest
 
-    // dir(directory) {
-    //     try {
-    //         def image = docker.build(dockerRepo)
+    def branchName = sh(returnStdout: true, script: 'git branch --show-current').trim()
+    def tagName = "${tagSeries}-${branchName}-${shortSha()}"
+    def checkName = "docker hub / ${tagSeries}"
 
-    //         docker.withRegistry('', 'docker-hub-cred') {
-    //             image.push(tagName)
+    publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
 
-    //             if (pushLatest) {
-    //                 image.push("${tagSeries}-latest")
-    //             }
-    //         }
+    dir(directory) {
+        try {
+            def image = docker.build(dockerRepo)
 
-    //         publishChecks name: checkName, conclusion: 'SUCCESS', title: 'Success'
-    //     } catch (err) {
-    //         markStageFailure()
-    //         echo "${err}"
-    //         publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
-    //     }
-    // }
+            docker.withRegistry('', 'docker-hub-cred') {
+                image.push(tagName)
+
+                if (pushLatest) {
+                    image.push("${tagSeries}-latest")
+                }
+            }
+
+            publishChecks name: checkName, conclusion: 'SUCCESS', title: 'Success'
+        } catch (err) {
+            markStageFailure()
+            echo "${err}"
+            publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
+        }
+    }
 }
 
 pipeline {
