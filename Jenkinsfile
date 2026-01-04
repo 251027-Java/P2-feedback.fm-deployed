@@ -348,6 +348,10 @@ pipeline {
         }
 
         stage('docker frontend') {
+            when {
+                expression { fbfm.build.frontend }
+            }
+
             steps {
                 script {
                     fbfmBuildImage(name: 'frontend', directory: 'frontend', tagSeries: 'fe',
@@ -373,7 +377,7 @@ pipeline {
                     ]
 
                     for (service in services) {
-                        def shouldRun = !fbfm.run.skip ||
+                        def shouldRun = !fbfm.run.skip &&
                             (
                                 fbfm.run.force ||
                                 (
