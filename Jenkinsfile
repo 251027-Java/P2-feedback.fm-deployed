@@ -55,9 +55,9 @@ def shortSha = { ->
 
 def checkForChanges(ref) {
     def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
-    fbfm.changes.frontend = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
-    fbfm.changes.backend = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
-    fbfm.changes.jenkinsfile = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
+    fbfm['changes']['frontend'] = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
+    fbfm['changes']['backend'] = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
+    fbfm['changes']['jenkinsfile'] = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
 }
 
 def handleFileChanges() {
