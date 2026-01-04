@@ -356,11 +356,11 @@ pipeline {
             }
 
             steps {
-                def chName = 'build / frontend'
-                publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
+                script {
+                    def chName = 'build / frontend'
+                    publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
-                dir('frontend') {
-                    script {
+                    dir('frontend') {
                         try {
                             sh 'npm ci && npm run build'
                             publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
