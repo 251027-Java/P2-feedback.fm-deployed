@@ -344,6 +344,10 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                cleanWs()
+            }
         }
 
         stage('docker frontend') {
@@ -376,7 +380,7 @@ pipeline {
 
             steps {
                 script {
-                    fbfmTestMicroservice(name:'album-service', directory: 'backend/album-service')
+                    fbfmTestMicroservice(name: 'album-service', directory: 'backend/album-service')
                 }
             }
         }
@@ -401,7 +405,7 @@ pipeline {
 
             steps {
                 script {
-                    fbfmBuildMicroservice(name:'album-service', directory: 'backend/album-service')
+                    fbfmBuildMicroservice(name: 'album-service', directory: 'backend/album-service')
                 }
             }
         }
@@ -423,11 +427,10 @@ pipeline {
 
     post {
         always {
+            sh '.jenkins/scripts/docker-cleanup.sh'
             // delete the workspace after to prevent large disk usage
             cleanWs()
             deleteDir()
-
-            sh '.jenkins/scripts/docker-cleanup.sh'
         }
     }
 }
