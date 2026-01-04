@@ -53,14 +53,14 @@ def shortSha = { ->
     return env.GIT_COMMIT.take(7)
 }
 
-def checkForChanges(ref) {
+def checkForChanges(ref, fbfm) {
     def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
-    fbfm['changes']['frontend'] = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
-    fbfm['changes']['backend'] = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
-    fbfm['changes']['jenkinsfile'] = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
+    fbfm.changes.frontend = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
+    fbfm.changes.backend = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
+    fbfm.changes.jenkinsfile = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
 }
 
-def handleFileChanges() {
+def handleFileChanges(fbfm) {
     // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
     def size = currentBuild.changeSets.size()
 
@@ -71,7 +71,7 @@ def handleFileChanges() {
         echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
 
         // check changes relative to the last `N` commits since a push can have multiple commits
-        checkForChanges("HEAD~${changeSet.items.size()}")
+        checkForChanges("HEAD~${changeSet.items.size()}", fbfm)
     }
 
     // should take care of the following issues
@@ -80,7 +80,7 @@ def handleFileChanges() {
     // check changes relative to the default branch
     // PR creation has a size of 0
     if (fbfm.isPrToDefault && (size == 0 || currentBuild.previousBuild?.result == 'FAILURE')) {
-        checkForChanges(env.GITHUB_DEFAULT_BRANCH)
+        checkForChanges(env.GITHUB_DEFAULT_BRANCH, fbfm)
     }
 }
 
@@ -166,13 +166,13 @@ pipeline {
                     fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true' || env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
 
-                    checkForChanges('HEAD~1')
+                    checkForChanges('HEAD~1', fbfm)
 
                     echo "${fbfm.changes}"
 
                     echo 'after check for changes call direct'
 
-                    handleFileChanges()
+                    handleFileChanges(fbfm)
                     handleCommitAttributes()
                 }
             }
