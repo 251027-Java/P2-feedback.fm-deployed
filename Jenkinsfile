@@ -60,7 +60,7 @@ def checkForChanges = { ref ->
     fbfm.changes.jenkinsfile = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
 }
 
-def handleFileChanges = { ->
+def handleFileChanges() {
     // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
     def size = currentBuild.changeSets.size()
 
@@ -168,7 +168,7 @@ pipeline {
 
                     checkForChanges('HEAD~1')
 
-                    echo fbfm.changes
+                    echo "${fbfm.changes}"
 
                     echo 'after check for changes call direct'
 
