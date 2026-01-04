@@ -130,7 +130,7 @@ jobs:
                   credentials('github-app-team')
                   url('https://github.com/251027-Java/P2-feedback.fm-deployed')
                 }
-                branches('main', 'dockerhub')
+                branches('main')
               }
             }
             scriptPath('.jenkins/jobs/Jenkinsfile.image')
