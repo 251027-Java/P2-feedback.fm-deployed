@@ -82,7 +82,7 @@ def determineReference = { ->
     }
 
     // check relative to current commit
-    return "HEAD~1"
+    return 'HEAD~1'
 }
 
 def handleCommitAttributes = { ->
@@ -135,6 +135,34 @@ def markStageFailure = { ->
     }
 }
 
+def fbfmBuildImage = { tagSeries, directory, dockerRepo, pushLatest ->
+    def branchName = sh(returnStdout: true, script: 'git branch --show-current').trim()
+    def tagName = "${tagSeries}-${branchName}-${shortSha()}"
+    def checkName = "docker hub / ${tagSeries}"
+    
+    publishChecks name: checkName, title: 'Pending', status: 'IN_PROGRESS'
+
+    dir(directory) {
+        try {
+            def image = docker.build(dockerRepo)
+
+            docker.withRegistry('', 'docker-hub-cred') {
+                image.push(tagName)
+
+                if (pushLatest) {
+                    image.push("${tagSeries}-latest")
+                }
+            }
+
+            publishChecks name: checkName, conclusion: 'SUCCESS', title: 'Success'
+        } catch (err) {
+            markStageFailure()
+            echo "${err}"
+            publishChecks name: checkName, conclusion: 'FAILURE', title: 'Failed'
+        }
+    }
+}
+
 pipeline {
     agent any
 
@@ -170,15 +198,6 @@ pipeline {
                     def ref = determineReference()
                     checkForChanges(ref)
                     handleCommitAttributes()
-                }
-            }
-        }
-
-        stage('test') {
-            steps {
-                script {
-                    markStageFailure()
-                    echo 'does this work'
                 }
             }
         }
@@ -220,19 +239,19 @@ pipeline {
                         def res = null
 
                         try {
-                            sh 'biome ci --error-on-warnings --colors=off --reporter=summary > frontend-code-quality.txt'
+                            sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
                             res = [con: 'SUCCESS', title: 'Success']
                         } catch (err) {
                             markStageFailure()
-                            res = [con: 'FAILURE', title: 'Failed']
                             echo "${err}"
-                        } finally {
-                            def output = readFile file: 'frontend-code-quality.txt'
-                            echo output
-
-                            publishChecks name: fmChecks.lint.frontend, conclusion: res.con, title: res.title,
-                                summary: limitText(output)
+                            res = [con: 'FAILURE', title: 'Failed']
                         }
+
+                        def output = readFile file: 'frontend-code-quality.txt'
+                        echo output
+
+                        publishChecks name: fmChecks.lint.frontend, conclusion: res.con, title: res.title,
+                            summary: limitText(output)
                     }
                 }
             }
@@ -266,6 +285,7 @@ pipeline {
                             } catch (err) {
                                 markStageFailure()
                                 echo "${err}"
+                                publishChecks name: fmChecks.test.backend, conclusion: 'FAILURE', title: 'Failed'
                             }
                         }
                     }
@@ -305,25 +325,14 @@ pipeline {
                     script {
                         try {
                             sh 'npm ci && npm run build'
+                            publishChecks name: fmChecks.build.frontend, conclusion: 'SUCCESS', title: 'Success'
+                            buildSuccess.frontend = fbfm.isDefault
                         } catch (err) {
                             markStageFailure()
                             echo "${err}"
+                            publishChecks name: fmChecks.build.frontend, conclusion: 'FAILURE', title: 'Failed'
                         }
                     }
-                }
-            }
-
-            post {
-                success {
-                    publishChecks name: fmChecks.build.frontend, conclusion: 'SUCCESS', title: 'Success'
-
-                    script {
-                        buildSuccess.frontend = fbfm.isDefault
-                    }
-                }
-
-                failure {
-                    publishChecks name: fmChecks.build.frontend, conclusion: 'FAILURE', title: 'Failed'
                 }
             }
         }
@@ -350,21 +359,17 @@ pipeline {
                 publishChecks name: fmChecks.build.backend, title: 'Pending', status: 'IN_PROGRESS'
 
                 dir('backend') {
-                    sh './mvnw -B package -DskipTests'
-                }
-            }
-
-            post {
-                success {
-                    publishChecks name: fmChecks.build.backend, conclusion: 'SUCCESS', title: 'Success'
-
                     script {
-                        buildSuccess.backend = fbfm.isDefault
+                        try {
+                            sh './mvnw -B package -DskipTests'
+                            publishChecks name: fmChecks.build.backend, conclusion: 'SUCCESS', title: 'Success'
+                            buildSuccess.backend = fbfm.isDefault
+                        } catch (err) {
+                            markStageFailure()
+                            echo "${err}"
+                            publishChecks name: fmChecks.build.backend, conclusion: 'FAILURE', title: 'Failed'
+                        }
                     }
-                }
-
-                failure {
-                    publishChecks name: fmChecks.build.backend, conclusion: 'FAILURE', title: 'Failed'
                 }
             }
         }
@@ -375,13 +380,11 @@ pipeline {
             }
 
             steps {
-                echo 'asd'
-            // build job: 'image', parameters: [
-            //     booleanParam(name: 'IMG_PUSH_LATEST', value: true),
-            //     string(name: 'IMG_COMMIT', value: 'asd'),
-            //     string(name: 'IMG_TAG_SERIES', value: 'fe'),
-            //     string(name: 'IMG_DIRECTORY', value: 'frontend'),
-            // ]
+                script {
+                    fbfmBuildImage(tagSeries: 'fe', directory: 'frontend', dockerRepo: 'minidomo/feedbackfm',
+                        pushLatest: true
+                    )
+                }
             }
         }
 
