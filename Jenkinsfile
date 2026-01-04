@@ -362,72 +362,82 @@ pipeline {
             }
         }
 
-        stage('test album service') {
-            when {
-                not { expression { fbfm.run.skip } }
-                anyOf {
-                    expression { fbfm.run.force }
-                    allOf {
-                        anyOf {
-                            expression { fbfm.isPrToDefault }
-                            expression { fbfm.isDefault }
-                        }
-                        anyOf {
-                            expression { fbfm.changes['album-service'] }
-                            expression { fbfm.changes.jenkinsfile }
-                        }
+        stage('test build image') {
+            matrix {
+                axes {
+                    axis {
+                        name 'SERVICE'
+                        // values 'album-service', 'artist-service', 'eureka-server', 'gateway', 'history-service',
+                        //     'listener-service', 'music-metadata-service', 'playlist-service', 'song-service',
+                        //     'spotify-integration-service'
+                        values 'album-service', 'artist-service', 'eureka-server'
                     }
                 }
             }
 
-            steps {
-                script {
-                    fbfmTestMicroservice(name: 'album-service', directory: 'backend/album-service')
-                }
-            }
-        }
-
-        stage('build album service') {
-            when {
-                not { expression { fbfm.run.skip } }
-                anyOf {
-                    expression { fbfm.run.force }
-                    allOf {
+            stages {
+                stage('test') {
+                    when {
+                        not { expression { fbfm.run.skip } }
                         anyOf {
-                            expression { fbfm.isPrToDefault }
-                            expression { fbfm.isDefault }
+                            expression { fbfm.run.force }
+                            allOf {
+                                anyOf {
+                                    expression { fbfm.isPrToDefault }
+                                    expression { fbfm.isDefault }
+                                }
+                                anyOf {
+                                    expression { fbfm.changes["${SERVICE}"] }
+                                    expression { fbfm.changes.jenkinsfile }
+                                }
+                            }
                         }
-                        anyOf {
-                            expression { fbfm.changes['album-service'] }
-                            expression { fbfm.changes.jenkinsfile }
+                    }
+
+                    steps {
+                        script {
+                            fbfmTestMicroservice(name: "${SERVICE}", directory: "backend/${SERVICE}")
                         }
                     }
                 }
-            }
 
-            steps {
-                script {
-                    fbfmBuildMicroservice(name: 'album-service', directory: 'backend/album-service')
+                stage('build') {
+                    when {
+                        not { expression { fbfm.run.skip } }
+                        anyOf {
+                            expression { fbfm.run.force }
+                            allOf {
+                                anyOf {
+                                    expression { fbfm.isPrToDefault }
+                                    expression { fbfm.isDefault }
+                                }
+                                anyOf {
+                                    expression { fbfm.changes["${SERVICE}"] }
+                                    expression { fbfm.changes.jenkinsfile }
+                                }
+                            }
+                        }
+                    }
+
+                    steps {
+                        script {
+                            fbfmBuildMicroservice(name: "${SERVICE}", directory: "backend/${SERVICE}")
+                        }
+                    }
                 }
-            }
 
-            post {
-                always {
-                    cleanWs()
-                }
-            }
-        }
+                stage('image') {
+                    when {
+                        expression { fbfm.build["${SERVICE}"] && fbfm.isDefault }
+                    }
 
-        stage('docker album service') {
-            when {
-                expression { fbfm.build['album-service'] && fbfm.isDefault }
-            }
-
-            steps {
-                script {
-                    fbfmBuildImage(directory: 'backend/album-service', tagSeries: 'be-album',
-                        dockerRepo: 'minidomo/feedbackfm', pushLatest: true
-                    )
+                    steps {
+                        script {
+                            fbfmBuildImage(directory: "backend/${SERVICE}", tagSeries: "be-${SERVICE}",
+                                dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                            )
+                        }
+                    }
                 }
             }
         }
