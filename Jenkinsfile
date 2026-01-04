@@ -17,7 +17,6 @@ def fbfm = [
     isPrToDefault: false,
     test: [:],
     build: [:],
-    branch: '',
 ]
 
 def limitText = { text, end = true ->
@@ -129,13 +128,12 @@ def markStageAborted = { ->
 }
 
 def fbfmBuildImage = { args ->
-    def name = args.name
     def directory = args.directory
     def tagSeries = args.tagSeries
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
 
-    def tagName = "${tagSeries}-${fbfm.branch}-${shortSha()}"
+    def tagName = "${tagSeries}-${env.GIT_BRANCH}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
 
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
@@ -237,16 +235,8 @@ pipeline {
 
                     currentBuild.displayName = "${currentBuild.displayName} ${shortSha()}"
 
-                    /*
-                    Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
-                    has env.BRANCH_IS_PRIMARY allowing for an easier check.
-                    Keep the check for "origin/" in case we ever need to do testing with a regular pipeline.
-                     */
-                    fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true' || env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH
+                    fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true'
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
-                    fbfm.branch = sh(returnStdout: true, script: 'git branch --show-current').trim()
-
-                    echo "${fbfm.branch}"
 
                     def ref = determineReference()
                     checkForChanges(ref)
@@ -423,7 +413,7 @@ pipeline {
 
             steps {
                 script {
-                    fbfmBuildImage(name: 'album-service', directory: 'backend/album-service', tagSeries: 'be-album',
+                    fbfmBuildImage(directory: 'backend/album-service', tagSeries: 'be-album',
                         dockerRepo: 'minidomo/feedbackfm', pushLatest: true
                     )
                 }
@@ -436,6 +426,8 @@ pipeline {
             // delete the workspace after to prevent large disk usage
             cleanWs()
             deleteDir()
+
+            sh '.jenkins/scripts/docker-cleanup.sh'
         }
     }
 }

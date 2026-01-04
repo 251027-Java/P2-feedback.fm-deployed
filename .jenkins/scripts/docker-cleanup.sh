@@ -2,5 +2,8 @@
 
 tagName=$1
 
-docker images --format '{{.Repository}}:{{.Tag}}:{{.ID}}' | grep "${tagName}" | cut -f 3 -d ':' | xargs docker rmi -f
+if [ -n "${tagName}" ]; then
+    docker images --format '{{.Repository}}:{{.Tag}}:{{.ID}}' | grep "${tagName}" | cut -f 3 -d ':' | xargs docker rmi -f
+fi
+
 docker builder prune -af
