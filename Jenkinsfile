@@ -17,6 +17,7 @@ def fbfm = [
     isPrToDefault: false,
     test: [:],
     build: [:],
+    branch: '',
 ]
 
 def limitText = { text, end = true ->
@@ -134,8 +135,7 @@ def fbfmBuildImage = { args ->
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
 
-    def branchName = sh(returnStdout: true, script: 'git branch --show-current').trim()
-    def tagName = "${tagSeries}-${branchName}-${shortSha()}"
+    def tagName = "${tagSeries}-${fbfm.branch}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
 
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
@@ -160,8 +160,8 @@ def fbfmBuildImage = { args ->
             echo "${err}"
             publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
         } finally {
-            // clean up docker image
-            sh "docker images --format '{{.Repository}}:{{.Tag}}:{{.ID}}' | grep '${tagName}' | cut -f 3 -d ':' | xargs docker rmi -f"
+            // docker clean up
+            sh ".jenkins/scripts/commit-message.sh ${tagName}"
         }
     }
 }
@@ -244,6 +244,9 @@ pipeline {
                      */
                     fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true' || env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
+                    fbfm.branch = sh(returnStdout: true, script: 'git branch --show-current').trim()
+
+                    echo "${fbfm.branch}"
 
                     def ref = determineReference()
                     checkForChanges(ref)
