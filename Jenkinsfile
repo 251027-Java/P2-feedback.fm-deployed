@@ -133,15 +133,6 @@ def fbfmBuildImage = { args ->
     def tagSeries = args.tagSeries
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
-    
-    // an image build can only be done if on default branch and build was successful
-
-    if (!fbfm.build[name] || !fbfm.isDefault) {
-        catchError(buildResult: 'SUCCESS', stageResult: 'ABORTED') {
-            sh 'exit 1'
-        }
-        return
-    }
 
     def branchName = sh(returnStdout: true, script: 'git branch --show-current').trim()
     def tagName = "${tagSeries}-${branchName}-${shortSha()}"
@@ -179,14 +170,6 @@ def fbfmBuildMicroservice = { args ->
     def directory = args.directory
     def name = args.name
 
-    if (!fbfm.changes[name]) {
-        // no changes made so abort
-        catchError(buildResult: 'SUCCESS', stageResult: 'ABORTED') {
-            sh 'exit 1'
-        }
-        return
-    }
-
     def chName = "build / ${name}".toString()
 
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
@@ -209,14 +192,6 @@ def fbfmBuildMicroservice = { args ->
 def fbfmTestMicroservice = { args ->
     def directory = args.directory
     def name = args.name
-
-    if (!fbfm.changes[name]) {
-        // no changes made so abort
-        catchError(buildResult: 'SUCCESS', stageResult: 'ABORTED') {
-            sh 'exit 1'
-        }
-        return
-    }
 
     def chName = "test / ${name}".toString()
 
@@ -288,7 +263,7 @@ pipeline {
                             expression { fbfm.isDefault }
                         }
                         anyOf {
-                            expression { fbfm.changes['frontend'] }
+                            expression { fbfm.changes.frontend }
                             expression { fbfm.changes.jenkinsfile }
                         }
                     }
@@ -399,6 +374,7 @@ pipeline {
                             expression { fbfm.isDefault }
                         }
                         anyOf {
+                            expression { fbfm.changes['album-service'] }
                             expression { fbfm.changes.jenkinsfile }
                         }
                     }
@@ -423,6 +399,7 @@ pipeline {
                             expression { fbfm.isDefault }
                         }
                         anyOf {
+                            expression { fbfm.changes['album-service'] }
                             expression { fbfm.changes.jenkinsfile }
                         }
                     }
@@ -437,6 +414,10 @@ pipeline {
         }
 
         stage('docker album service') {
+            when {
+                expression { fbfm.build['album-service'] && fbfm.isDefault }
+            }
+
             steps {
                 script {
                     fbfmBuildImage(name: 'album-service', directory: 'backend/album-service', tagSeries: 'be-album',
