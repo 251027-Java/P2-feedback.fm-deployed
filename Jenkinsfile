@@ -166,6 +166,10 @@ pipeline {
                     fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true' || env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
 
+                    checkForChanges('main')
+
+                    echo 'after check for changes call direct'
+
                     handleFileChanges()
                     handleCommitAttributes()
                 }
