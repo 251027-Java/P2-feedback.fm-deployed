@@ -4,17 +4,19 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
+// TODO: music-metadata-service is this up to date/being used?
+// NOTE: cannot use pipeline steps, such as 'sh', nested two or more levels down in methods.
+// this is why you see me calling stuff like catchError() even though I have a function
+// called markStageFailure()
+
 def fbfm = [
-    changes: [
-        frontend: false,
-        jenkinsfile: false,
-    ],
     run: [
         force: false,
         skip: false,
     ],
     isDefault: false,
     isPrToDefault: false,
+    changes: [:],
     test: [:],
     build: [:],
 ]
@@ -38,14 +40,13 @@ def shortSha = { ->
 
 def checkForChanges = { ref ->
     def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
-    fbfm.changes.frontend = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
-    fbfm.changes.jenkinsfile = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
+    fbfm.changes['frontend'] = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
+    fbfm.changes['jenkinsfile'] = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
     fbfm.changes['album-service'] = sh(returnStdout: true, script: "${cmd} '^backend/album-service'").trim() != '0'
     fbfm.changes['artist-service'] = sh(returnStdout: true, script: "${cmd} '^backend/artist-service'").trim() != '0'
     fbfm.changes['eureka-server'] = sh(returnStdout: true, script: "${cmd} '^backend/eureka-server'").trim() != '0'
     fbfm.changes['gateway'] = sh(returnStdout: true, script: "${cmd} '^backend/gateway'").trim() != '0'
     fbfm.changes['history-service'] = sh(returnStdout: true, script: "${cmd} '^backend/history-service'").trim() != '0'
-    fbfm.changes['music-metadata-service'] = sh(returnStdout: true, script: "${cmd} '^backend/music-metadata-service'").trim() != '0'
     fbfm.changes['playlist-service'] = sh(returnStdout: true, script: "${cmd} '^backend/playlist-service'").trim() != '0'
     fbfm.changes['song-service'] = sh(returnStdout: true, script: "${cmd} '^backend/song-service'").trim() != '0'
     fbfm.changes['spotify-integration-service'] = sh(returnStdout: true, script: "${cmd} '^backend/spotify-integration-service'").trim() != '0'
@@ -110,19 +111,13 @@ def handleCommitAttributes = { ->
                 def key = attr.substring('image-'.length())
                 // indicate successful build to trick system
                 fbfm.build[key] = true
+            }
         }
     }
-}
 }
 
 def markStageFailure = { ->
     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-        sh 'exit 1'
-    }
-}
-
-def markStageAborted = { ->
-    catchError(buildResult: 'SUCCESS', stageResult: 'ABORTED') {
         sh 'exit 1'
     }
 }
@@ -368,14 +363,13 @@ pipeline {
                     def services = [
                         [name: 'album-service'],
                         [name: 'artist-service'],
-                        // [name: 'eureka-server'],
-                        // [name: 'gateway'],
-                        // [name: 'history-service'],
-                        // [name: 'listener-service'],
-                        // [name: 'music-metadata-service'],
-                        // [name: 'playlist-service'],
-                        // [name: 'song-service'],
-                        // [name: 'spotify-integration-service'],
+                        [name: 'eureka-server'],
+                        [name: 'gateway'],
+                        [name: 'history-service'],
+                        [name: 'listener-service'],
+                        [name: 'playlist-service'],
+                        [name: 'song-service'],
+                        [name: 'spotify-integration-service'],
                     ]
 
                     for (service in services) {
