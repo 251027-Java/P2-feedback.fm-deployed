@@ -53,35 +53,36 @@ def shortSha = { ->
     return env.GIT_COMMIT.take(7)
 }
 
-def handleFileChanges = { ->
-    def checkForChanges = { ref ->
-        def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
-        fbfm.changes.frontend = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
-        fbfm.changes.backend = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
-        fbfm.changes.jenkinsfile = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
-    }
+def checkForChanges = { ref ->
+    def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
+    fbfm.changes.frontend = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
+    fbfm.changes.backend = sh(returnStdout: true, script: "${cmd} '^backend'").trim() != '0'
+    fbfm.changes.jenkinsfile = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
+}
 
+def determineReference = { ->
     // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
-    def size = currentBuild.changeSets.size()
-
-    // basically checking if there were changes for this event
-    if (size > 0) {
-        // assuming this is git and we only ever have one scm
-        def changeSet = currentBuild.changeSets.first()
-        echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
-
-        // check changes relative to the last `N` commits since a push can have multiple commits
-        checkForChanges("HEAD~${changeSet.items.size()}")
-    }
+    def prCreated = currentBuild.changeSets.size() == 0
 
     // should take care of the following issues
     // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/68
     // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
     // check changes relative to the default branch
-    // PR creation has a size of 0
-    if (fbfm.isPrToDefault && (size == 0 || currentBuild.previousBuild?.result == 'FAILURE')) {
-        checkForChanges(env.GITHUB_DEFAULT_BRANCH)
+    if (fbfm.isPrToDefault && (prCreated || currentBuild.previousBuild?.result == 'FAILURE')) {
+        return env.GITHUB_DEFAULT_BRANCH
     }
+
+    if (!prCreated) {
+        // assuming this is git and we only ever have one scm
+        def changeSet = currentBuild.changeSets.first()
+        echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
+
+        // check changes relative to the last `N` commits since a push can have multiple commits
+        return "HEAD~${changeSet.items.size()}"
+    }
+
+    // check relative to current commit
+    return "HEAD~1"
 }
 
 def handleCommitAttributes = { ->
@@ -166,7 +167,8 @@ pipeline {
                     fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true' || env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
 
-                    handleFileChanges()
+                    def ref = determineReference()
+                    checkForChanges(ref)
                     handleCommitAttributes()
                 }
             }
