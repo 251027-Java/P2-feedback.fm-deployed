@@ -410,6 +410,12 @@ pipeline {
                     fbfmBuildMicroservice(name: 'album-service', directory: 'backend/album-service')
                 }
             }
+
+            post {
+                always {
+                    cleanWs()
+                }
+            }
         }
 
         stage('docker album service') {
@@ -432,7 +438,6 @@ pipeline {
             sh '.jenkins/scripts/docker-cleanup.sh'
             // delete the workspace after to prevent large disk usage
             cleanWs()
-            deleteDir()
         }
     }
 }
