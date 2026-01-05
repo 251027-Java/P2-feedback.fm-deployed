@@ -397,14 +397,12 @@ pipeline {
                                 fbfmTestMicroservice(name: service.name, directory: service.directory)
                             }
 
-                            if (fbfm.isPrToDefault) {
-                                stage("build ${service.name}") {
-                                    fbfmBuildMicroservice(name: service.name, directory: service.directory)
-                                }
+                            stage("build ${service.name}") {
+                                fbfmBuildMicroservice(name: service.name, directory: service.directory)
                             }
                         }
 
-                        if (fbfm.isDefault) {
+                        if (fbfm.build[service.name] && fbfm.isDefault) {
                             stage("image ${service.name}") {
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
                                     dockerRepo: 'minidomo/feedbackfm', pushLatest: true
