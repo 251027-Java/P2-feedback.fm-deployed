@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.feedback.song.dtos.SongDTO;
+import com.feedback.song.service.KafkaLogger;
 import com.feedback.song.service.SongService;
 import com.feedback.song.service.SpotifyApiService; // NEED TO FIX
 
@@ -28,24 +29,29 @@ public class SongController {
 
 	private final SongService songService;
 	private final SpotifyApiService spotifyApiService;
+	private final KafkaLogger kafkaLogger;
 
-	public SongController(SongService songService, SpotifyApiService spotifyApiService) {
+	public SongController(SongService songService, SpotifyApiService spotifyApiService, KafkaLogger kafkaLogger) {
 		this.songService = songService;
 		this.spotifyApiService = spotifyApiService;
+		this.kafkaLogger = kafkaLogger;
 	}
 
 	// Get all songs with pagination
 	@GetMapping
 	public ResponseEntity<List<SongDTO>> getAllSongs(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size, @RequestParam(required = false) String query) {
 		if (query != null && !query.isBlank()) {
+			kafkaLogger.log("Searching songs with query: " + query);
 			return ResponseEntity.ok(songService.searchByName(query));
 		}
+		kafkaLogger.log("Fetching all songs");
 		return ResponseEntity.ok(songService.getAllSongs());
 	}
 
 	// Get specific song by ID
 	@GetMapping("/{id}")
 	public ResponseEntity<SongDTO> getSongById(@PathVariable String id) {
+		kafkaLogger.log("Fetching song with ID: " + id);
 		return songService.getById(id)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
@@ -55,6 +61,7 @@ public class SongController {
 	@PostMapping
 	public ResponseEntity<SongDTO> createSong(@RequestBody SongDTO songDTO) {
 		SongDTO created = songService.create(songDTO);
+		kafkaLogger.log("Created new song with ID: " + created.songId());
 		return ResponseEntity.status(201).body(created);
 	}
 
@@ -62,6 +69,7 @@ public class SongController {
 	@PutMapping("/{id}")
 	public ResponseEntity<SongDTO> updateSong(@PathVariable String id, @RequestBody SongDTO songDTO) {
 		SongDTO updated = songService.update(id, songDTO);
+		kafkaLogger.log("Updated song with ID: " + id);
 		return ResponseEntity.ok(updated);
 	}
 
@@ -69,24 +77,28 @@ public class SongController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteSong(@PathVariable String id) {
 		songService.delete(id);
+		kafkaLogger.log("Deleted song with ID: " + id);
 		return ResponseEntity.noContent().build();
 	}
 
 	// Get songs by artist
 	@GetMapping("/by-artist/{artistId}")
 	public ResponseEntity<List<SongDTO>> getSongsByArtist(@PathVariable String artistId) {
+		kafkaLogger.log("Fetching songs for artist ID: " + artistId);
 		return ResponseEntity.ok(List.of());
 	}
 
 	// Get songs by album
 	@GetMapping("/by-album/{albumId}")
 	public ResponseEntity<List<SongDTO>> getSongsByAlbum(@PathVariable String albumId) {
+		kafkaLogger.log("Fetching songs for album ID: " + albumId);
 		return ResponseEntity.ok(List.of());
 	}
 
 	// Search for songs
 	@GetMapping("/search")
 	public ResponseEntity<List<SongDTO>> searchSongs(@RequestParam String query) {
+		kafkaLogger.log("Searching songs with query: " + query);
 		return ResponseEntity.ok(songService.searchByName(query));
 	}
 
@@ -94,6 +106,7 @@ public class SongController {
 	@PostMapping("/{id}/like")
 	public ResponseEntity<Map<String, String>> likeSong(@PathVariable String id, @RequestParam String userId) {
 		Map<String, String> response = Map.of("message", "Song " + id + " liked by user " + userId);
+		kafkaLogger.log("User " + userId + " liked song " + id);
 		return ResponseEntity.ok(response);
 	}
 
@@ -101,6 +114,7 @@ public class SongController {
 	@DeleteMapping("/{id}/like")
 	public ResponseEntity<Map<String, String>> unlikeSong(@PathVariable String id, @RequestParam String userId) {
 		Map<String, String> response = Map.of("message", "Song " + id + " unliked by user " + userId);
+		kafkaLogger.log("User " + userId + " unliked song " + id);
 		return ResponseEntity.ok(response);
 	}
 
@@ -172,6 +186,7 @@ public class SongController {
 				songs.add(song);
 			}
 			
+			kafkaLogger.log("Fetched top songs for time range: " + time_range);
 			return ResponseEntity.ok(songs);
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(List.of());
@@ -247,6 +262,7 @@ public class SongController {
 			response.put("album", albumName);
 			response.put("image", albumImage);
 			
+			kafkaLogger.log("Fetched currently playing track: " + trackName + " by " + artistName);
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
 			Map<String, Object> errorResponse = new HashMap<>();

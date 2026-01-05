@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.feedback.playlist.dtos.PlaylistDTO;
+import com.feedback.playlist.service.KafkaLogger;
 import com.feedback.playlist.service.PlaylistService;
 import com.feedback.playlist.service.SpotifyApiService;
 
@@ -28,10 +29,12 @@ public class PlaylistController {
 
     private final PlaylistService playlistService;
     private final SpotifyApiService spotifyApiService;
+    private final KafkaLogger kafkaLogger;
 
-    public PlaylistController(PlaylistService playlistService, SpotifyApiService spotifyApiService) {
+    public PlaylistController(PlaylistService playlistService, SpotifyApiService spotifyApiService, KafkaLogger kafkaLogger) {
         this.playlistService = playlistService;
         this.spotifyApiService = spotifyApiService;
+        this.kafkaLogger = kafkaLogger;
     }
     
     // Get playlists from Spotify
@@ -115,6 +118,7 @@ public class PlaylistController {
                 }
             }
             
+            kafkaLogger.log("Fetched " + allPlaylists.size() + " playlists from Spotify.");
             return ResponseEntity.ok(allPlaylists);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
@@ -179,6 +183,7 @@ public class PlaylistController {
                 tracks.add(trackInfo);
             }
             
+            kafkaLogger.log("Fetched " + tracks.size() + " tracks from Spotify playlist " + playlistId + ".");
             return ResponseEntity.ok(tracks);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new ArrayList<>());
@@ -191,12 +196,14 @@ public class PlaylistController {
         if (userId != null && !userId.isBlank()) {
             return ResponseEntity.ok(playlistService.findByOwnerId(userId));
         }
+        kafkaLogger.log("Fetched all playlists.");
         return ResponseEntity.ok(playlistService.getAllPlaylists());
     }
 
     // Get specific playlist by ID
     @GetMapping("/{id}")
     public ResponseEntity<PlaylistDTO> getPlaylistById(@PathVariable String id) {
+        kafkaLogger.log("Fetched playlist with ID: " + id);
         return playlistService.getById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -206,6 +213,7 @@ public class PlaylistController {
     @PostMapping
     public ResponseEntity<PlaylistDTO> createPlaylist(@RequestBody PlaylistDTO playlistDTO) {
         PlaylistDTO created = playlistService.create(playlistDTO);
+        kafkaLogger.log("Created new playlist with ID: " + created.playlistId());
         return ResponseEntity.status(201).body(created);
     }
 
@@ -213,6 +221,7 @@ public class PlaylistController {
     @PutMapping("/{id}")
     public ResponseEntity<PlaylistDTO> updatePlaylist(@PathVariable String id, @RequestBody PlaylistDTO playlistDTO) {
         PlaylistDTO updated = playlistService.update(id, playlistDTO);
+        kafkaLogger.log("Updated playlist with ID: " + id);
         return ResponseEntity.ok(updated);
     }
 
@@ -220,12 +229,14 @@ public class PlaylistController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlaylist(@PathVariable String id) {
         playlistService.delete(id);
+        kafkaLogger.log("Deleted playlist with ID: " + id);
         return ResponseEntity.noContent().build();
     }
 
     // Get songs in a playlist (returns full playlist DTO which includes songs)
     @GetMapping("/{id}/songs")
     public ResponseEntity<PlaylistDTO> getPlaylistSongs(@PathVariable String id) {
+        kafkaLogger.log("Fetched songs for playlist with ID: " + id);
         return playlistService.getById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -239,6 +250,7 @@ public class PlaylistController {
             "songId", songData.get("songId"),
             "message", "Song added to playlist successfully"
         );
+        kafkaLogger.log("Added song " + songData.get("songId") + " to playlist " + playlistId + ".");
         return ResponseEntity.ok(response);
     }
 
@@ -246,6 +258,7 @@ public class PlaylistController {
     @DeleteMapping("/{playlistId}/songs/{songId}")
     public ResponseEntity<Map<String, String>> removeSongFromPlaylist(@PathVariable String playlistId, @PathVariable String songId) {
         Map<String, String> response = Map.of("message", "Song " + songId + " removed from playlist " + playlistId);
+        kafkaLogger.log("Removed song " + songId + " from playlist " + playlistId + ".");
         return ResponseEntity.ok(response);
     }
 
