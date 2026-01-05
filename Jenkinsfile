@@ -4,7 +4,6 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-// TODO: music-metadata-service is this up to date/being used?
 // NOTE: cannot use pipeline steps, such as 'sh', nested two or more levels down in methods.
 // this is why you see me calling stuff like catchError() even though I have a function
 // called markStageFailure()
