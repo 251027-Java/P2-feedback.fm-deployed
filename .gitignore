@@ -67,3 +67,5 @@ build/
 
 /backend/**/package.json
 /backend/**/package-lock.json
+
+/database
