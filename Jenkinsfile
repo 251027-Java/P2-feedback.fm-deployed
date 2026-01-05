@@ -431,8 +431,10 @@ pipeline {
             // delete the workspace after to prevent large disk usage
             cleanWs()
 
-            if (!fbfm.allSuccessful) {
-                currentBuild.result = 'FAILURE'
+            script {
+                if (!fbfm.allSuccessful) {
+                    currentBuild.result = 'FAILURE'
+                }
             }
         }
     }
