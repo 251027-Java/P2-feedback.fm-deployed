@@ -20,6 +20,17 @@ def fbfm = [
     test: [:],
     build: [:],
     allSuccessful: true,
+    microservices: [
+        album: [name: 'album-service', directory: 'backend/album-service'],
+        artist: [name: 'artist-service', directory: 'backend/artist-service'],
+        eureka: [name: 'eureka-server', directory: 'backend/eureka-server'],
+        gateway: [name: 'gateway', directory: 'backend/gateway'],
+        history: [name: 'history-service', directory: 'backend/history-service'],
+        playlist: [name: 'playlist-service', directory: 'backend/playlist-service'],
+        song: [name: 'song-service', directory: 'backend/song-service'],
+        spotify: [name: 'spotify-integration-service', directory: 'backend/spotify-integration-service'],
+        logging: [name: 'logging-service', directory: 'backend/logging-service'],
+    ]
 ]
 
 def limitText = { text, end = true ->
@@ -43,14 +54,10 @@ def checkForChanges = { ref ->
     def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
     fbfm.changes['frontend'] = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
     fbfm.changes['jenkinsfile'] = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
-    fbfm.changes['album-service'] = sh(returnStdout: true, script: "${cmd} '^backend/album-service'").trim() != '0'
-    fbfm.changes['artist-service'] = sh(returnStdout: true, script: "${cmd} '^backend/artist-service'").trim() != '0'
-    fbfm.changes['eureka-server'] = sh(returnStdout: true, script: "${cmd} '^backend/eureka-server'").trim() != '0'
-    fbfm.changes['gateway'] = sh(returnStdout: true, script: "${cmd} '^backend/gateway'").trim() != '0'
-    fbfm.changes['history-service'] = sh(returnStdout: true, script: "${cmd} '^backend/history-service'").trim() != '0'
-    fbfm.changes['playlist-service'] = sh(returnStdout: true, script: "${cmd} '^backend/playlist-service'").trim() != '0'
-    fbfm.changes['song-service'] = sh(returnStdout: true, script: "${cmd} '^backend/song-service'").trim() != '0'
-    fbfm.changes['spotify-integration-service'] = sh(returnStdout: true, script: "${cmd} '^backend/spotify-integration-service'").trim() != '0'
+
+    fbfm.microservices.values().each { service ->
+        fbfm.changes[service.name] = sh(returnStdout: true, script: "${cmd} '^${service.directory}'").trim() != '0'
+    }
 }
 
 def determineReference = { ->
@@ -384,9 +391,10 @@ pipeline {
                         [name: 'playlist-service'],
                         [name: 'song-service'],
                         [name: 'spotify-integration-service'],
+                        [name: 'logging-service'],
                     ]
 
-                    for (service in services) {
+                    fbfm.microservices.values().each { service ->
                         def shouldRun = !fbfm.run.skip &&
                             (
                                 fbfm.run.force ||
@@ -398,17 +406,17 @@ pipeline {
 
                         if (shouldRun) {
                             stage("test ${service.name}") {
-                                fbfmTestMicroservice(name: "${service.name}", directory: "backend/${service.name}")
+                                fbfmTestMicroservice(name: service.name, directory: service.directory)
                             }
 
                             stage("build ${service.name}") {
-                                fbfmBuildMicroservice(name: "${service.name}", directory: "backend/${service.name}")
+                                fbfmBuildMicroservice(name: service.name, directory: service.directory)
                             }
                         }
 
                         if (fbfm.build[service.name] && fbfm.isDefault) {
                             stage("image ${service.name}") {
-                                fbfmBuildImage(directory: "backend/${service.name}", tagSeries: "be-${service.name}",
+                                fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
                                     dockerRepo: 'minidomo/feedbackfm', pushLatest: true
                                 )
                             }
