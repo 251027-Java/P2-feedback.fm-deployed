@@ -4,7 +4,7 @@ def res = [
 ]
 
 def createCheckName = { text ->
-    return "docker / ${text}".toString()
+    return "docker hub / ${text}".toString()
 }
 
 def cleanBranchName = { name ->
@@ -78,7 +78,7 @@ pipeline {
             }
         }
 
-        stage('docker') {
+        stage('image') {
             steps {
                 publishChecks name: createCheckName(params.IMG_TAG_SERIES), title: 'Pending', status: 'IN_PROGRESS'
 
@@ -111,13 +111,13 @@ pipeline {
 
     post {
         always {
-            // delete the workspace after to prevent large disk usage
-            cleanWs()
-
             catchError(buildResult: null) {
                 // clean up docker images
-                sh "docker rmi -f ${env.DOCKER_REPO}:${createTagName()}"
+                sh ".jenkins/scripts/docker-cleanup.sh ${createTagName()}"
             }
+
+            // delete the workspace after to prevent large disk usage
+            cleanWs()
         }
     }
 }

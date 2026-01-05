@@ -4,27 +4,22 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-def isPrToDefault = false
-def isDefault = false
-def forceRun = false
-def skipRun = false
+// TODO: music-metadata-service is this up to date/being used?
+// NOTE: cannot use pipeline steps, such as 'sh', nested two or more levels down in methods.
+// this is why you see me calling stuff like catchError() even though I have a function
+// called markStageFailure()
 
-def fmChecks = [
-    lint: [
-        frontend: 'lint / frontend',
+def fbfm = [
+    run: [
+        force: false,
+        skip: false,
     ],
-    test: [
-        backend: 'test / backend',
-    ],
-    build: [
-        frontend: 'build / frontend',
-        backend: 'build / backend',
-    ],
-]
-
-def buildSuccess = [
-    frontend: false,
-    backend: false,
+    isDefault: false,
+    isPrToDefault: false,
+    changes: [:],
+    test: [:],
+    build: [:],
+    allSuccessful: true,
 ]
 
 def limitText = { text, end = true ->
@@ -44,11 +39,185 @@ def shortSha = { ->
     return env.GIT_COMMIT.take(7)
 }
 
+def checkForChanges = { ref ->
+    def cmd = ".jenkins/scripts/changes-count.sh ${ref}"
+    fbfm.changes['frontend'] = sh(returnStdout: true, script: "${cmd} '^frontend'").trim() != '0'
+    fbfm.changes['jenkinsfile'] = sh(returnStdout: true, script: "${cmd} '^Jenkinsfile'").trim() != '0'
+    fbfm.changes['album-service'] = sh(returnStdout: true, script: "${cmd} '^backend/album-service'").trim() != '0'
+    fbfm.changes['artist-service'] = sh(returnStdout: true, script: "${cmd} '^backend/artist-service'").trim() != '0'
+    fbfm.changes['eureka-server'] = sh(returnStdout: true, script: "${cmd} '^backend/eureka-server'").trim() != '0'
+    fbfm.changes['gateway'] = sh(returnStdout: true, script: "${cmd} '^backend/gateway'").trim() != '0'
+    fbfm.changes['history-service'] = sh(returnStdout: true, script: "${cmd} '^backend/history-service'").trim() != '0'
+    fbfm.changes['playlist-service'] = sh(returnStdout: true, script: "${cmd} '^backend/playlist-service'").trim() != '0'
+    fbfm.changes['song-service'] = sh(returnStdout: true, script: "${cmd} '^backend/song-service'").trim() != '0'
+    fbfm.changes['spotify-integration-service'] = sh(returnStdout: true, script: "${cmd} '^backend/spotify-integration-service'").trim() != '0'
+}
+
+def determineReference = { ->
+    // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
+    def prCreated = currentBuild.changeSets.size() == 0
+
+    // should take care of the following issues
+    // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/68
+    // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
+    // check changes relative to the default branch
+    if (fbfm.isPrToDefault && (prCreated || currentBuild.previousBuild?.result == 'FAILURE')) {
+        sh script: "git fetch origin ${env.GITHUB_DEFAULT_BRANCH}"
+        return 'FETCH_HEAD'
+    }
+
+    if (!prCreated) {
+        // assuming this is git and we only ever have one scm
+        def changeSet = currentBuild.changeSets.first()
+        echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
+
+        // check changes relative to the last `N` commits since a push can have multiple commits
+        return "HEAD~${changeSet.items.size()}"
+    }
+
+    // check relative to current commit
+    return 'HEAD~1'
+}
+
+def handleCommitAttributes = { ->
+    if (currentBuild.changeSets.size() > 0) {
+        def message = sh(returnStdout: true, script: '.jenkins/scripts/commit-message.sh').trim()
+        echo "commit message: ${message}"
+
+        // allow user to specify attributes for this run by checking the commit message for
+        // [<attribute1>,<attribute2>,...]
+        def matcher = message =~ /\[([^\[]+)\]/
+
+        if (matcher.find()) {
+            def attributes = (matcher.group(1).split(',').collect { it.trim() }) as Set
+            echo "attributes: ${attributes}"
+
+            if (attributes.contains('skip')) {
+                echo '[skip]: skipping tests'
+                fbfm.run.skip = true
+            } else if (attributes.contains('run')) {
+                echo '[run]: running all tests'
+                fbfm.run.force = true
+            }
+
+            if (attributes.contains('default')) {
+                echo '[default]: interpretting as default branch'
+                fbfm.isDefault = true
+            } else if (attributes.contains('pr-default')) {
+                echo '[pr-default]: interpretting as a PR to default branch'
+                fbfm.isPrToDefault = true
+            }
+
+            // build images based on "image-*"
+            attributes.findAll { it.startsWith('image-') }.each { attr ->
+                def key = attr.substring('image-'.length())
+                // indicate successful build to trick system
+                echo "[${key}]: will build"
+                fbfm.build[key] = true
+            }
+        }
+    }
+}
+
+def markStageFailure = { ->
+    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+        sh 'exit 1'
+    }
+    fbfm.allSuccessful = false
+}
+
+def fbfmBuildImage = { args ->
+    def directory = args.directory
+    def tagSeries = args.tagSeries
+    def dockerRepo = args.dockerRepo
+    def pushLatest = args.pushLatest
+
+    def tagName = "${tagSeries}-${env.GIT_BRANCH}-${shortSha()}"
+    def chName = "docker hub / ${tagSeries}"
+
+    publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
+
+    dir(directory) {
+        try {
+            def image = docker.build(dockerRepo)
+
+            docker.withRegistry('', 'docker-hub-cred') {
+                image.push(tagName)
+
+                if (pushLatest) {
+                    image.push("${tagSeries}-latest")
+                }
+            }
+
+            publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
+        } catch (err) {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh 'exit 1'
+            }
+            fbfm.allSuccessful = false
+            echo "${err}"
+            publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
+        }
+    }
+
+    // docker clean up
+    sh ".jenkins/scripts/docker-cleanup.sh ${tagName}"
+}
+
+def fbfmBuildMicroservice = { args ->
+    def directory = args.directory
+    def name = args.name
+
+    def chName = "build / ${name}".toString()
+
+    publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
+
+    dir(directory) {
+        try {
+            sh 'mvn -B package -DskipTests'
+            publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
+            fbfm.build[name] = true
+        } catch (err) {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh 'exit 1'
+            }
+            fbfm.allSuccessful = false
+            echo "${err}"
+            publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
+        }
+    }
+}
+
+def fbfmTestMicroservice = { args ->
+    def directory = args.directory
+    def name = args.name
+
+    def chName = "test / ${name}".toString()
+
+    withChecks(name: chName) {
+        dir(directory) {
+            try {
+                sh 'mvn -B test'
+                junit '**/target/surefire-reports/TEST-*.xml'
+                fbfm.test[name] = true
+            } catch (err) {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'exit 1'
+                }
+                fbfm.allSuccessful = false
+                echo "${err}"
+                publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
+            }
+        }
+    }
+}
+
 pipeline {
     agent any
 
     tools {
         jdk 'java25'
+        maven 'maven3'
     }
 
     environment {
@@ -68,104 +237,29 @@ pipeline {
 
                     currentBuild.displayName = "${currentBuild.displayName} ${shortSha()}"
 
-                    /*
-                    Using multibranch pipelines does not have the "origin/" part in env.GIT_BRANCH but
-                    has env.BRANCH_IS_PRIMARY allowing for an easier check.
-                    Keep the check for "origin/" in case we ever need to do testing with a regular pipeline.
-                     */
-                    isDefault = env.GIT_BRANCH == 'origin/' + env.GITHUB_DEFAULT_BRANCH || env.BRANCH_IS_PRIMARY == 'true'
-                    isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
+                    fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true'
+                    fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
 
-                    // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
-                    def size = currentBuild.changeSets.size()
-
-                    // check for changes for this event
-                    if (size > 0) {
-                        echo "change sets: ${size}"
-
-                        // assuming this is git and we only ever have one scm
-                        def changeSet = currentBuild.changeSets.first()
-                        echo "${changeSet.kind}: commits: ${changeSet.items.size()}"
-
-                        // only look at most recent commit
-                        def entry = changeSet.items.last()
-                        def date = new Date(entry.timestamp)
-
-                        echo """
-                        ${entry.commitId}
-                        ${date.format('yyyy-MM-dd HH:mm:ss')} | ${entry.timestamp}
-                        files changed: ${entry.affectedFiles.size()}
-                        msg: ${entry.msg}
-                        """
-                        // allow user to specify attributes for this run by checking the end of the
-                        // commit message for [<attribute1>,<attribute2>,...]
-                        def matcher = entry.msg =~ /\[([^\[]+)\]$/
-
-                        if (matcher.find()) {
-                            def attributes = (matcher.group(1).split(',').collect { it.trim() }) as Set
-                            echo "attributes: ${attributes}"
-
-                            if (attributes.contains('skip')) {
-                                echo '[skip]: skipping tests'
-                                skipRun = true
-                            } else if (attributes.contains('run')) {
-                                echo '[run]: running all tests'
-                                forceRun = true
-                            }
-
-                            if (attributes.contains('default')) {
-                                echo '[default]: interpretting as default branch'
-                                isDefault = true
-                            } else if (attributes.contains('pr-default')) {
-                                echo '[pr-default]: interpretting as a PR to default branch'
-                                isPrToDefault = true
-                            }
-
-                            // build images based on "docker-*"
-                            buildSuccess.each { k, v ->
-                                // these template strings are type GString, so convert to string
-                                // to work with Set<String>.contains()
-                                def target = "docker-${k}".toString()
-
-                                if (attributes.contains(target)) {
-                                    echo "[${target}]: will build the ${k} docker image"
-                                    buildSuccess[k] = true
-                                }
-                            }
-                        }
-                    }
-
-                    if (isPrToDefault) {
-                        // size = 0 when a PR is made. force a run
-                        // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/68
-                        if (size == 0) {
-                            echo 'PR made: running all tests'
-                            forceRun = true
-                        }
-
-                        // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
-                        if (currentBuild.previousBuild?.result == 'FAILURE') {
-                            echo 'previous run failed: running all tests'
-                            forceRun = true
-                        }
-                    }
+                    def ref = determineReference()
+                    checkForChanges(ref)
+                    handleCommitAttributes()
                 }
             }
         }
 
         stage('lint frontend') {
             when {
-                not { expression { skipRun } }
+                not { expression { fbfm.run.skip } }
                 anyOf {
-                    expression { forceRun }
+                    expression { fbfm.run.force }
                     allOf {
                         anyOf {
-                            expression { isPrToDefault }
-                            expression { isDefault }
+                            expression { fbfm.isPrToDefault }
+                            expression { fbfm.isDefault }
                         }
                         anyOf {
-                            changeset 'Jenkinsfile'
-                            changeset '**/frontend/**'
+                            expression { fbfm.changes.frontend }
+                            expression { fbfm.changes.jenkinsfile }
                         }
                     }
                 }
@@ -183,53 +277,27 @@ pipeline {
             }
 
             steps {
-                publishChecks name: fmChecks.lint.frontend, title: 'Pending', status: 'IN_PROGRESS'
-
                 dir('frontend') {
                     script {
+                        def chName = 'lint / frontend'
                         def res = null
+
+                        publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
                         try {
                             sh 'biome ci --colors=off --reporter=summary > frontend-code-quality.txt'
                             res = [con: 'SUCCESS', title: 'Success']
                         } catch (err) {
+                            markStageFailure()
+                            echo "${err}"
                             res = [con: 'FAILURE', title: 'Failed']
-                            throw err
-                        } finally {
-                            def output = readFile file: 'frontend-code-quality.txt'
-                            echo output
-
-                            publishChecks name: fmChecks.lint.frontend, conclusion: res.con, title: res.title,
-                                summary: limitText(output)
                         }
-                    }
-                }
-            }
-        }
 
-        stage('test backend') {
-            when {
-                not { expression { skipRun } }
-                anyOf {
-                    expression { forceRun }
-                    allOf {
-                        anyOf {
-                            expression { isPrToDefault }
-                            expression { isDefault }
-                        }
-                        anyOf {
-                            changeset 'Jenkinsfile'
-                            changeset '**/backend/**'
-                        }
-                    }
-                }
-            }
+                        def output = readFile file: 'frontend-code-quality.txt'
+                        echo output
 
-            steps {
-                withChecks(name: fmChecks.test.backend) {
-                    dir('backend') {
-                        sh './mvnw -B test'
-                        junit '**/target/surefire-reports/TEST-*.xml'
+                        publishChecks name: chName, conclusion: res.con, title: res.title,
+                            summary: limitText(output)
                     }
                 }
             }
@@ -237,17 +305,17 @@ pipeline {
 
         stage('build frontend') {
             when {
-                not { expression { skipRun } }
+                not { expression { fbfm.run.skip } }
                 anyOf {
-                    expression { forceRun }
+                    expression { fbfm.run.force }
                     allOf {
                         anyOf {
-                            expression { isPrToDefault }
-                            expression { isDefault }
+                            expression { fbfm.isPrToDefault }
+                            expression { fbfm.isDefault }
                         }
                         anyOf {
-                            changeset 'Jenkinsfile'
-                            changeset '**/frontend/**'
+                            expression { fbfm.changes.frontend }
+                            expression { fbfm.changes.jenkinsfile }
                         }
                     }
                 }
@@ -261,101 +329,107 @@ pipeline {
             }
 
             steps {
-                publishChecks name: fmChecks.build.frontend, title: 'Pending', status: 'IN_PROGRESS'
+                script {
+                    def chName = 'build / frontend'
+                    publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
-                dir('frontend') {
-                    sh 'npm ci'
-                    sh 'npm run build'
-                }
-            }
-
-            post {
-                success {
-                    publishChecks name: fmChecks.build.frontend, conclusion: 'SUCCESS', title: 'Success'
-
-                    script {
-                        buildSuccess.frontend = isDefault
-                    }
-                }
-
-                failure {
-                    publishChecks name: fmChecks.build.frontend, conclusion: 'FAILURE', title: 'Failed'
-                }
-            }
-        }
-
-        stage('build backend') {
-            when {
-                not { expression { skipRun } }
-                anyOf {
-                    expression { forceRun }
-                    allOf {
-                        anyOf {
-                            expression { isPrToDefault }
-                            expression { isDefault }
-                        }
-                        anyOf {
-                            changeset 'Jenkinsfile'
-                            changeset '**/backend/**'
+                    dir('frontend') {
+                        try {
+                            sh 'npm ci && npm run build'
+                            publishChecks name: chName, conclusion: 'SUCCESS', title: 'Success'
+                            fbfm.build.frontend = true
+                        } catch (err) {
+                            markStageFailure()
+                            echo "${err}"
+                            publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
                         }
                     }
                 }
             }
 
-            steps {
-                publishChecks name: fmChecks.build.backend, title: 'Pending', status: 'IN_PROGRESS'
-
-                dir('backend') {
-                    sh './mvnw -B package -DskipTests'
+            post {
+                always {
+                    // need to clean the workspace here because it's a separate workspace from the workspace that gets
+                    // cleaned at the end of this file. this installs node_modules, so it can take up a large amount of
+                    // disk
+                    cleanWs()
                 }
             }
+        }
 
-            post {
-                success {
-                    publishChecks name: fmChecks.build.backend, conclusion: 'SUCCESS', title: 'Success'
+        stage('image frontend') {
+            when {
+                expression { fbfm.build.frontend && fbfm.isDefault }
+            }
 
-                    script {
-                        buildSuccess.backend = isDefault
+            steps {
+                script {
+                    fbfmBuildImage(name: 'frontend', directory: 'frontend', tagSeries: 'fe',
+                        dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                    )
+                }
+            }
+        }
+
+        stage('test build image microservices') {
+            steps {
+                script {
+                    def services = [
+                        [name: 'album-service'],
+                        [name: 'artist-service'],
+                        [name: 'eureka-server'],
+                        [name: 'gateway'],
+                        [name: 'history-service'],
+                        [name: 'listener-service'],
+                        [name: 'playlist-service'],
+                        [name: 'song-service'],
+                        [name: 'spotify-integration-service'],
+                    ]
+
+                    for (service in services) {
+                        def shouldRun = !fbfm.run.skip &&
+                            (
+                                fbfm.run.force ||
+                                (
+                                    (fbfm.isPrToDefault || fbfm.isDefault) &&
+                                    (fbfm.changes.jenkinsfile || fbfm.changes[service.name])
+                                )
+                            )
+
+                        if (shouldRun) {
+                            stage("test ${service.name}") {
+                                fbfmTestMicroservice(name: "${service.name}", directory: "backend/${service.name}")
+                            }
+
+                            stage("build ${service.name}") {
+                                fbfmBuildMicroservice(name: "${service.name}", directory: "backend/${service.name}")
+                            }
+                        }
+
+                        if (fbfm.build[service.name] && fbfm.isDefault) {
+                            stage("image ${service.name}") {
+                                fbfmBuildImage(directory: "backend/${service.name}", tagSeries: "be-${service.name}",
+                                    dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                                )
+                            }
+                        }
                     }
                 }
-
-                failure {
-                    publishChecks name: fmChecks.build.backend, conclusion: 'FAILURE', title: 'Failed'
-                }
-            }
-        }
-
-        stage('docker frontend') {
-            when {
-                expression { buildSuccess.frontend }
-            }
-
-            steps {
-                build job: 'image', parameters: [
-                    booleanParam(name: 'IMG_PUSH_LATEST', value: true),
-                    string(name: 'IMG_COMMIT', value: 'asd'),
-                    string(name: 'IMG_TAG_SERIES', value: 'fe'),
-                    string(name: 'IMG_DIRECTORY', value: 'frontend'),
-                ]
-            }
-        }
-
-        stage('docker backend') {
-            when {
-                expression { buildSuccess.backend }
-            }
-
-            steps {
-                // TODO: implement later
-                echo 'do something here backend'
             }
         }
     }
 
     post {
         always {
+            sh '.jenkins/scripts/docker-cleanup.sh'
             // delete the workspace after to prevent large disk usage
             cleanWs()
+
+            script {
+                if (!fbfm.allSuccessful) {
+                    currentBuild.result = 'FAILURE'
+                }
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # most of this file is from `docker init`
 
-FROM eclipse-temurin:25-jdk-jammy as deps
+FROM eclipse-temurin:25-jdk-jammy AS deps
 
 WORKDIR /build
 
@@ -18,7 +18,7 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 # Create a stage for building the application based on the stage with downloaded dependencies.
 # This Dockerfile is optimized for Java applications that output an uber jar, which includes
 # all the dependencies needed to run your app inside a JVM.
-FROM deps as package
+FROM deps AS package
 
 WORKDIR /build
 

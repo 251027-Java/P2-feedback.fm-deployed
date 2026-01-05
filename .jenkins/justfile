@@ -1,9 +1,8 @@
-set dotenv-load
-set dotenv-required
-set quiet
+set dotenv-load := true
+set dotenv-required := true
+set quiet := true
 
 jenkins_url := '${JENKINS_PROTOCOL}://${JENKINS_HOST}:${JENKINS_PORT}'
-
 sudo := if env('SUDO') == '1' { 'sudo ' } else { '' }
 
 alias j := jcli
@@ -112,6 +111,7 @@ apply-config:
 
 # https://plugins.jenkins.io/github/#plugin-content-manual-mode
 # https://stackoverflow.com/a/51545557
+
 # Tunneling using localtunnel. Only for local development
 [group("Extra")]
 tunnel:
@@ -129,6 +129,7 @@ secret prop:
     grep "^{{ prop }}=" ./secrets/secrets.properties | cut -d "=" -f 2-
 
 # https://github.com/jenkinsci/github-branch-source-plugin/blob/master/docs/github-app.adoc#creating-the-github-app
+
 # Convert GitHub keys to a compatible Jenkins format
 [group("Util")]
 convert-key in out:
@@ -140,11 +141,11 @@ urls ip="0":
     #!/usr/bin/bash
     url="{{ jenkins_url }}"
     address=$(just ip)
-    
+
     if [ "{{ ip }}" == "ip=1" ]; then
         url="${JENKINS_PROTOCOL}://${address}:${JENKINS_PORT}"
     fi
-    
+
     width=30
     s=""
     s+=$(printf "%-${width}s %s" "{{ YELLOW }}Job DSL API{{ NORMAL }}" "${url}/plugin/job-dsl/api-viewer/index.html")
@@ -175,3 +176,11 @@ plugins:
 [group("Util")]
 update-files branch="main":
     gitsnip $GITSNIP_REPO $GITSNIP_FOLDER . -b {{ branch }}
+
+# Clean up docker
+[group("Util")]
+cdocker:
+    {{ sudo }}docker builder prune -af
+    {{ sudo }}docker container prune -af
+    {{ sudo }}docker volume prune -f
+    {{ sudo }}docker image prune -af
