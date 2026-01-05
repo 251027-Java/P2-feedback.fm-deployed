@@ -138,8 +138,9 @@ def fbfmBuildImage = { args ->
     def tagSeries = args.tagSeries
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
+    def branch = env.GIT_BRANCH.replaceAll('/', '-')
 
-    def tagName = "${tagSeries}-${env.GIT_BRANCH}-${shortSha()}"
+    def tagName = "${tagSeries}-${branch}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
 
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
@@ -381,19 +382,6 @@ pipeline {
         stage('test build image microservices') {
             steps {
                 script {
-                    def services = [
-                        [name: 'album-service'],
-                        [name: 'artist-service'],
-                        [name: 'eureka-server'],
-                        [name: 'gateway'],
-                        [name: 'history-service'],
-                        [name: 'listener-service'],
-                        [name: 'playlist-service'],
-                        [name: 'song-service'],
-                        [name: 'spotify-integration-service'],
-                        [name: 'logging-service'],
-                    ]
-
                     fbfm.microservices.values().each { service ->
                         def shouldRun = !fbfm.run.skip &&
                             (
