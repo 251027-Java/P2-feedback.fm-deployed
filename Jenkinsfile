@@ -409,8 +409,10 @@ pipeline {
                                 fbfmTestMicroservice(name: service.name, directory: service.directory)
                             }
 
-                            stage("build ${service.name}") {
-                                fbfmBuildMicroservice(name: service.name, directory: service.directory)
+                            if (fbfm.isPrToDefault) {
+                                stage("build ${service.name}") {
+                                    fbfmBuildMicroservice(name: service.name, directory: service.directory)
+                                }
                             }
                         }
 
