@@ -416,7 +416,7 @@ pipeline {
                             }
                         }
 
-                        if (fbfm.build[service.name] && fbfm.isDefault) {
+                        if (fbfm.isDefault) {
                             stage("image ${service.name}") {
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
                                     dockerRepo: 'minidomo/feedbackfm', pushLatest: true
