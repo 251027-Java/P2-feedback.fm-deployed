@@ -24,8 +24,8 @@ pipeline {
 
     parameters {
         booleanParam name: 'IMG_PUSH_LATEST', defaultValue: false, description: 'Create a latest tag from this'
-        string name: 'IMG_COMMIT', trim: true, description: 'Commit SHA to use'
-        string name: 'IMG_BRANCH', trim: true, description: 'Branch to use'
+        string name: 'IMG_COMMIT', trim: true, description: 'Commit SHA to use. If not specified, uses the latest commit of the branch `IMG_BRANCH`.'
+        string name: 'IMG_BRANCH', trim: true, description: 'Branch to use. If `IMG_COMMIT` is specified, this parameter is optional.'
         string name: 'IMG_TAG_SERIES', trim: true, description: 'Series name to use'
         string name: 'IMG_DIRECTORY', trim: true, description: 'Location of Dockerfile and context'
     }

@@ -4,7 +4,6 @@ https://www.jenkins.io/blog/2020/04/16/github-app-authentication/#how-do-i-get-a
 https://plugins.jenkins.io/checks-api/
  */
 
-// TODO: music-metadata-service is this up to date/being used?
 // NOTE: cannot use pipeline steps, such as 'sh', nested two or more levels down in methods.
 // this is why you see me calling stuff like catchError() even though I have a function
 // called markStageFailure()
@@ -138,8 +137,9 @@ def fbfmBuildImage = { args ->
     def tagSeries = args.tagSeries
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
+    def branch = env.GIT_BRANCH.replaceAll('/', '-')
 
-    def tagName = "${tagSeries}-${env.GIT_BRANCH}-${shortSha()}"
+    def tagName = "${tagSeries}-${branch}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
 
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
@@ -381,19 +381,6 @@ pipeline {
         stage('test build image microservices') {
             steps {
                 script {
-                    def services = [
-                        [name: 'album-service'],
-                        [name: 'artist-service'],
-                        [name: 'eureka-server'],
-                        [name: 'gateway'],
-                        [name: 'history-service'],
-                        [name: 'listener-service'],
-                        [name: 'playlist-service'],
-                        [name: 'song-service'],
-                        [name: 'spotify-integration-service'],
-                        [name: 'logging-service'],
-                    ]
-
                     fbfm.microservices.values().each { service ->
                         def shouldRun = !fbfm.run.skip &&
                             (
@@ -409,14 +396,12 @@ pipeline {
                                 fbfmTestMicroservice(name: service.name, directory: service.directory)
                             }
 
-                            if (fbfm.isPrToDefault) {
-                                stage("build ${service.name}") {
-                                    fbfmBuildMicroservice(name: service.name, directory: service.directory)
-                                }
+                            stage("build ${service.name}") {
+                                fbfmBuildMicroservice(name: service.name, directory: service.directory)
                             }
                         }
 
-                        if (fbfm.isDefault) {
+                        if (fbfm.build[service.name] && fbfm.isDefault) {
                             stage("image ${service.name}") {
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
                                     dockerRepo: 'minidomo/feedbackfm', pushLatest: true

@@ -70,7 +70,7 @@ credentials:
 # https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC
 # Job DSL API (general) - https://jenkinsci.github.io/job-dsl-plugin/
 # More specific Job DSL API catered to your installed plugins: <jenkins-url>/plugin/job-dsl/api-viewer/index.html
-# TODO maybe send repository details through environment variables and substitute?
+# TODO: maybe send repository details through environment variables and substitute?
 jobs:
   - script: >
       multibranchPipelineJob('primary') {
