@@ -19,6 +19,7 @@ def fbfm = [
     changes: [:],
     test: [:],
     build: [:],
+    allSuccessful: true,
 ]
 
 def limitText = { text, end = true ->
@@ -128,6 +129,7 @@ def markStageFailure = { ->
     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
         sh 'exit 1'
     }
+    fbfm.allSuccessful = false
 }
 
 def fbfmBuildImage = { args ->
@@ -158,6 +160,7 @@ def fbfmBuildImage = { args ->
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                 sh 'exit 1'
             }
+            fbfm.allSuccessful = false
             echo "${err}"
             publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
         }
@@ -184,6 +187,7 @@ def fbfmBuildMicroservice = { args ->
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                 sh 'exit 1'
             }
+            fbfm.allSuccessful = false
             echo "${err}"
             publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
         }
@@ -206,6 +210,7 @@ def fbfmTestMicroservice = { args ->
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh 'exit 1'
                 }
+                fbfm.allSuccessful = false
                 echo "${err}"
                 publishChecks name: chName, conclusion: 'FAILURE', title: 'Failed'
             }
@@ -350,6 +355,9 @@ pipeline {
 
             post {
                 always {
+                    // need to clean the workspace here because it's a separate workspace from the workspace that gets
+                    // cleaned at the end of this file. this installs node_modules, so it can take up a large amount of
+                    // disk
                     cleanWs()
                 }
             }
@@ -422,6 +430,10 @@ pipeline {
             sh '.jenkins/scripts/docker-cleanup.sh'
             // delete the workspace after to prevent large disk usage
             cleanWs()
+
+            if (!fbfm.allSuccessful) {
+                currentBuild.result = 'FAILURE'
+            }
         }
     }
 }
