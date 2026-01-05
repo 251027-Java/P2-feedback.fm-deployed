@@ -56,20 +56,14 @@ def checkForChanges = { ref ->
 def determineReference = { ->
     // https://javadoc.jenkins-ci.org/hudson/scm/ChangeLogSet.html
     def prCreated = currentBuild.changeSets.size() == 0
-    sh script: "git fetch origin ${env.GITHUB_DEFAULT_BRANCH}"
-    def res = sh(returnStdout: true, script: 'git branch -a')
-    echo "${res}"
-
-    if (res.length() > 0) {
-        return 'FETCH_HEAD'
-    }
 
     // should take care of the following issues
     // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/68
     // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
     // check changes relative to the default branch
     if (fbfm.isPrToDefault && (prCreated || currentBuild.previousBuild?.result == 'FAILURE')) {
-        return 'origin/' + env.GITHUB_DEFAULT_BRANCH
+        sh script: "git fetch origin ${env.GITHUB_DEFAULT_BRANCH}"
+        return 'FETCH_HEAD'
     }
 
     if (!prCreated) {
