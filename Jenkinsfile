@@ -59,6 +59,10 @@ def determineReference = { ->
     def res = sh(returnStdout: true, script: 'git branch -a')
     echo "${res}"
 
+    if (res.length() > 0) {
+        return 'FETCH_HEAD'
+    }
+
     // should take care of the following issues
     // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/68
     // https://github.com/251027-Java/P2-feedback.fm-deployed/issues/65
