@@ -28,6 +28,7 @@ pipeline {
         string name: 'IMG_BRANCH', trim: true, description: 'Branch to use. If `IMG_COMMIT` is specified, this parameter is optional.'
         string name: 'IMG_TAG_SERIES', trim: true, description: 'Series name to use'
         string name: 'IMG_DIRECTORY', trim: true, description: 'Location of Dockerfile and context'
+        string name: 'IMG_PLATFORMS', trim: true, description: 'Comma-separated platforms to build for (Optional)'
     }
 
     environment {
@@ -86,7 +87,9 @@ pipeline {
 
                 dir(params.IMG_DIRECTORY) {
                     script {
-                        def image = docker.build(env.DOCKER_REPO)
+                        def platformStr = params.IMG_PLATFORMS == '' ? ''
+                            : "--platform ${params.IMG_PLATFORMS}".toString()
+                        def image = docker.build(env.DOCKER_REPO, "${platformStr} .")
 
                         docker.withRegistry('', 'docker-hub-cred') {
                             image.push(createTagName())
