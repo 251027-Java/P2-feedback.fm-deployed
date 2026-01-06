@@ -20,15 +20,16 @@ def fbfm = [
     build: [:],
     allSuccessful: true,
     microservices: [
-        album: [name: 'album-service', directory: 'backend/album-service'],
-        artist: [name: 'artist-service', directory: 'backend/artist-service'],
-        eureka: [name: 'eureka-server', directory: 'backend/eureka-server'],
-        gateway: [name: 'gateway', directory: 'backend/gateway'],
-        history: [name: 'history-service', directory: 'backend/history-service'],
-        playlist: [name: 'playlist-service', directory: 'backend/playlist-service'],
-        song: [name: 'song-service', directory: 'backend/song-service'],
-        spotify: [name: 'spotify-integration-service', directory: 'backend/spotify-integration-service'],
-        logging: [name: 'logging-service', directory: 'backend/logging-service'],
+        album: [name: 'album-service', directory: 'backend/album-service', test: true],
+        artist: [name: 'artist-service', directory: 'backend/artist-service', test: true],
+        eureka: [name: 'eureka-server', directory: 'backend/eureka-server', test: false],
+        gateway: [name: 'gateway', directory: 'backend/gateway', test: false],
+        history: [name: 'history-service', directory: 'backend/history-service', test: true],
+        playlist: [name: 'playlist-service', directory: 'backend/playlist-service', test: true],
+        song: [name: 'song-service', directory: 'backend/song-service', test: true],
+        spotify: [name: 'spotify-integration-service', directory: 'backend/spotify-integration-service', test: false],
+        logging: [name: 'logging-service', directory: 'backend/logging-service', test: false],
+        listener: [name: 'listener-service', directory: 'backend/listener-service', test: true],
     ]
 ]
 
@@ -392,8 +393,10 @@ pipeline {
                             )
 
                         if (shouldRun) {
-                            stage("test ${service.name}") {
-                                fbfmTestMicroservice(name: service.name, directory: service.directory)
+                            if (service.test) {
+                                stage("test ${service.name}") {
+                                    fbfmTestMicroservice(name: service.name, directory: service.directory)
+                                }
                             }
 
                             stage("build ${service.name}") {
@@ -422,7 +425,7 @@ pipeline {
 
             script {
                 if (!fbfm.allSuccessful) {
-                    currentBuild.result = 'FAILURE'
+                    error 'Not all stages were successful'
                 }
             }
         }

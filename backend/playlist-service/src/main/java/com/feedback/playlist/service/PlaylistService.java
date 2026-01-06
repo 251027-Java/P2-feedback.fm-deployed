@@ -123,6 +123,11 @@ public class PlaylistService {
         // validate and set owner if provided
         if (dto.ownerId() != null && !dto.ownerId().isBlank()) {
             ListenerDTO owner = listenerService.findById(dto.ownerId());
+
+            if (owner == null) {
+                throw new ResourceNotFoundException("Owner", dto.ownerId());
+            }
+
             Listener listener = DTOToListener(owner);
             playlist.setOwner(listener);
         }
@@ -152,6 +157,11 @@ public class PlaylistService {
         // validate and set owner if provided
         if (dto.ownerId() != null && !dto.ownerId().isBlank()) {
             ListenerDTO owner = listenerService.findById(dto.ownerId());
+
+            if (owner == null) {
+                throw new ResourceNotFoundException("Owner", dto.ownerId());
+            }
+
             Listener listener = DTOToListener(owner);
             playlist.setOwner(listener);
         } else {

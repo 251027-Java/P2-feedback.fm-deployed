@@ -1,0 +1,28 @@
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+# URL for history/stats service (used to decouple history storage). In Docker compose this will be
+# provided as environment variable `HISTORY_SERVICE_URL` and typically points to http://history-service:8088
+history:
+  service:
+    url: http://history-service:8088
+server:
+  port: 8086
+spring:
+  application:
+    name: listener-service
+  datasource:
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  output:
+    ansi:
+      enabled: always

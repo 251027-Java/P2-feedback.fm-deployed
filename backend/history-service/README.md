@@ -11,7 +11,7 @@ mvn -f backend/history-service clean package
 Run (requires PostgreSQL on localhost:5432 with database `history_db`):
 
 ```bash
-java -jar backend/history-service/target/history-service-0.0.1-SNAPSHOT.jar
+java -jar backend/history-service/target/history-service-0.0.1.jar
 ```
 
 Docker build:
