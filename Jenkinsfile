@@ -29,6 +29,7 @@ def fbfm = [
         song: [name: 'song-service', directory: 'backend/song-service', test: true],
         spotify: [name: 'spotify-integration-service', directory: 'backend/spotify-integration-service', test: false],
         logging: [name: 'logging-service', directory: 'backend/logging-service', test: false],
+        listener: [name: 'listener-service', directory: 'backend/listener-service', test: true],
     ]
 ]
 
