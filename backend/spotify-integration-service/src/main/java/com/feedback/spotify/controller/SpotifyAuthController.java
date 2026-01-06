@@ -41,6 +41,7 @@ public class SpotifyAuthController {
     public ResponseEntity<Map<String, String>> getAuthUrl() {
         System.out.println("Received request for Spotify authorization URL");
         String authUrl = authService.getAuthorizationUrl();
+        System.out.println("Authorization URL: " + authUrl);
         Map<String, String> response = new HashMap<>();
         response.put("authUrl", authUrl);
         return ResponseEntity.ok(response);
@@ -59,7 +60,7 @@ public class SpotifyAuthController {
                 String errorUrl = frontendUrl + "?error=" + URLEncoder.encode("Failed to get access token", StandardCharsets.UTF_8);
                 return new RedirectView(errorUrl);
             }
-
+            // System.out.println("Access token: " + accessToken);
             // Get user profile from Spotify
             Map<String, Object> userProfile = apiService.getCurrentUser(accessToken);
 
