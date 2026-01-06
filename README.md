@@ -217,8 +217,8 @@ JWT_SECRET=averylongsecretkeythatissecureenoughforhmacsha256algorithm
 JWT_EXPIRATION=86400000
 
 # Kafka config
-KAFKA_PORT_1=9082
-KAFKA_PORT_2=9083
+KAFKA_PORT=9082
+KAFKA_CONTROLLER_PORT=9083
 ```
 
 ### 2. Start the Services
