@@ -406,6 +406,7 @@ pipeline {
 
                         if (fbfm.build[service.name] && fbfm.isDefault) {
                             stage("image ${service.name}") {
+                                sh '.jenkins/scripts/docker-prep.sh'
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
                                     dockerRepo: 'minidomo/feedbackfm', pushLatest: true
                                 )
