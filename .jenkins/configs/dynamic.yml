@@ -70,7 +70,7 @@ credentials:
 # https://github.com/jenkinsci/job-dsl-plugin/wiki/JCasC
 # Job DSL API (general) - https://jenkinsci.github.io/job-dsl-plugin/
 # More specific Job DSL API catered to your installed plugins: <jenkins-url>/plugin/job-dsl/api-viewer/index.html
-# TODO maybe send repository details through environment variables and substitute?
+# TODO: maybe send repository details through environment variables and substitute?
 jobs:
   - script: >
       multibranchPipelineJob('primary') {
@@ -103,24 +103,6 @@ jobs:
         }
       }
   - script: >
-      pipelineJob('dev') {
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  credentials('github-app-team')
-                  url('https://github.com/251027-Java/P2-feedback.fm-deployed')
-                }
-                branch('main')
-              }
-            }
-            scriptPath('Jenkinsfile')
-            lightweight(true)
-          }
-        }
-      }
-  - script: >
       pipelineJob('image') {
         definition {
           cpsScm {
@@ -130,7 +112,7 @@ jobs:
                   credentials('github-app-team')
                   url('https://github.com/251027-Java/P2-feedback.fm-deployed')
                 }
-                branches('main', 'dockerhub')
+                branches('main')
               }
             }
             scriptPath('.jenkins/jobs/Jenkinsfile.image')

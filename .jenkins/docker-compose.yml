@@ -26,6 +26,7 @@ services:
 
   jdocker:
     image: docker:dind
+    restart: always
     ports:
       - ${JDOCKER_PORT}:2376
     volumes:
