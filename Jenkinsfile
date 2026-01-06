@@ -122,6 +122,15 @@ def handleCommitAttributes = { ->
                 echo "[${key}]: will build"
                 fbfm.build[key] = true
             }
+
+            if (attributes.contains('imageall')) {
+                echo '[imageall]: building all images'
+
+                fbfm.microservices.values() .each { service -> 
+                    echo "[${service.name}]: will build"
+                    fbfm.build[service.name] = true
+                }
+            }
         }
     }
 }
