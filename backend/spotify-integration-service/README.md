@@ -11,7 +11,7 @@ mvn -f backend/spotify-integration-service clean package
 Run:
 
 ```bash
-java -jar backend/spotify-integration-service/target/spotify-integration-service-0.0.1-SNAPSHOT.jar
+java -jar backend/spotify-integration-service/target/spotify-integration-service-0.0.1.jar
 ```
 
 Docker:

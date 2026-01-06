@@ -10,8 +10,7 @@
     </parent>
     <groupId>com.feedback</groupId>
     <artifactId>spotify</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>spotify-integration-service</name>
+    <version>0.0.1</version>
     <description>Simple integration of Spotify profile into UI</description>
     <url/>
     <licenses>
