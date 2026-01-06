@@ -2,6 +2,7 @@ package com.feedback.artist.controller;
 
 import com.feedback.artist.dtos.ArtistDTO;
 import com.feedback.artist.service.ArtistService;
+import com.feedback.artist.service.KafkaLogger;
 import com.feedback.artist.service.SpotifyApiService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,10 @@ public class ArtistController {
 
 	private final ArtistService artistService;
 	private final SpotifyApiService spotifyApiService;
+	private final KafkaLogger kafkaLogger;
 
-	public ArtistController(ArtistService artistService, SpotifyApiService spotifyApiService) {
+	public ArtistController(ArtistService artistService, SpotifyApiService spotifyApiService, KafkaLogger kafkaLogger) {
+		this.kafkaLogger = kafkaLogger;
 		this.artistService = artistService;
 		this.spotifyApiService = spotifyApiService;
 	}
@@ -29,12 +32,14 @@ public class ArtistController {
 		if (query != null && !query.isBlank()) {
 			return ResponseEntity.ok(artistService.searchByName(query));
 		}
+		kafkaLogger.log("Retrieved all Artists");
 		return ResponseEntity.ok(artistService.getAllArtists());
 	}
 
 	// Get specific artist by ID
 	@GetMapping("/{id}")
 	public ResponseEntity<ArtistDTO> getArtistById(@PathVariable String id) {
+		kafkaLogger.log("Retrieved Artist with ID: " + id);
 		return artistService.getById(id)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
@@ -44,6 +49,7 @@ public class ArtistController {
 	@PostMapping
 	public ResponseEntity<ArtistDTO> createArtist(@RequestBody ArtistDTO artistDTO) {
 		ArtistDTO created = artistService.create(artistDTO);
+		kafkaLogger.log("Created new Artist with ID: " + created.artistId());
 		return ResponseEntity.status(201).body(created);
 	}
 
@@ -51,6 +57,7 @@ public class ArtistController {
 	@PutMapping("/{id}")
 	public ResponseEntity<ArtistDTO> updateArtist(@PathVariable String id, @RequestBody ArtistDTO artistDTO) {
 		ArtistDTO updated = artistService.update(id, artistDTO);
+		kafkaLogger.log("Updated Artist with ID: " + id);
 		return ResponseEntity.ok(updated);
 	}
 
@@ -58,12 +65,14 @@ public class ArtistController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteArtist(@PathVariable String id) {
 		artistService.delete(id);
+		kafkaLogger.log("Deleted Artist with ID: " + id);
 		return ResponseEntity.noContent().build();
 	}
 
 	// Get songs by artist (returns full artist DTO which includes songs)
 	@GetMapping("/{id}/songs")
 	public ResponseEntity<ArtistDTO> getArtistSongs(@PathVariable String id) {
+		kafkaLogger.log("Retrieved songs for Artist with ID: " + id);
 		return artistService.getById(id)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
@@ -72,6 +81,7 @@ public class ArtistController {
 	// Get albums by artist (returns full artist DTO which includes albums)
 	@GetMapping("/{id}/albums")
 	public ResponseEntity<ArtistDTO> getArtistAlbums(@PathVariable String id) {
+		kafkaLogger.log("Retrieved albums for Artist with ID: " + id);
 		return artistService.getById(id)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
@@ -123,7 +133,7 @@ public class ArtistController {
 				
 				artists.add(artist);
 			}
-			
+			kafkaLogger.log("Retrieved top artists from Spotify");
 			return ResponseEntity.ok(artists);
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(List.of());
@@ -132,12 +142,14 @@ public class ArtistController {
 
 	@GetMapping("/find-by-id/{id}")
     public ArtistDTO findById(@PathVariable String id) {
+		kafkaLogger.log("Finding Artist with ID: " + id);
         return artistService.getById(id).orElse(null);
     }   
 
     @GetMapping("/exists/{id}")
     public boolean existsById(@PathVariable String id) {
         boolean exists = artistService.existsById(id);
+		kafkaLogger.log("Checked existence of Artist with ID: " + id + " - Exists: " + exists);
         return exists;
     }
 

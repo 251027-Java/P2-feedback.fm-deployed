@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.feedback.listener.dtos.ListenerDTO;
+import com.feedback.listener.service.KafkaLogger;
 import com.feedback.listener.service.ListenerService;
 import com.feedback.listener.service.SpotifyApiService;
 
@@ -34,15 +35,18 @@ public class ListenerController {
 
     private final ListenerService listenerService;
     private final SpotifyApiService spotifyApiService;
+    private final KafkaLogger kafkaLogger;
 
-    public ListenerController(ListenerService listenerService, SpotifyApiService spotifyApiService) {
+    public ListenerController(ListenerService listenerService, SpotifyApiService spotifyApiService, KafkaLogger kafkaLogger) {
         this.listenerService = listenerService;
         this.spotifyApiService = spotifyApiService;
+        this.kafkaLogger = kafkaLogger;
     }
 
     // Get user profile by ID
     @GetMapping("/{id}")
     public ResponseEntity<ListenerDTO> getUserProfile(@PathVariable String id) {
+        kafkaLogger.log("Get user profile for id: " + id);
         return listenerService.getById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -57,6 +61,8 @@ public class ListenerController {
         if (listenerOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        kafkaLogger.log("Get dashboard for user: "+ id);
         
         ListenerDTO listener = listenerOpt.get();
 
@@ -423,6 +429,7 @@ public class ListenerController {
         stats.put("songsPlayedToday", 0);
         stats.put("currentStreak", 0);
         stats.put("topGenre", "N/A");
+        kafkaLogger.log("Get user stats for user: " + id);
         return ResponseEntity.ok(stats);
     }
 
@@ -430,6 +437,7 @@ public class ListenerController {
     @PutMapping("/{id}")
     public ResponseEntity<ListenerDTO> updateUser(@PathVariable String id, @RequestBody ListenerDTO listenerDTO) {
         ListenerDTO updated = listenerService.update(id, listenerDTO);
+        kafkaLogger.log("Get user profilefor user: " + id);
         return ResponseEntity.ok(updated);
     }
 
@@ -437,6 +445,7 @@ public class ListenerController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         listenerService.delete(id);
+        kafkaLogger.log("Delete user with id: " + id);
         return ResponseEntity.noContent().build();
     }
 
@@ -462,6 +471,7 @@ public class ListenerController {
         response.put("country", listener.country());
         response.put("token", "mock-jwt-token-12345");
         response.put("message", "Login successful");
+        kafkaLogger.log("Successfull login for user" + response.get("displayName"));
         return ResponseEntity.ok(response);
     }
 
@@ -469,6 +479,7 @@ public class ListenerController {
     @PostMapping("/register")
     public ResponseEntity<ListenerDTO> register(@RequestBody ListenerDTO listenerDTO) {
         ListenerDTO created = listenerService.create(listenerDTO);
+        kafkaLogger.log("Register new account");
         return ResponseEntity.status(201).body(created);
     }
 
@@ -480,6 +491,7 @@ public class ListenerController {
     @GetMapping("/exists/{id}")
     public boolean existsById(@PathVariable String id) {
         boolean exists = listenerService.existsById(id);
+        kafkaLogger.log("User with id: " + id + ", Exists? " + exists);
         return exists;
     }
 }
