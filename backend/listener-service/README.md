@@ -11,7 +11,7 @@ mvn -f backend/listener-service clean package
 Run (requires PostgreSQL on localhost:5432 with database `listener_db`):
 
 ```bash
-java -jar backend/listener-service/target/listener-service-0.0.1-SNAPSHOT.jar
+java -jar backend/listener-service/target/listener-service-0.0.1.jar
 ```
 
 Docker build:

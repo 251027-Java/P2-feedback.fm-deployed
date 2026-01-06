@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeExchange(auth -> auth
-                        .pathMatchers("/api/auth/**").permitAll()
+                        .pathMatchers("/api/auth/**", "/actuator/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .build();

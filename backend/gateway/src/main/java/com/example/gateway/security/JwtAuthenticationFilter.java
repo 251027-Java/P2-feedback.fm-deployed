@@ -67,6 +67,7 @@ public class JwtAuthenticationFilter implements WebFilter {
 
         } catch (Exception e) {
             // invalid token → continue unauthenticated
+            System.out.println("Invalid token to protected route at gateway: " + e.getMessage());
         }
 
         return chain.filter(exchange);

@@ -19,11 +19,11 @@ import java.util.Map;
 @Service
 public class SpotifyAuthService {
     
-    //@Value("${spotify.client.id}") // is not reading this correctly 
-    private String clientId = "c7c1393d42b1461a8384d7d0f9271a17";
+    @Value("${spotify.client.id}") 
+    private String clientId;
     
-    //@Value("${spotify.client.secret}")
-    private String clientSecret = "4ae0c132fde244988722a4bc344148e8";
+    @Value("${spotify.client.secret}")
+    private String clientSecret;
     
     @Value("${spotify.redirect.uri}")
     private String redirectUri;
@@ -49,6 +49,7 @@ public class SpotifyAuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         String auth = clientId + ":" + clientSecret;
+        // System.out.println("Auth: " + auth);
         headers.set("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()));
         
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();

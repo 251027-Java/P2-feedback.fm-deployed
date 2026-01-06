@@ -2,6 +2,8 @@ package com.feedback.album.controller;
 
 import com.feedback.album.dtos.AlbumDTO;
 import com.feedback.album.service.AlbumService;
+import com.feedback.album.service.KafkaLogger;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -13,8 +15,11 @@ public class AlbumController {
 
 	private final AlbumService albumService;
 
-	public AlbumController(AlbumService albumService) {
+	private final KafkaLogger kafkaLogger;
+
+	public AlbumController(AlbumService albumService, KafkaLogger kafkaLogger) {
 		this.albumService = albumService;
+		this.kafkaLogger = kafkaLogger;
 	}
 
 
@@ -24,6 +29,7 @@ public class AlbumController {
 		if (artistId != null && !artistId.isBlank()) {
 			return ResponseEntity.ok(albumService.findByArtistId(artistId));
 		}
+		kafkaLogger.log("Retrieved all albums");
 		return ResponseEntity.ok(albumService.getAllAlbums());
 	}
 
@@ -31,6 +37,7 @@ public class AlbumController {
 	// Get specific album by ID
 	@GetMapping("/{id}")
 	public ResponseEntity<AlbumDTO> getAlbumById(@PathVariable String id) {
+		kafkaLogger.log("Retrieved album " + id);
 		return albumService.getById(id)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
@@ -41,6 +48,7 @@ public class AlbumController {
 	@PostMapping
 	public ResponseEntity<AlbumDTO> createAlbum(@RequestBody AlbumDTO albumDTO) {
 		AlbumDTO created = albumService.create(albumDTO);
+		kafkaLogger.log("Created album " + created.albumId());
 		return ResponseEntity.status(201).body(created);
 	}
 
@@ -49,6 +57,7 @@ public class AlbumController {
 	@PutMapping("/{id}")
 	public ResponseEntity<AlbumDTO> updateAlbum(@PathVariable String id, @RequestBody AlbumDTO albumDTO) {
 		AlbumDTO updated = albumService.update(id, albumDTO);
+		kafkaLogger.log("Updated album " + updated.albumId());
 		return ResponseEntity.ok(updated);
 	}
 
@@ -57,6 +66,7 @@ public class AlbumController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteAlbum(@PathVariable String id) {
 		albumService.delete(id);
+		kafkaLogger.log("Deleted album " + id);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -64,6 +74,7 @@ public class AlbumController {
 	// Get songs for an album
 	@GetMapping("/{id}/songs")
 	public ResponseEntity<AlbumDTO> getAlbumSongs(@PathVariable String id) {
+		kafkaLogger.log("Retrieved songs for album " + id);
 		return albumService.getById(id)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
@@ -73,6 +84,7 @@ public class AlbumController {
 	// Search albums by name
 	@GetMapping("/search")
 	public ResponseEntity<List<AlbumDTO>> searchAlbums(@RequestParam String query) {
+		kafkaLogger.log("Searched albums with query: " + query);
 		return ResponseEntity.ok(albumService.searchByTitle(query));
 	}
 

@@ -190,22 +190,35 @@ PGADMIN_PASSWORD=admin
 PGADMIN_PORT=5050
 
 # Backend Configuration
-BACKEND_PORT=8080
+GATEWAY_PORT=8080
+ALBUM_SERVICE_PORT=8083
+ARTIST_SERVICE_PORT=8084
+HISTORY_SERVICE_PORT=8085
+LISTENER_SERVICE_PORT=8086
+PLAYLIST_SERVICE_PORT=8087
+SONG_SERVICE_PORT=8088
+SPOTIFY_INTEGRATION_SERVICE_PORT=8090
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:8080/api/auth/callback
+SPOTIFY_API_BASE_URL=https://api.spotify.com/v1
+SPRING_WEB_CORS_ALLOWED_ORIGINS=http://127.0.0.1:3000,http://localhost:3000
+SPRING_DATABASE_URL=jdbc:postgresql://127.0.0.1:5432/spotifydb
 
 # Frontend Configuration
 FRONTEND_PORT=3000
-FRONTEND_URL=http://localhost:3000
-VITE_API_URL=http://localhost:8080
+FRONTEND_URL=http://127.0.0.1:3000
+VITE_API_URL=http://127.0.0.1:8080
 
 # Spotify API Configuration
-# Get these from your Spotify Developer Dashboard
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_CLIENT_ID=yourspotifyclientid
+SPOTIFY_CLIENT_SECRET=yourspotifyclientsecret
 
 # JWT Configuration
-# Change this secret to a secure random string for production
 JWT_SECRET=averylongsecretkeythatissecureenoughforhmacsha256algorithm
 JWT_EXPIRATION=86400000
+
+# Kafka config
+KAFKA_PORT=9082
+KAFKA_CONTROLLER_PORT=9083
 ```
 
 ### 2. Start the Services

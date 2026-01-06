@@ -165,7 +165,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: minidomo/feedbackfm:be-api-gateway-latest
+          image: minidomo/feedbackfm:be-gateway-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

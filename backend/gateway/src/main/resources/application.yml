@@ -5,6 +5,9 @@ server:
 spring:
   application:
     name: api-gateway
+  output:
+    ansi:
+      enabled: always
 
   cloud:
     gateway:
@@ -43,15 +46,15 @@ spring:
 
             # Route: /song/** -> song-service
             - id: song-route
-              uri: lb://song-service       
+              uri: lb://song-service
               predicates:
                 - Path=/api/songs/**
 
             # Route: /spotify-integration/** -> spotify-integration-service
             - id: spotify-integration-route
-              uri: lb://spotify-integration-service       
+              uri: lb://spotify-integration-service
               predicates:
-                - Path=/api/auth/** 
+                - Path=/api/auth/**
 
 # Eureka Client Configuration
 eureka:
