@@ -15,8 +15,8 @@ stringData:
   POSTGRES_DB: "spotifydb"
   POSTGRES_USER: "spotify_user"
   POSTGRES_PASSWORD: "spotify_pass"
-  SPOTIFY_CLIENT_ID: "c7c1393d42b1461a8384d7d0f9271a17"
-  SPOTIFY_CLIENT_SECRET: "4ae0c132fde244988722a4bc344148e8"
+  SPOTIFY_CLIENT_ID: 
+  SPOTIFY_CLIENT_SECRET:
   JWT_SECRET: "averylongsecretkeythatissecureenoughforhmacsha256algorithm"
   JWT_EXPIRATION: "3600000"
 
@@ -27,10 +27,10 @@ metadata:
   name: spotify-config
   namespace: spotify
 data:
-  FRONTEND_URL: "http://localhost:3000"
-  VITE_API_URL: "http://localhost:8080"
-  SPRING_WEB_CORS_ALLOWED_ORIGINS: "http://localhost:3000"
-  SPOTIFY_REDIRECT_URI: "http://127.0.0.1:8080/api/auth/callback"
+  FRONTEND_URL: "http://ec2-3-88-196-53.compute-1.amazonaws.com:3000"
+  VITE_API_URL: "http://ec2-3-88-196-53.compute-1.amazonaws.com:8080"
+  SPRING_WEB_CORS_ALLOWED_ORIGINS: "http://ec2-3-88-196-53.compute-1.amazonaws.com:3000"
+  SPOTIFY_REDIRECT_URI: "http://ec2-3-88-196-53.compute-1.amazonaws.com:8080/api/auth/callback"
   SPOTIFY_API_BASE_URL: "https://api.spotify.com/v1"
   SPOTIFY_AUTH_URL: "https://accounts.spotify.com"
   EUREKA_SERVER_URL: "http://eureka-server:8761/eureka/"
@@ -126,8 +126,8 @@ spec:
     spec:
       containers:
         - name: eureka-server
-          image: eureka-server:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-eureka-server-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8761
 
@@ -165,8 +165,8 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: api-gateway:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-gateway-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
@@ -215,8 +215,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: frontend:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:fe-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:
@@ -260,8 +260,8 @@ spec:
     spec:
       containers:
         - name: spotify-integration-service
-          image: spotify-integration-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-spotify-integration-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8090
           env:
@@ -357,8 +357,8 @@ spec:
     spec:
       containers:
         - name: album-service
-          image: album-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-album-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
           env:
@@ -409,8 +409,8 @@ spec:
     spec:
       containers:
         - name: artist-service
-          image: artist-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-artist-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8084
           env:
@@ -461,8 +461,8 @@ spec:
     spec:
       containers:
         - name: history-service
-          image: history-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-history-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8085
           env:
@@ -513,8 +513,8 @@ spec:
     spec:
       containers:
         - name: listener-service
-          image: listener-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-listener-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8086
           env:
@@ -565,8 +565,8 @@ spec:
     spec:
       containers:
         - name: playlist-service
-          image: playlist-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-playlist-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8087
           env:
@@ -617,8 +617,8 @@ spec:
     spec:
       containers:
         - name: song-service
-          image: song-service:1.0
-          imagePullPolicy: IfNotPresent
+          image: minidomo/feedbackfm:be-song-service-latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8088
           env:
