@@ -31,6 +31,8 @@ services:
       timeout: 5s
       retries: 5
 
+
+
   # Kafka
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -60,6 +62,17 @@ services:
       - ./data:/var/lib/kafka/data
       - ./create-topics.sh:/create-topics.sh
 
+  logging-service:
+    build:
+      context: ./backend/logging-service
+      dockerfile: Dockerfile
+    container_name: logging-service
+    depends_on:
+      - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT:-9092}
+    volumes:
+      - ./logging-data:/app/logs
   # API Gateway
   api-gateway:
     build:
@@ -119,6 +132,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT:-9092}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       db:
