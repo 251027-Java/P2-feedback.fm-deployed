@@ -3,11 +3,11 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
   instance:
     prefer-ip-address: true
 frontend:
-  url: http://localhost:3000
+  url: ${FRONTEND_URL}
 jwt:
   expiration: ${JWT_EXPIRATION:86400000}
   secret: ${JWT_SECRET:averylongsecretkeythatissecureenoughforhmacsha256algorithm}
@@ -16,9 +16,9 @@ server:
 spotify:
   api:
     base:
-      url: https://api.spotify.com/v1
+      url: ${SPOTIFY_API_BASE_URL}
   auth:
-    url: https://accounts.spotify.com
+    url: ${SPOTIFY_AUTH_URL}
   client:
     id: ${SPOTIFY_CLIENT_ID}
     secret: ${SPOTIFY_CLIENT_SECRET}
@@ -27,6 +27,10 @@ spotify:
 spring:
   application:
     name: spotify-integration-service
+  datasource:
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
   output:
     ansi:
       enabled: always
