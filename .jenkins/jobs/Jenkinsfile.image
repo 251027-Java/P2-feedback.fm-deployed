@@ -74,6 +74,8 @@ pipeline {
                     if (params.IMG_TAG_SERIES == '') {
                         error 'IMG_TAG_SERIES cannot be empty'
                     }
+
+                    sh '.jenkins/scripts/docker-prep.sh'
                 }
             }
         }
