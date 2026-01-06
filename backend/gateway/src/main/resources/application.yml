@@ -4,26 +4,29 @@ server:
 spring:
   application:
     name: api-gateway
+  output:
+    ansi:
+      enabled: always
 
   cloud:
     gateway:
       globalcors:
-          # Ensures preflight requests are handled even if they don't match a route
-          add-to-simple-url-handler-mapping: true 
-          cors-configurations:
-            '[/**]':
-              allowedOrigins: "https://your-frontend-domain.com"
-              allowedMethods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              allowedHeaders: "*"
-              allowCredentials: true
+        # Ensures preflight requests are handled even if they don't match a route
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "https://your-frontend-domain.com"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
       default-filters:
-          # Prevents duplicate headers if a microservice accidentally sends one
-          - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        # Prevents duplicate headers if a microservice accidentally sends one
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       server:
         webflux:
           routes:
@@ -59,15 +62,15 @@ spring:
 
             # Route: /song/** -> song-service
             - id: song-route
-              uri: lb://song-service       
+              uri: lb://song-service
               predicates:
                 - Path=/api/songs/**
 
             # Route: /spotify-integration/** -> spotify-integration-service
             - id: spotify-integration-route
-              uri: lb://spotify-integration-service       
+              uri: lb://spotify-integration-service
               predicates:
-                - Path=/api/auth/** 
+                - Path=/api/auth/**
 
 # Eureka Client Configuration
 eureka:
