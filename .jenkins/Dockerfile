@@ -40,9 +40,6 @@ RUN apt-get install -y helm
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# allow for emulation of cpu architectures
-RUN docker run --privileged --rm tonistiigi/binfmt --install all
-
 USER jenkins
 
 COPY ./configs/ /usr/share/jenkins/ref/casc_configs/
