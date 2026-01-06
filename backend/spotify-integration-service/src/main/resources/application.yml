@@ -1,0 +1,32 @@
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+frontend:
+  url: http://localhost:3000
+jwt:
+  expiration: ${JWT_EXPIRATION:86400000}
+  secret: ${JWT_SECRET:averylongsecretkeythatissecureenoughforhmacsha256algorithm}
+server:
+  port: 8090
+spotify:
+  api:
+    base:
+      url: https://api.spotify.com/v1
+  auth:
+    url: https://accounts.spotify.com
+  client:
+    id: ${SPOTIFY_CLIENT_ID}
+    secret: ${SPOTIFY_CLIENT_SECRET}
+  redirect:
+    uri: ${SPOTIFY_REDIRECT_URI:http://127.0.0.1:8080/api/auth/callback}
+spring:
+  application:
+    name: spotify-integration-service
+  output:
+    ansi:
+      enabled: always
