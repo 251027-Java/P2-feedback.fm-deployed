@@ -1,7 +1,7 @@
 spring:
   application:
     name: logging-service
-    port: 8090
+    port: 8091
   
   kafka:
     bootstrap-servers: kafka:9092
@@ -17,6 +17,6 @@ eureka:
     fetch-registry: 'true'
     register-with-eureka: 'true'
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
   instance:
     prefer-ip-address: 'true'
