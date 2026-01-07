@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +50,7 @@ public class HistoryService {
     }
     
     public List<HistoryDTO> getAllHistory() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .map(this::historyToDto)
                 .toList();
     }
@@ -68,7 +69,7 @@ public class HistoryService {
         if (listenerId == null || listenerId.isBlank()) {
             return List.of();
         }
-        return repository.findByListener_ListenerId(listenerId).stream()
+        return new ArrayList<>(repository.findByListener_ListenerId(listenerId)).stream()
                 .map(this::historyToDto)
                 .toList();
     }
@@ -78,7 +79,7 @@ public class HistoryService {
         if (songId == null || songId.isBlank()) {
             return List.of();
         }
-        return repository.findBySong_SongId(songId).stream()
+        return new ArrayList<>(repository.findBySong_SongId(songId)).stream()
                 .map(this::historyToDto)
                 .toList();
     }
@@ -88,7 +89,7 @@ public class HistoryService {
         if (listenerId == null || listenerId.isBlank() || songId == null || songId.isBlank()) {
             return List.of();
         }
-        return repository.findByListener_ListenerIdAndSong_SongId(listenerId, songId).stream()
+        return new ArrayList<>(repository.findByListener_ListenerIdAndSong_SongId(listenerId, songId)).stream()
                 .map(this::historyToDto)
                 .toList();
     }
@@ -106,7 +107,7 @@ public class HistoryService {
         }
         
         List<History> allHistory = repository.findByListener_ListenerIdOrderByPlayedAtDesc(listenerId);
-        return allHistory.stream()
+        return new ArrayList<>(allHistory).stream()
                 .limit(limit)
                 .map(this::historyToDto)
                 .toList();
@@ -120,7 +121,7 @@ public class HistoryService {
         if (start.isAfter(end)) {
             throw new InvalidRequestException("Start date must be before end date");
         }
-        return repository.findByPlayedAtBetween(start, end).stream()
+        return new ArrayList<>(repository.findByPlayedAtBetween(start, end)).stream()
                 .map(this::historyToDto)
                 .toList();
     }
@@ -136,7 +137,7 @@ public class HistoryService {
         if (start.isAfter(end)) {
             throw new InvalidRequestException("Start date must be before end date");
         }
-        return repository.findByListener_ListenerIdAndPlayedAtBetween(listenerId, start, end).stream()
+        return new ArrayList<>(repository.findByListener_ListenerIdAndPlayedAtBetween(listenerId, start, end)).stream()
                 .map(this::historyToDto)
                 .toList();
     }

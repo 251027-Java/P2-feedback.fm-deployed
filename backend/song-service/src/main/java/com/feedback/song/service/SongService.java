@@ -8,6 +8,7 @@ import com.feedback.song.repository.SongRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ public class SongService {
 
     
     public List<SongDTO> getAllSongs() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .map(this::songToDto)
                 .toList();
     }
@@ -43,7 +44,7 @@ public class SongService {
         if (name == null || name.isBlank()) {
             return List.of();
         }
-        return repository.findByName(name).stream()
+        return new ArrayList<>(repository.findByName(name)).stream()
                 .map(this::songToDto)
                 .toList();
     }
@@ -53,7 +54,7 @@ public class SongService {
         if (namePart == null || namePart.isBlank()) {
             return List.of();
         }
-        return repository.findByNameContainingIgnoreCase(namePart).stream()
+        return new ArrayList<>(repository.findByNameContainingIgnoreCase(namePart)).stream()
                 .map(this::songToDto)
                 .toList();
     }
@@ -63,7 +64,7 @@ public class SongService {
         if (artistName == null || artistName.isBlank()) {
             return List.of();
         }
-        return repository.findByArtists_Name(artistName).stream()
+        return new ArrayList<>(repository.findByArtists_Name(artistName)).stream()
                 .map(this::songToDto)
                 .toList();
     }
@@ -73,7 +74,7 @@ public class SongService {
         if (duration == null || duration <= 0) {
             return List.of();
         }
-        return repository.findByDurationMs(duration).stream()
+        return new ArrayList<>(repository.findByDurationMs(duration)).stream()
                 .map(this::songToDto)
                 .toList();
     }
@@ -89,7 +90,7 @@ public class SongService {
         if (minDuration > maxDuration) {
             throw new InvalidRequestException("Min duration must be less than or equal to max duration");
         }
-        return repository.findByDurationMsBetween(minDuration, maxDuration).stream()
+        return new ArrayList<>(repository.findByDurationMsBetween(minDuration, maxDuration)).stream()
                 .map(this::songToDto)
                 .toList();
     }
@@ -168,11 +169,18 @@ public class SongService {
     }
 
     private SongDTO songToDto(Song song) {
-        List<String> artistIds = song.getArtists().stream()
+        if (song.getArtists() != null) {
+            org.hibernate.Hibernate.initialize(song.getArtists());
+        }
+        if (song.getAlbums() != null) {
+            org.hibernate.Hibernate.initialize(song.getAlbums());
+        }
+        
+        List<String> artistIds = new ArrayList<>(song.getArtists()).stream()
                 .map(artist -> artist.getArtistId())
                 .collect(Collectors.toList());
 
-        List<String> albumIds = song.getAlbums().stream()
+        List<String> albumIds = new ArrayList<>(song.getAlbums()).stream()
                 .map(album -> album.getAlbumId())
                 .collect(Collectors.toList());
 

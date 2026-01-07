@@ -10,6 +10,7 @@ import com.feedback.playlist.repository.PlaylistRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public class PlaylistService {
     }
     
     public List<PlaylistDTO> getAllPlaylists() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .map(this::playlistToDto)
                 .toList();
     }
@@ -54,7 +55,7 @@ public class PlaylistService {
         if (name == null || name.isBlank()) {
             return List.of();
         }
-        return repository.findByName(name).stream()
+        return new ArrayList<>(repository.findByName(name)).stream()
                 .map(this::playlistToDto)
                 .toList();
     }
@@ -64,7 +65,7 @@ public class PlaylistService {
         if (namePart == null || namePart.isBlank()) {
             return List.of();
         }
-        return repository.findByNameContainingIgnoreCase(namePart).stream()
+        return new ArrayList<>(repository.findByNameContainingIgnoreCase(namePart)).stream()
                 .map(this::playlistToDto)
                 .toList();
     }
@@ -78,7 +79,7 @@ public class PlaylistService {
         if (!listenerService.existsById(ownerId)) {
             throw new ResourceNotFoundException("Owner", ownerId);
         }
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .filter(playlist -> playlist.getOwner() != null 
                     && playlist.getOwner().getListenerId().equals(ownerId))
                 .map(this::playlistToDto)
@@ -90,14 +91,14 @@ public class PlaylistService {
         if (email == null || email.isBlank()) {
             return List.of();
         }
-        return repository.findByOwner_Email(email).stream()
+        return new ArrayList<>(repository.findByOwner_Email(email)).stream()
                 .map(this::playlistToDto)
                 .toList();
     }
 
     
     public List<PlaylistDTO> findPublicPlaylists() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .filter(playlist -> playlist.getIsPublic() != null && playlist.getIsPublic())
                 .map(this::playlistToDto)
                 .toList();
@@ -206,7 +207,7 @@ public class PlaylistService {
     private PlaylistDTO playlistToDto(Playlist playlist) {
         String ownerId = playlist.getOwner() != null ? playlist.getOwner().getListenerId() : null;
 
-        List<String> songIds = playlist.getSongs().stream()
+        List<String> songIds = new ArrayList<>(playlist.getSongs()).stream()
                 .map(song -> song.getSongId())
                 .collect(Collectors.toList());
 

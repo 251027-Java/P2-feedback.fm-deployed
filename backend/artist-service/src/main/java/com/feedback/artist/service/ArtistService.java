@@ -8,6 +8,7 @@ import com.feedback.artist.repository.ArtistRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ public class ArtistService {
 
     
     public List<ArtistDTO> getAllArtists() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .map(this::artistToDto)
                 .toList();
     }
@@ -50,7 +51,7 @@ public class ArtistService {
         if (name == null || name.isBlank()) {
             return List.of();
         }
-        return repository.findByName(name).stream()
+        return new ArrayList<>(repository.findByName(name)).stream()
                 .map(this::artistToDto)
                 .toList();
     }
@@ -60,7 +61,7 @@ public class ArtistService {
         if (namePart == null || namePart.isBlank()) {
             return List.of();
         }
-        return repository.findByNameContainingIgnoreCase(namePart).stream()
+        return new ArrayList<>(repository.findByNameContainingIgnoreCase(namePart)).stream()
                 .map(this::artistToDto)
                 .toList();
     }
@@ -128,7 +129,7 @@ public class ArtistService {
     }
 
     private ArtistDTO artistToDto(Artist artist) {
-        List<String> albumIds = artist.getAlbums().stream()
+        List<String> albumIds = new ArrayList<>(artist.getAlbums()).stream()
                 .map(album -> album.getAlbumId())
                 .collect(Collectors.toList());
 

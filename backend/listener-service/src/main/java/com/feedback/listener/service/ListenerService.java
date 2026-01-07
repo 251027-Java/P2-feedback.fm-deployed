@@ -8,6 +8,7 @@ import com.feedback.listener.repository.ListenerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public class ListenerService {
 
     
     public List<ListenerDTO> getAllListeners() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .map(this::listenerToDto)
                 .toList();
     }
@@ -48,7 +49,7 @@ public class ListenerService {
         if (displayName == null || displayName.isBlank()) {
             return List.of();
         }
-        return repository.findByDisplayName(displayName).stream()
+        return new ArrayList<>(repository.findByDisplayName(displayName)).stream()
                 .map(this::listenerToDto)
                 .toList();
     }
@@ -58,7 +59,7 @@ public class ListenerService {
         if (namePart == null || namePart.isBlank()) {
             return List.of();
         }
-        return repository.findByDisplayNameContainingIgnoreCase(namePart).stream()
+        return new ArrayList<>(repository.findByDisplayNameContainingIgnoreCase(namePart)).stream()
                 .map(this::listenerToDto)
                 .toList();
     }

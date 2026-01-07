@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.feedback.album.service.ArtistService;
 import com.feedback.album.dtos.ArtistDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,7 +38,7 @@ public class AlbumService {
 
     
     public List<AlbumDTO> getAllAlbums() {
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .map(this::albumToDto)
                 .toList();
     }
@@ -56,7 +57,7 @@ public class AlbumService {
         if (titlePart == null || titlePart.isBlank()) {
             return List.of();
         }
-        return repository.findByTitleContainingIgnoreCase(titlePart).stream()
+        return new ArrayList<>(repository.findByTitleContainingIgnoreCase(titlePart)).stream()
                 .map(this::albumToDto)
                 .toList();
     }
@@ -70,7 +71,7 @@ public class AlbumService {
         if (releaseYear < 1900 || releaseYear > 2100) {
             throw new InvalidRequestException("Release year must be between 1900 and 2100");
         }
-        return repository.findByReleaseYear(releaseYear).stream()
+        return new ArrayList<>(repository.findByReleaseYear(releaseYear)).stream()
                 .map(this::albumToDto)
                 .toList();
     }
@@ -84,7 +85,7 @@ public class AlbumService {
         if (!artistService.existsById(artistId)) {
             throw new ResourceNotFoundException("Artist", artistId);
         }
-        return repository.findAll().stream()
+        return new ArrayList<>(repository.findAll()).stream()
                 .filter(album -> album.getArtist() != null 
                     && album.getArtist().getArtistId().equals(artistId))
                 .map(this::albumToDto)
@@ -188,7 +189,7 @@ public class AlbumService {
     private AlbumDTO albumToDto(Album album) {
         String artistId = album.getArtist() != null ? album.getArtist().getArtistId() : null;
 
-        List<String> songIds = album.getSongs().stream()
+        List<String> songIds = new ArrayList<>(album.getSongs()).stream()
                 .map(song -> song.getSongId())
                 .collect(Collectors.toList());
 
