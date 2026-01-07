@@ -158,7 +158,10 @@ def fbfmBuildImage = { args ->
     def tagSeries = args.tagSeries
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
-    def branch = env.GIT_BRANCH.replaceAll('/', '-')
+    def branch = sh(returnStdout: true,
+        script: """
+        git branch --no-color -r --contains ${shortSha()} | awk '/->/ {print \$3; exit} {print \$1; exit}'
+        """).trim().replaceAll('/', '-')
 
     def tagName = "${tagSeries}-${branch}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
