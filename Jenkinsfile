@@ -274,7 +274,6 @@ pipeline {
                     checkForChanges(ref)
                     handleCommitAttributes()
 
-                    echo "canBuild Status: ${fbfm.canBuild}"
                     echo "${groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(fbfm))}"
                 }
             }
