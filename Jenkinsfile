@@ -382,13 +382,13 @@ pipeline {
 
         stage('image frontend') {
             when {
-                expression { fbfm.build.frontend && fbfm.isDefault }
+                expression { fbfm.build.frontend && fbfm.canBuild }
             }
 
             steps {
                 script {
                     fbfmBuildImage(name: 'frontend', directory: 'frontend', tagSeries: 'fe',
-                        dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                        dockerRepo: 'minidomo/feedbackfm', pushLatest: fbfm.isDefault
                     )
                 }
             }
