@@ -27,10 +27,10 @@ metadata:
   name: spotify-config
   namespace: spotify
 data:
-  FRONTEND_URL: "https://ec2-54-166-200-89.compute-1.amazonaws.com"
-  VITE_API_URL: "https://ec2-54-166-200-89.compute-1.amazonaws.com"
-  SPRING_WEB_CORS_ALLOWED_ORIGINS: "https://ec2-54-166-200-89.compute-1.amazonaws.com"
-  SPOTIFY_REDIRECT_URI: "https://ec2-54-166-200-89.compute-1.amazonaws.com/api/auth/callback"
+  FRONTEND_URL: "http://localhost:3000"
+  VITE_API_URL: "http://localhost:8080"
+  SPRING_WEB_CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+  SPOTIFY_REDIRECT_URI: "http://localhost:8080/api/auth/callback"
   SPOTIFY_API_BASE_URL: "https://api.spotify.com/v1"
   SPOTIFY_AUTH_URL: "https://accounts.spotify.com"
   EUREKA_SERVER_URL: "http://eureka-server:8761/eureka/"
