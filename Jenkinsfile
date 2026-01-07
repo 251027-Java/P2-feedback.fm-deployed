@@ -155,6 +155,7 @@ def fbfmBuildImage = { args ->
     def tagName = "${tagSeries}-${branch}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
 
+    sh '.jenkins/scripts/docker-prep.sh'
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
     dir(directory) {
@@ -421,7 +422,6 @@ pipeline {
 
                         if (fbfm.build[service.name] && fbfm.canBuild) {
                             stage("image ${service.name}") {
-                                sh '.jenkins/scripts/docker-prep.sh'
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
                                     dockerRepo: 'minidomo/feedbackfm', pushLatest: fbfm.isDefault
                                 )
