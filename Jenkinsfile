@@ -275,7 +275,7 @@ pipeline {
                     handleCommitAttributes()
 
                     echo "canBuild Status: ${fbfm.canBuild}"
-                    echo "${fbfm}"
+                    echo "${groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(fbfm))}"
                 }
             }
         }
