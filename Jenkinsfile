@@ -133,7 +133,9 @@ def handleCommitAttributes = { ->
                 }
             }
 
-            fbfm.canBuild |= !fbfm.build.isEmpty()
+            fbfm.microservices.values().each { service -> 
+                fbfm.canBuild |= fbfm.build.containsKey(service.name)
+            }
         }
     }
 }
