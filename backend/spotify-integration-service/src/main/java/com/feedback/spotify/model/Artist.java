@@ -8,6 +8,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity // Tells JPA this is a database entity
@@ -27,10 +28,12 @@ public class Artist {
     private String href;
 
     @ManyToMany(mappedBy = "artists")
+    @EqualsAndHashCode.Exclude
     private Set<Song> songs = new HashSet<>();
 
     // kenneth added this: one:many for albums and artists
     @OneToMany(mappedBy = "artist")
+    @EqualsAndHashCode.Exclude
     private Set<Album> albums = new HashSet<>();
 
     public Artist(String artistId, String name, String href) {

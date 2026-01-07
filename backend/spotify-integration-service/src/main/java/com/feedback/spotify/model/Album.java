@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 // kenneth wrote this out to match up with the M:M relationship between albums and songs and for Juan's album repo
@@ -36,9 +37,11 @@ public class Album {
 
     @ManyToOne
     @JoinColumn(name = "artist_id")
+    @EqualsAndHashCode.Exclude
     private Artist artist;
 
     @ManyToMany(mappedBy = "albums")
+    @EqualsAndHashCode.Exclude
     private Set<Song> songs = new HashSet<>();
 
     public Album(String albumId, String title, Integer releaseYear, String href) {

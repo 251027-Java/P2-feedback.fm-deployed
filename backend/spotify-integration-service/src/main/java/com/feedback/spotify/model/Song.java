@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -37,9 +38,11 @@ public class Song {
         joinColumns = @JoinColumn(name = "song_id"),
         inverseJoinColumns = @JoinColumn(name = "artist_id")    
     )
+    @EqualsAndHashCode.Exclude
     private Set<Artist> artists = new HashSet<>();
 
     @ManyToMany(mappedBy = "songs")
+    @EqualsAndHashCode.Exclude
     private Set<Playlist> playlists = new HashSet<>();
 
     // kenneth added this: many:many for albums and songs
@@ -49,6 +52,7 @@ public class Song {
         joinColumns = @JoinColumn(name = "song_id"),
         inverseJoinColumns = @JoinColumn(name = "album_id")
     )
+    @EqualsAndHashCode.Exclude
     private Set<Album> albums = new HashSet<>();
 
     public Song(String songId, String name, Integer durationMs, String href) {

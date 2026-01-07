@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -285,7 +286,7 @@ public class ListenerController {
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> artistsItems = (List<Map<String, Object>>) artistsResponse.get("items");
                     if (artistsItems != null) {
-                        topArtistsData = artistsItems.stream()
+                        topArtistsData = new ArrayList<>(artistsItems).stream()
                             .limit(5)
                             .map(item -> {
                                 Map<String, Object> artistMap = new HashMap<>();
@@ -314,7 +315,7 @@ public class ListenerController {
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> tracksItems = (List<Map<String, Object>>) tracksResponse.get("items");
                     if (tracksItems != null) {
-                        topSongsData = tracksItems.stream()
+                        topSongsData = new ArrayList<>(tracksItems).stream()
                             .limit(5)
                             .map(item -> {
                                 Map<String, Object> songMap = new HashMap<>();

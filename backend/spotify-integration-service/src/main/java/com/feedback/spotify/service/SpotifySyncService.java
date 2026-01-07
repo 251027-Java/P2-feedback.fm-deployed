@@ -22,7 +22,9 @@ import com.feedback.spotify.service.AlbumService;
 import com.feedback.spotify.service.PlaylistService;
 import com.feedback.spotify.service.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -33,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Transactional
 public class SpotifySyncService {
     
     private final SpotifyApiService spotifyApiService;
@@ -74,6 +75,7 @@ public class SpotifySyncService {
         this.listenerRepository = listenerRepository;
     }
     
+    @Transactional
     public void syncUserProfile(String accessToken) {
         Map<String, Object> spotifyUser = spotifyApiService.getCurrentUser(accessToken);
         
@@ -94,6 +96,7 @@ public class SpotifySyncService {
         }
     }
     
+    @Transactional
     public void syncRecentlyPlayed(String accessToken, String listenerId) {
         System.out.println("[" + LocalDateTime.now() + "] Starting sync for listener: " + listenerId);
         System.out.println("[" + LocalDateTime.now() + "] Access token provided: " + (accessToken != null && !accessToken.isBlank()));
@@ -188,6 +191,7 @@ public class SpotifySyncService {
         }
     }
     
+    @Transactional
     public void syncTopArtists(String accessToken, String listenerId, String timeRange) {
         Map<String, Object> topArtists = spotifyApiService.getTopArtists(accessToken, timeRange);
         
@@ -202,6 +206,7 @@ public class SpotifySyncService {
         }
     }
     
+    @Transactional
     public void syncTopTracks(String accessToken, String listenerId, String timeRange) {
         Map<String, Object> topTracks = spotifyApiService.getTopTracks(accessToken, timeRange);
         
@@ -218,6 +223,7 @@ public class SpotifySyncService {
         }
     }
     
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void syncUserPlaylists(String accessToken, String listenerId) {
         Map<String, Object> playlistsResponse = spotifyApiService.getUserPlaylists(accessToken, 50, 0);
         
@@ -253,7 +259,7 @@ public class SpotifySyncService {
             }
         }
     }
-    
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private String syncSong(Map<String, Object> track) {
         String songId = (String) track.get("id");
         String name = (String) track.get("name");
@@ -263,16 +269,23 @@ public class SpotifySyncService {
         
         SongDTO songDTO = new SongDTO(songId, name, href, durationMs, new ArrayList<>(), new ArrayList<>());
         
-        var existingSong = songService.getSongById(songId).getBody();
-        if (existingSong == null) {
-            songService.createSong(songDTO);
-        } else {
-            songService.updateSong(songId, songDTO);
+        // 
+        try {
+            var fetchSongReq = songService.getSongById(songId);
+            if (fetchSongReq.getStatusCode() != HttpStatus.OK) {
+                songService.createSong(songDTO);
+            } else {
+                songService.updateSong(songId, songDTO);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to sync song: " + e.getMessage());
         }
+        
         
         return songId;
     }
-    
+
+    @Transactional 
     private void syncArtistsForSong(Map<String, Object> track, String songId) {
         List<Map<String, Object>> artists = (List<Map<String, Object>>) track.get("artists");
         if (artists == null) return;
@@ -293,7 +306,7 @@ public class SpotifySyncService {
         }
         songRepository.save(song);
     }
-    
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private String syncArtist(Map<String, Object> artistData) {
         String artistId = (String) artistData.get("id");
         String name = (String) artistData.get("name");
@@ -302,16 +315,21 @@ public class SpotifySyncService {
         
         ArtistDTO artistDTO = new ArtistDTO(artistId, name, href, new ArrayList<>());
         
-        var existingArtist = artistService.getArtistById(artistId).getBody();
-        if (existingArtist == null) {
-            artistService.createArtist(artistDTO);
-        } else {
-            artistService.updateArtist(artistId, artistDTO);
+        try {
+            var fetchArtistReq = artistService.getArtistById(artistId);
+            if (fetchArtistReq.getStatusCode() != HttpStatus.OK) {
+                artistService.createArtist(artistDTO);
+            } else {
+                artistService.updateArtist(artistId, artistDTO);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to sync artist: " + e.getMessage());
         }
         
         return artistId;
     }
     
+    @Transactional
     private void syncAlbumForSong(Map<String, Object> track, String songId) {
         Map<String, Object> albumData = (Map<String, Object>) track.get("album");
         if (albumData == null) return;
@@ -346,11 +364,15 @@ public class SpotifySyncService {
         
         AlbumDTO albumDTO = new AlbumDTO(albumId, title, releaseYear, href, artistId, new ArrayList<>());
         
-        var existingAlbum = albumService.getAlbumById(albumId).getBody();
-        if (existingAlbum == null) {
-            albumService.createAlbum(albumDTO);
-        } else {
-            albumService.updateAlbum(albumId, albumDTO);
+        try {
+            var fetchAlbumReq = albumService.getAlbumById(albumId);
+            if (fetchAlbumReq.getStatusCode() != HttpStatus.OK) {
+                albumService.createAlbum(albumDTO);
+            } else {
+                albumService.updateAlbum(albumId, albumDTO);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to sync album: " + e.getMessage());
         }
         
         // Add song to album

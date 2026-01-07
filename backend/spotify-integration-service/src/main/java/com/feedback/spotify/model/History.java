@@ -13,6 +13,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -31,10 +32,12 @@ public class History {
     // kenneth changed this to be joinColumn instead of joinTable and removed the import
     @ManyToOne(fetch = FetchType.LAZY)// one history has one listener (listener who played the song)
     @JoinColumn(name = "listener_id")
+    @EqualsAndHashCode.Exclude
     private Listener listener;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "song_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private Song song;
 
     public History(LocalDateTime playedAt, Listener listener, Song song) {

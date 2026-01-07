@@ -11,6 +11,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -42,9 +43,11 @@ public class Listener {
     private Integer totalSongsPlayed = 0;
 
     @OneToMany(mappedBy = "owner")
+    @EqualsAndHashCode.Exclude
     private Set<Playlist> playlists = new HashSet<>(); 
     
     @OneToMany(mappedBy = "listener", cascade = CascadeType.ALL)
+    @EqualsAndHashCode.Exclude
     private Set<History> history = new HashSet<>();
 
     public Listener(String listenerId, String displayName, String email, String country, String href) {

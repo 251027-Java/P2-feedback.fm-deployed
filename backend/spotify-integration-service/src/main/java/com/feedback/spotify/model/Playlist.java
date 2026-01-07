@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -39,6 +40,7 @@ public class Playlist { //Playlist Columns: playlist_id, name, owner_id, is_publ
 
     @ManyToOne(fetch = FetchType.LAZY)// one playlist has one owner (listener)
     @JoinColumn(name = "owner_id")
+    @EqualsAndHashCode.Exclude
     private Listener owner;
 
     @ManyToMany
@@ -47,6 +49,7 @@ public class Playlist { //Playlist Columns: playlist_id, name, owner_id, is_publ
         joinColumns = @JoinColumn(name = "playlist_id"),
         inverseJoinColumns = @JoinColumn(name = "song_id")
     )
+    @EqualsAndHashCode.Exclude
     private List<Song> songs = new ArrayList<>();
 
     public Playlist(String playlistId, String name, String href, Boolean isPublic, Listener owner) {
