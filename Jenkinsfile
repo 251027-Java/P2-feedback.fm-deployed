@@ -15,6 +15,7 @@ def fbfm = [
     ],
     isDefault: false,
     isPrToDefault: false,
+    canBuild: false,
     changes: [:],
     test: [:],
     build: [:],
@@ -115,21 +116,31 @@ def handleCommitAttributes = { ->
                 fbfm.isPrToDefault = true
             }
 
+            def validImageKeys = [ 'frontend' ] as Set
+            validImageKeys += fbfm.microservices.values().collect { it -> it.name }
+
             // build images based on "image-*"
             attributes.findAll { it.startsWith('image-') }.each { attr ->
                 def key = attr.substring('image-'.length())
-                // indicate successful build to trick system
-                echo "[${key}]: will build"
-                fbfm.build[key] = true
+                
+                if (validImageKeys.contains(key)) {
+                    // indicate successful build to trick system
+                    echo "[${key}]: will build"
+                    fbfm.build[key] = true
+                }
             }
 
             if (attributes.contains('imageall')) {
                 echo '[imageall]: building all images'
 
-                fbfm.microservices.values() .each { service -> 
-                    echo "[${service.name}]: will build"
-                    fbfm.build[service.name] = true
+                validImageKeys.each { name -> 
+                    echo "[${name}]: will build"
+                    fbfm.build[name] = true
                 }
+            }
+
+            validImageKeys.each { name -> 
+                fbfm.canBuild |= fbfm.build.containsKey(name)
             }
         }
     }
@@ -147,11 +158,12 @@ def fbfmBuildImage = { args ->
     def tagSeries = args.tagSeries
     def dockerRepo = args.dockerRepo
     def pushLatest = args.pushLatest
-    def branch = env.GIT_BRANCH.replaceAll('/', '-')
+    def branch = (env.CHANGE_BRANCH ?: env.GIT_BRANCH).replaceAll('/', '-')
 
     def tagName = "${tagSeries}-${branch}-${shortSha()}"
     def chName = "docker hub / ${tagSeries}"
 
+    sh '.jenkins/scripts/docker-prep.sh'
     publishChecks name: chName, title: 'Pending', status: 'IN_PROGRESS'
 
     dir(directory) {
@@ -256,10 +268,13 @@ pipeline {
 
                     fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true'
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
+                    fbfm.canBuild = fbfm.isDefault
 
                     def ref = determineReference()
                     checkForChanges(ref)
                     handleCommitAttributes()
+
+                    echo "${groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(fbfm))}"
                 }
             }
         }
@@ -376,13 +391,13 @@ pipeline {
 
         stage('image frontend') {
             when {
-                expression { fbfm.build.frontend && fbfm.isDefault }
+                expression { fbfm.build.frontend && fbfm.canBuild }
             }
 
             steps {
                 script {
                     fbfmBuildImage(name: 'frontend', directory: 'frontend', tagSeries: 'fe',
-                        dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                        dockerRepo: 'minidomo/feedbackfm', pushLatest: fbfm.isDefault
                     )
                 }
             }
@@ -413,11 +428,10 @@ pipeline {
                             }
                         }
 
-                        if (fbfm.build[service.name] && fbfm.isDefault) {
+                        if (fbfm.build[service.name] && fbfm.canBuild) {
                             stage("image ${service.name}") {
-                                sh '.jenkins/scripts/docker-prep.sh'
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
-                                    dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                                    dockerRepo: 'minidomo/feedbackfm', pushLatest: fbfm.isDefault
                                 )
                             }
                         }

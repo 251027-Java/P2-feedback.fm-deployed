@@ -18,6 +18,7 @@
         <module>gateway</module>
         <module>history-service</module>
         <module>listener-service</module>
+        <module>logging-service</module>
         <module>playlist-service</module>
         <module>song-service</module>
         <module>spotify-integration-service</module>
