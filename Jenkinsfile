@@ -15,6 +15,7 @@ def fbfm = [
     ],
     isDefault: false,
     isPrToDefault: false,
+    canBuild: false,
     changes: [:],
     test: [:],
     build: [:],
@@ -126,11 +127,13 @@ def handleCommitAttributes = { ->
             if (attributes.contains('imageall')) {
                 echo '[imageall]: building all images'
 
-                fbfm.microservices.values() .each { service -> 
+                fbfm.microservices.values().each { service -> 
                     echo "[${service.name}]: will build"
                     fbfm.build[service.name] = true
                 }
             }
+
+            fbfm.canBuild |= !fbfm.build.isEmpty()
         }
     }
 }
@@ -256,10 +259,13 @@ pipeline {
 
                     fbfm.isDefault = env.BRANCH_IS_PRIMARY == 'true'
                     fbfm.isPrToDefault = env.CHANGE_TARGET == env.GITHUB_DEFAULT_BRANCH
+                    fbfm.canBuild = fbfm.isDefault
 
                     def ref = determineReference()
                     checkForChanges(ref)
                     handleCommitAttributes()
+
+                    echo "canBuild Status: ${fbfm.canBuild}"
                 }
             }
         }
@@ -413,11 +419,11 @@ pipeline {
                             }
                         }
 
-                        if (fbfm.build[service.name] && fbfm.isDefault) {
+                        if (fbfm.build[service.name] && fbfm.canBuild) {
                             stage("image ${service.name}") {
                                 sh '.jenkins/scripts/docker-prep.sh'
                                 fbfmBuildImage(directory: service.directory, tagSeries: "be-${service.name}",
-                                    dockerRepo: 'minidomo/feedbackfm', pushLatest: true
+                                    dockerRepo: 'minidomo/feedbackfm', pushLatest: fbfm.isDefault
                                 )
                             }
                         }
