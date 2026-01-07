@@ -116,25 +116,31 @@ def handleCommitAttributes = { ->
                 fbfm.isPrToDefault = true
             }
 
+            def validImageKeys = [ 'frontend' ] as Set
+            validImageKeys += fbfm.microservices.values().collect { it -> it.name }
+
             // build images based on "image-*"
             attributes.findAll { it.startsWith('image-') }.each { attr ->
                 def key = attr.substring('image-'.length())
-                // indicate successful build to trick system
-                echo "[${key}]: will build"
-                fbfm.build[key] = true
+                
+                if (validImageKeys.contains(key)) {
+                    // indicate successful build to trick system
+                    echo "[${key}]: will build"
+                    fbfm.build[key] = true
+                }
             }
 
             if (attributes.contains('imageall')) {
                 echo '[imageall]: building all images'
 
-                fbfm.microservices.values().each { service -> 
-                    echo "[${service.name}]: will build"
-                    fbfm.build[service.name] = true
+                validImageKeys.each { name -> 
+                    echo "[${name}]: will build"
+                    fbfm.build[name] = true
                 }
             }
 
-            fbfm.microservices.values().each { service -> 
-                fbfm.canBuild |= fbfm.build.containsKey(service.name)
+            validImageKeys.each { name -> 
+                fbfm.canBuild |= fbfm.build.containsKey(name)
             }
         }
     }
@@ -269,6 +275,7 @@ pipeline {
                     handleCommitAttributes()
 
                     echo "canBuild Status: ${fbfm.canBuild}"
+                    echo "${fbfm}"
                 }
             }
         }
